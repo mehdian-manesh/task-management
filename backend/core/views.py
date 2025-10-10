@@ -6,11 +6,17 @@ from rest_framework.response import Response
 from .models import Project, Task, WorkingDay, Report, Feedback
 from .serializers import ProjectSerializer, TaskSerializer, WorkingDaySerializer, ReportSerializer, FeedbackSerializer
 
+class IsAdminUserOrReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        # SAFE_METHODS: GET, HEAD, OPTIONS
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user and request.user.is_staff
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdminUserOrReadOnly]
 
     def get_queryset(self):
         if self.request.user.is_staff:  # Admins see all

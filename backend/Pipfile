@@ -11,6 +11,8 @@ djangorestframework-simplejwt = "*"
 [dev-packages]
 drf-spectacular = "*"
 django-extensions = "*"
+pytest = "*"
+pytest-django = "*"
 
 [requires]
 python_version = "3.13"
