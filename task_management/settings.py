@@ -126,3 +126,22 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+if DEBUG:
+    INSTALLED_APPS += [
+        'drf_spectacular',
+        'django_extensions',
+    ]
+
+    REST_FRAMEWORK.update({
+        'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    })
+
+    SPECTACULAR_SETTINGS = {
+        'TITLE': 'Task Management API',
+        'DESCRIPTION': 'API for managing working days, reports, tasks, projects, and feedbacks',
+        'VERSION': '1.0.0',
+        'SERVE_INCLUDE_SCHEMA': False,  # Optional: Exclude schema from public access if desired
+    }
+else:
+    pass

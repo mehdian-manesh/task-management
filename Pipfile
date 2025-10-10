@@ -9,6 +9,8 @@ djangorestframework = "*"
 djangorestframework-simplejwt = "*"
 
 [dev-packages]
+drf-spectacular = "*"
+django-extensions = "*"
 
 [requires]
 python_version = "3.13"
