@@ -7,6 +7,8 @@ name = "pypi"
 django = "*"
 djangorestframework = "*"
 djangorestframework-simplejwt = "*"
+django-cors-headers = "*"
+drf-nested-routers = "*"
 
 [dev-packages]
 drf-spectacular = "*"
