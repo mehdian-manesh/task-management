@@ -68,6 +68,7 @@ class WorkingDay(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='working_days')
     check_in = models.DateTimeField(auto_now_add=True)  # Automatically set on creation (check-in)
     check_out = models.DateTimeField(null=True, blank=True)  # Set manually on check-out
+    is_on_leave = models.BooleanField(default=False)  # Mark if user is on leave
 
 
 class Report(models.Model):
