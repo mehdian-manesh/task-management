@@ -129,6 +129,10 @@ REST_FRAMEWORK = {
     ],
 }
 
+# CORS Settings
+CORS_ALLOW_ALL_ORIGINS = True  # For development only
+CORS_ALLOW_CREDENTIALS = True
+
 if DEBUG:
     INSTALLED_APPS += [
         'drf_spectacular',
