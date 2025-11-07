@@ -41,6 +41,8 @@ class Project(models.Model):
         choices=[(status.value, status.name.capitalize()) for status in StatusChoices],
         default=StatusChoices.BACKLOG.value
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Task(models.Model):
