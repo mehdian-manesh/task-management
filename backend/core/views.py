@@ -182,22 +182,24 @@ class ReportViewSet(viewsets.ModelViewSet):
         # Regular users only see their own reports
         return queryset.filter(working_day__user=user)
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
         working_day_pk = self.kwargs.get('working_day_pk')
         if working_day_pk:
             try:
                 working_day = WorkingDay.objects.get(
                     id=working_day_pk,
-                    user=self.request.user
+                    user=request.user
                 )
-                serializer.save(working_day=working_day)
             except WorkingDay.DoesNotExist:
                 return Response(
                     {'detail': 'روز کاری یافت نشد.'},
                     status=status.HTTP_404_NOT_FOUND
                 )
-        else:
-            serializer.save()
+            
+            # Add working_day to request data
+            request.data['working_day'] = working_day.id
+        
+        return super().create(request, *args, **kwargs)
 
 
 class FeedbackViewSet(viewsets.ModelViewSet):
