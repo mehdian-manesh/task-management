@@ -49,6 +49,7 @@ class Task(models.Model):
     color = models.CharField(max_length=7, blank=True)  # e.g., hex code
     project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True, related_name='tasks')
     assignees = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_tasks', null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     deadline = models.DateField(null=True, blank=True)
     estimated_hours = models.PositiveIntegerField(default=0)
@@ -59,6 +60,8 @@ class Task(models.Model):
         choices=[(status.value, status.name.capitalize()) for status in StatusChoices],
         default=StatusChoices.BACKLOG.value
     )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class WorkingDay(models.Model):
