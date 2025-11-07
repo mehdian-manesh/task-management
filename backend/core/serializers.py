@@ -53,6 +53,9 @@ class TaskDetailSerializer(TaskSerializer):
     project = ProjectSerializer(read_only=True)
     assignees = UserSerializer(many=True, read_only=True)
     created_by = UserSerializer(read_only=True)
+    
+    class Meta(TaskSerializer.Meta):
+        fields = TaskSerializer.Meta.fields + ['project']
 
 
 class WorkingDaySerializer(serializers.ModelSerializer):
