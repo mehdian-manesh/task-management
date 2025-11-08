@@ -1,5 +1,5 @@
 # Development Dockerfile for Frontend
-FROM node:21-slim
+FROM node:25-slim
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Expose port
 EXPOSE 3000

@@ -1,5 +1,5 @@
 # Production Dockerfile for Frontend
-FROM node:21-slim AS build
+FROM node:25-slim AS build
 
 WORKDIR /app
 
@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy project files
 COPY . .
