@@ -25,7 +25,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { taskService, projectService } from '../api/services';
-import moment from 'moment-jalaali';
+import { formatToJalali, jalaliToGregorian } from '../utils/dateUtils';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -216,7 +216,7 @@ const TaskManager = () => {
                 </TableCell>
                 <TableCell align="right">{task.phase || '-'}</TableCell>
                 <TableCell align="right">
-                  {task.deadline ? moment(task.deadline).format('jYYYY/jMM/jDD') : '-'}
+                  {formatToJalali(task.deadline)}
                 </TableCell>
                 <TableCell align="right">
                   {task.is_draft && <Chip label="پیش‌نویس" size="small" color="warning" />}

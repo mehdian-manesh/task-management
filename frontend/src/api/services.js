@@ -3,54 +3,54 @@ import axiosInstance from './axios';
 // Auth Services
 export const authService = {
   login: (username, password) => 
-    axiosInstance.post('/api/login/', { username, password }),
+    axiosInstance.post('/login/', { username, password }),
   
   logout: () => 
-    axiosInstance.post('/api/logout/'),
+    axiosInstance.post('/logout/'),
 };
 
 // Project Services
 export const projectService = {
-  getAll: () => axiosInstance.get('/api/projects/'),
-  getById: (id) => axiosInstance.get(`/api/projects/${id}/`),
-  create: (data) => axiosInstance.post('/api/projects/', data),
-  update: (id, data) => axiosInstance.patch(`/api/projects/${id}/`, data),
-  delete: (id) => axiosInstance.delete(`/api/projects/${id}/`),
+  getAll: () => axiosInstance.get('/projects/'),
+  getById: (id) => axiosInstance.get(`/projects/${id}/`),
+  create: (data) => axiosInstance.post('/projects/', data),
+  update: (id, data) => axiosInstance.patch(`/projects/${id}/`, data),
+  delete: (id) => axiosInstance.delete(`/projects/${id}/`),
 };
 
 // Task Services
 export const taskService = {
-  getAll: () => axiosInstance.get('/api/tasks/'),
-  getById: (id) => axiosInstance.get(`/api/tasks/${id}/`),
-  create: (data) => axiosInstance.post('/api/tasks/', data),
-  update: (id, data) => axiosInstance.patch(`/api/tasks/${id}/`, data),
-  delete: (id) => axiosInstance.delete(`/api/tasks/${id}/`),
+  getAll: () => axiosInstance.get('/tasks/'),
+  getById: (id) => axiosInstance.get(`/tasks/${id}/`),
+  create: (data) => axiosInstance.post('/tasks/', data),
+  update: (id, data) => axiosInstance.patch(`/tasks/${id}/`, data),
+  delete: (id) => axiosInstance.delete(`/tasks/${id}/`),
 };
 
 // Working Day Services
 export const workingDayService = {
-  getAll: () => axiosInstance.get('/api/working-days/'),
-  checkIn: () => axiosInstance.post('/api/working-days/', {}),
-  checkOut: (id) => axiosInstance.post(`/api/working-days/${id}/check_out/`),
-  leave: (id) => axiosInstance.post(`/api/working-days/${id}/leave/`),
+  getAll: () => axiosInstance.get('/working-days/'),
+  checkIn: () => axiosInstance.post('/working-days/', {}),
+  checkOut: (id) => axiosInstance.post(`/working-days/${id}/check_out/`),
+  leave: (id) => axiosInstance.post(`/working-days/${id}/leave/`),
 };
 
 // Report Services
 export const reportService = {
   getByWorkingDay: (workingDayId) => 
-    axiosInstance.get(`/api/working-days/${workingDayId}/reports/`),
+    axiosInstance.get(`/working-days/${workingDayId}/reports/`),
   create: (workingDayId, data) => 
-    axiosInstance.post(`/api/working-days/${workingDayId}/reports/`, data),
+    axiosInstance.post(`/working-days/${workingDayId}/reports/`, data),
   update: (workingDayId, reportId, data) => 
-    axiosInstance.patch(`/api/working-days/${workingDayId}/reports/${reportId}/`, data),
+    axiosInstance.patch(`/working-days/${workingDayId}/reports/${reportId}/`, data),
   delete: (workingDayId, reportId) => 
-    axiosInstance.delete(`/api/working-days/${workingDayId}/reports/${reportId}/`),
+    axiosInstance.delete(`/working-days/${workingDayId}/reports/${reportId}/`),
 };
 
 // Feedback Services
 export const feedbackService = {
-  getAll: () => axiosInstance.get('/api/feedbacks/'),
-  create: (data) => axiosInstance.post('/api/feedbacks/', data),
-  update: (id, data) => axiosInstance.patch(`/api/feedbacks/${id}/`, data),
-  delete: (id) => axiosInstance.delete(`/api/feedbacks/${id}/`),
+  getAll: () => axiosInstance.get('/feedbacks/'),
+  create: (data) => axiosInstance.post('/feedbacks/', data),
+  update: (id, data) => axiosInstance.patch(`/feedbacks/${id}/`, data),
+  delete: (id) => axiosInstance.delete(`/feedbacks/${id}/`),
 };

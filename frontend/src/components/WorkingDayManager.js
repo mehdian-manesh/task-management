@@ -23,15 +23,12 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 import AddIcon from '@mui/icons-material/Add';
 import { workingDayService, reportService, taskService } from '../api/services';
-import moment from 'moment-jalaali';
+import { formatToJalaliWithTime, REPORT_RESULTS, REPORT_RESULT_LABELS } from '../utils/dateUtils';
 
-const RESULT_CHOICES = [
-  { value: 'ongoing', label: 'هنوز تمام نشده' },
-  { value: 'success', label: 'با موفقیت انجام شد' },
-  { value: 'postponed', label: 'به تعویق افتاد' },
-  { value: 'failed', label: 'موفق به انجام آن نشدم' },
-  { value: 'cancelled', label: 'کنسل شد' },
-];
+const RESULT_CHOICES = Object.entries(REPORT_RESULT_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   const [workingDay, setWorkingDay] = useState(todayWorkingDay);
@@ -110,13 +107,33 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
 
   const handleAddReport = async () => {
     try {
+      let taskId = newReport.task_id;
+      
+      // Create a draft task if no task is selected
+      if (!taskId && newReport.task_name) {
+        const taskResponse = await taskService.create({
+          name: newReport.task_name,
+          status: 'todo',
+          is_draft: true,
+        });
+        taskId = taskResponse.data.id;
+      }
+      
       const reportData = {
         ...newReport,
-        task_id: newReport.task_id || undefined,
-        task_name: newReport.task_name || 'گزارش کار',
+        task_id: taskId,
       };
       
-      await reportService.create(workingDay.id, reportData);
+      const response = await reportService.create(workingDay.id, reportData);
+      
+      // Update task status based on report result
+      if (response.data.result === REPORT_RESULTS.SUCCESS) {
+        await taskService.update(taskId, { status: 'done' });
+      } else if (response.data.result === REPORT_RESULTS.POSTPONED) {
+        await taskService.update(taskId, { status: 'postpone' });
+      } else if (response.data.result === REPORT_RESULTS.CANCELLED) {
+        await taskService.update(taskId, { status: 'archive' });
+      }
       setMessage({ type: 'success', text: 'گزارش با موفقیت ثبت شد' });
       setOpenReportDialog(false);
       setNewReport({ task_id: '', task_name: '', result: 'ongoing', comment: '' });
@@ -166,11 +183,11 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
                   وضعیت روز کاری
                 </Typography>
                 <Typography variant="body1">
-                  زمان ورود: {moment(workingDay.check_in).format('jYYYY/jMM/jDD - HH:mm')}
+                  زمان ورود: {formatToJalaliWithTime(workingDay.check_in)}
                 </Typography>
                 {workingDay.check_out && (
                   <Typography variant="body1">
-                    زمان خروج: {moment(workingDay.check_out).format('jYYYY/jMM/jDD - HH:mm')}
+                    زمان خروج: {formatToJalaliWithTime(workingDay.check_out)}
                   </Typography>
                 )}
                 {!workingDay.check_out && (
