@@ -1,4 +1,4 @@
-# Development Caddyfile
+﻿# Development Caddyfile
 {
     # Debug mode for development
     debug
@@ -9,18 +9,17 @@
 localhost {
     tls internal
 
+    # Backend API
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
     # Frontend
     handle /socket.io/* {
         reverse_proxy frontend:3000
     }
     handle /* {
         reverse_proxy frontend:3000
-    }
-
-    # Backend API
-    handle /api/* {
-        uri strip_prefix /api
-        reverse_proxy backend:8000
     }
 
     # Handle websocket connections
@@ -39,3 +38,4 @@ localhost {
         level DEBUG
     }
 }
+

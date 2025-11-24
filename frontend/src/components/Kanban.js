@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import {
   Box,
@@ -16,6 +16,7 @@ import {
   TextField,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { taskService, projectService } from '../api/services';
 import moment from 'moment-jalaali';
 
@@ -35,6 +36,8 @@ const Kanban = () => {
   const [selectedProject, setSelectedProject] = useState('all');
   const [selectedTask, setSelectedTask] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggingTaskId, setDraggingTaskId] = useState(null);
 
   useEffect(() => {
     loadTasks();
@@ -59,41 +62,125 @@ const Kanban = () => {
     }
   };
 
-  const getTasksByStatus = (status) => {
-    let filteredTasks = tasks.filter(task => task.status === status);
+  // Memoize valid tasks to prevent unnecessary re-renders
+  const validTasks = useMemo(() => {
+    const validStatuses = COLUMNS.map(col => col.id);
+    return tasks.filter(task => 
+      task.status && validStatuses.includes(task.status)
+    );
+  }, [tasks]);
 
-    if (selectedProject !== 'all') {
-      if (selectedProject === 'none') {
-        filteredTasks = filteredTasks.filter(task => !task.project_id);
-      } else {
-        filteredTasks = filteredTasks.filter(task => task.project_id === parseInt(selectedProject));
+  // Memoize tasks by status to prevent re-renders during drag
+  // Don't include isDragging in dependencies to prevent re-render during drag
+  const tasksByStatus = useMemo(() => {
+    const result = {};
+    COLUMNS.forEach(column => {
+      let filteredTasks = validTasks.filter(task => task.status === column.id);
+
+      if (selectedProject !== 'all') {
+        if (selectedProject === 'none') {
+          filteredTasks = filteredTasks.filter(task => !task.project_id);
+        } else {
+          filteredTasks = filteredTasks.filter(task => task.project_id === parseInt(selectedProject));
+        }
       }
-    }
 
-    return filteredTasks;
+      result[column.id] = filteredTasks;
+    });
+    return result;
+  }, [validTasks, selectedProject]);
+
+  const getTasksByStatus = (status) => {
+    return tasksByStatus[status] || [];
+  };
+
+  const handleDragStart = (start) => {
+    const taskId = parseInt(start.draggableId);
+    setDraggingTaskId(taskId);
+    setIsDragging(true);
+    
+    // Validate that source droppable exists
+    const validColumnIds = COLUMNS.map(col => col.id);
+    const sourceId = start.source.droppableId;
+    
+    if (!validColumnIds.includes(sourceId)) {
+      console.error('Invalid source droppableId on drag start:', sourceId);
+      setIsDragging(false);
+      setDraggingTaskId(null);
+      return;
+    }
   };
 
   const handleDragEnd = async (result) => {
-    if (!result.destination) return;
+    if (!result.destination) {
+      setIsDragging(false);
+      setDraggingTaskId(null);
+      return;
+    }
 
     const { source, destination, draggableId } = result;
 
-    if (source.droppableId === destination.droppableId) return;
+    if (source.droppableId === destination.droppableId) {
+      setIsDragging(false);
+      setDraggingTaskId(null);
+      return;
+    }
+
+    // Validate that destination droppableId exists in COLUMNS
+    const validColumnIds = COLUMNS.map(col => col.id);
+    if (!validColumnIds.includes(destination.droppableId)) {
+      console.error('Invalid destination droppableId:', destination.droppableId);
+      setIsDragging(false);
+      setDraggingTaskId(null);
+      return;
+    }
+
+    if (!validColumnIds.includes(source.droppableId)) {
+      console.error('Invalid source droppableId:', source.droppableId);
+      setIsDragging(false);
+      setDraggingTaskId(null);
+      return;
+    }
 
     const taskId = parseInt(draggableId);
     const newStatus = destination.droppableId;
 
-    try {
-      await taskService.update(taskId, { status: newStatus });
-
-      setTasks(prevTasks =>
-        prevTasks.map(task =>
-          task.id === taskId ? { ...task, status: newStatus } : task
-        )
-      );
-    } catch (error) {
-      console.error('Error updating task status:', error);
+    // Find the task to get its current status for rollback
+    const task = validTasks.find(t => t.id === taskId);
+    if (!task) {
+      console.error('Task not found:', taskId);
+      setIsDragging(false);
+      setDraggingTaskId(null);
+      return;
     }
+
+    const oldStatus = task.status;
+
+    // Update state after drag is complete to prevent droppable lookup issues
+    // Use requestAnimationFrame to ensure DOM is stable
+    requestAnimationFrame(async () => {
+      try {
+        await taskService.update(taskId, { status: newStatus });
+        
+        // Update state after successful API call
+        setTasks(prevTasks => 
+          prevTasks.map(t =>
+            t.id === taskId ? { ...t, status: newStatus } : t
+          )
+        );
+      } catch (error) {
+        console.error('Error updating task status:', error);
+        // Rollback on error
+        setTasks(prevTasks =>
+          prevTasks.map(t =>
+            t.id === taskId ? { ...t, status: oldStatus } : t
+          )
+        );
+      } finally {
+        setIsDragging(false);
+        setDraggingTaskId(null);
+      }
+    });
   };
 
   const handleTaskClick = (task) => {
@@ -128,7 +215,15 @@ const Kanban = () => {
         </TextField>
       </Box>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
+      <DragDropContext 
+        onBeforeCapture={() => {
+          // Ensure all droppables are ready before drag starts
+          const validColumnIds = COLUMNS.map(col => col.id);
+          console.log('Before capture - Valid column IDs:', validColumnIds);
+        }}
+        onDragStart={handleDragStart} 
+        onDragEnd={handleDragEnd}
+      >
         <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
           {COLUMNS.map((column) => (
             <Box key={column.id} sx={{ minWidth: 280, flex: '0 0 280px' }}>
@@ -152,7 +247,11 @@ const Kanban = () => {
                   />
                 </Box>
 
-                <Droppable droppableId={column.id}>
+                <Droppable 
+                  droppableId={column.id} 
+                  type="TASK"
+                  isDropDisabled={false}
+                >
                   {(provided, snapshot) => (
                     <Box
                       ref={provided.innerRef}
@@ -169,25 +268,42 @@ const Kanban = () => {
                           key={task.id}
                           draggableId={String(task.id)}
                           index={index}
+                          isDragDisabled={isDragging && draggingTaskId !== task.id}
                         >
                           {(provided, snapshot) => (
                             <Card
                               ref={provided.innerRef}
                               {...provided.draggableProps}
-                              {...provided.dragHandleProps}
                               sx={{
                                 mb: 1,
-                                cursor: 'grab',
+                                cursor: 'pointer',
                                 opacity: snapshot.isDragging ? 0.8 : 1,
                                 borderLeft: `4px solid ${task.color || column.color}`,
+                                position: 'relative',
                                 '&:hover': {
                                   boxShadow: 3,
                                 },
                               }}
                               onClick={() => handleTaskClick(task)}
                             >
+                              <Box
+                                {...provided.dragHandleProps}
+                                sx={{
+                                  position: 'absolute',
+                                  right: 4,
+                                  top: 4,
+                                  cursor: 'grab',
+                                  color: 'text.secondary',
+                                  '&:active': {
+                                    cursor: 'grabbing',
+                                  },
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <DragIndicatorIcon fontSize="small" />
+                              </Box>
                               <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, pr: 3 }}>
                                   {task.name}
                                 </Typography>
                                 {task.project_id && (

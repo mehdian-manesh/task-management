@@ -8,6 +8,7 @@ services:
       - backend_venv:/app/.venv
     environment:
       - DEBUG=1
+      - LANG=C.UTF-8
       - DJANGO_SECRET_KEY=dev_secret_key
       - DJANGO_ALLOWED_HOSTS=localhost,backend
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/taskmanagement
@@ -23,7 +24,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - REACT_APP_BACKEND_URL=https://localhost:${HTTPS_PORT:-443}
+      - REACT_APP_BACKEND_URL=https://localhost:${HTTPS_PORT:-443}/api
       - WATCHPACK_POLLING=true
       - TZ=Asia/Tehran
 
