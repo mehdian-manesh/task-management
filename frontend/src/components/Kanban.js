@@ -37,7 +37,6 @@ const Kanban = () => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [draggingTaskId, setDraggingTaskId] = useState(null);
 
   useEffect(() => {
     loadTasks();
@@ -70,8 +69,7 @@ const Kanban = () => {
     );
   }, [tasks]);
 
-  // Memoize tasks by status to prevent re-renders during drag
-  // Don't include isDragging in dependencies to prevent re-render during drag
+  // Memoize tasks by status - CRITICAL: Don't include isDragging to prevent re-render during drag
   const tasksByStatus = useMemo(() => {
     const result = {};
     COLUMNS.forEach(column => {
@@ -95,50 +93,20 @@ const Kanban = () => {
   };
 
   const handleDragStart = (start) => {
-    const taskId = parseInt(start.draggableId);
-    setDraggingTaskId(taskId);
     setIsDragging(true);
-    
-    // Validate that source droppable exists
-    const validColumnIds = COLUMNS.map(col => col.id);
-    const sourceId = start.source.droppableId;
-    
-    if (!validColumnIds.includes(sourceId)) {
-      console.error('Invalid source droppableId on drag start:', sourceId);
-      setIsDragging(false);
-      setDraggingTaskId(null);
-      return;
-    }
   };
 
   const handleDragEnd = async (result) => {
+    // Reset dragging state immediately
+    setIsDragging(false);
+
     if (!result.destination) {
-      setIsDragging(false);
-      setDraggingTaskId(null);
       return;
     }
 
     const { source, destination, draggableId } = result;
 
     if (source.droppableId === destination.droppableId) {
-      setIsDragging(false);
-      setDraggingTaskId(null);
-      return;
-    }
-
-    // Validate that destination droppableId exists in COLUMNS
-    const validColumnIds = COLUMNS.map(col => col.id);
-    if (!validColumnIds.includes(destination.droppableId)) {
-      console.error('Invalid destination droppableId:', destination.droppableId);
-      setIsDragging(false);
-      setDraggingTaskId(null);
-      return;
-    }
-
-    if (!validColumnIds.includes(source.droppableId)) {
-      console.error('Invalid source droppableId:', source.droppableId);
-      setIsDragging(false);
-      setDraggingTaskId(null);
       return;
     }
 
@@ -149,38 +117,29 @@ const Kanban = () => {
     const task = validTasks.find(t => t.id === taskId);
     if (!task) {
       console.error('Task not found:', taskId);
-      setIsDragging(false);
-      setDraggingTaskId(null);
       return;
     }
 
     const oldStatus = task.status;
 
-    // Update state after drag is complete to prevent droppable lookup issues
-    // Use requestAnimationFrame to ensure DOM is stable
-    requestAnimationFrame(async () => {
-      try {
-        await taskService.update(taskId, { status: newStatus });
-        
-        // Update state after successful API call
-        setTasks(prevTasks => 
-          prevTasks.map(t =>
-            t.id === taskId ? { ...t, status: newStatus } : t
-          )
-        );
-      } catch (error) {
-        console.error('Error updating task status:', error);
-        // Rollback on error
-        setTasks(prevTasks =>
-          prevTasks.map(t =>
-            t.id === taskId ? { ...t, status: oldStatus } : t
-          )
-        );
-      } finally {
-        setIsDragging(false);
-        setDraggingTaskId(null);
-      }
-    });
+    // Optimistically update UI
+    setTasks(prevTasks => 
+      prevTasks.map(t =>
+        t.id === taskId ? { ...t, status: newStatus } : t
+      )
+    );
+
+    try {
+      await taskService.update(taskId, { status: newStatus });
+    } catch (error) {
+      console.error('Error updating task status:', error);
+      // Rollback on error
+      setTasks(prevTasks =>
+        prevTasks.map(t =>
+          t.id === taskId ? { ...t, status: oldStatus } : t
+        )
+      );
+    }
   };
 
   const handleTaskClick = (task) => {
@@ -204,6 +163,7 @@ const Kanban = () => {
           onChange={(e) => setSelectedProject(e.target.value)}
           SelectProps={{ native: true }}
           sx={{ minWidth: 200 }}
+          disabled={isDragging}
         >
           <option value="all">همه پروژه‌ها</option>
           <option value="none">بدون پروژه</option>
@@ -216,11 +176,6 @@ const Kanban = () => {
       </Box>
 
       <DragDropContext 
-        onBeforeCapture={() => {
-          // Ensure all droppables are ready before drag starts
-          const validColumnIds = COLUMNS.map(col => col.id);
-          console.log('Before capture - Valid column IDs:', validColumnIds);
-        }}
         onDragStart={handleDragStart} 
         onDragEnd={handleDragEnd}
       >
@@ -248,9 +203,8 @@ const Kanban = () => {
                 </Box>
 
                 <Droppable 
-                  droppableId={column.id} 
+                  droppableId={column.id}
                   type="TASK"
-                  isDropDisabled={false}
                 >
                   {(provided, snapshot) => (
                     <Box
@@ -268,7 +222,6 @@ const Kanban = () => {
                           key={task.id}
                           draggableId={String(task.id)}
                           index={index}
-                          isDragDisabled={isDragging && draggingTaskId !== task.id}
                         >
                           {(provided, snapshot) => (
                             <Card
@@ -284,7 +237,7 @@ const Kanban = () => {
                                   boxShadow: 3,
                                 },
                               }}
-                              onClick={() => handleTaskClick(task)}
+                              onClick={() => !isDragging && handleTaskClick(task)}
                             >
                               <Box
                                 {...provided.dragHandleProps}
@@ -307,7 +260,7 @@ const Kanban = () => {
                                   {task.name}
                                 </Typography>
                                 {task.project_id && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                                     {getProjectName(task.project_id)}
                                   </Typography>
                                 )}
