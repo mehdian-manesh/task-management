@@ -178,7 +178,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
             flexDirection: collapsed ? 'column' : 'row',
             justifyContent: 'flex-start', // Always align to right in RTL
             cursor: 'pointer',
-            borderRadius: '8px',
+            borderRadius: '6px',
             p: collapsed ? 1 : 1.5,
             transition: 'background-color 0.2s ease, transform 0.2s ease',
             '&:hover': {
@@ -260,7 +260,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
               onClick={() => handleMenuClick(item.id)}
               selected={isSelected}
               sx={{
-                borderRadius: 12,
+                borderRadius: 6,
                 pl: 1.5, // Left padding (right side in RTL) - consistent spacing from blue line
                 pr: collapsed ? 1 : 1.5, // Right padding (left side in RTL) - changes based on state
                 py: 1,
@@ -391,7 +391,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
             <ListItemButton
               onClick={onLogout}
               sx={{
-                borderRadius: 12,
+                borderRadius: 6,
                 px: 1,
                 py: 1,
                 height: 48,
@@ -419,7 +419,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
           <ListItemButton
             onClick={onLogout}
             sx={{
-              borderRadius: 12,
+              borderRadius: 6,
               px: 1.5,
               py: 1,
               height: 48,

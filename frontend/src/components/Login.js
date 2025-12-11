@@ -51,7 +51,7 @@ const Login = () => {
           sx={{
             p: 4,
             width: '100%',
-            borderRadius: 1.5,
+            borderRadius: 0.75,
             background: (theme) => theme.palette.mode === 'dark'
               ? 'rgba(30, 41, 59, 0.6)'
               : 'rgba(255, 255, 255, 0.7)',

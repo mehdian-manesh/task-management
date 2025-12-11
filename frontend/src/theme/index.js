@@ -144,7 +144,7 @@ export const createAppTheme = (mode = 'light') => createTheme(
       },
     },
     shape: {
-      borderRadius: 16, // Increased for more modern glass look
+      borderRadius: 6, // Maximum border radius for cards and boxes
     },
     shadows: [
       'none',
@@ -163,7 +163,7 @@ export const createAppTheme = (mode = 'light') => createTheme(
         styleOverrides: {
           root: {
             '& .MuiOutlinedInput-root': {
-              borderRadius: 12,
+              borderRadius: 6,
               background: mode === 'dark'
                 ? 'rgba(15, 23, 42, 0.3)'
                 : 'rgba(255, 255, 255, 0.1)',
@@ -214,7 +214,7 @@ export const createAppTheme = (mode = 'light') => createTheme(
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
+            borderRadius: 6,
             padding: '10px 24px',
             fontWeight: 500,
             backdropFilter: 'blur(10px)',
@@ -257,7 +257,7 @@ export const createAppTheme = (mode = 'light') => createTheme(
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 16,
+            borderRadius: 6,
             background: mode === 'dark' 
               ? 'rgba(15, 23, 42, 0.4)' 
               : 'rgba(255, 255, 255, 0.15)',
@@ -298,7 +298,7 @@ export const createAppTheme = (mode = 'light') => createTheme(
       MuiPaper: {
         styleOverrides: {
           root: {
-            borderRadius: 16,
+            borderRadius: 6,
             background: mode === 'dark'
               ? 'rgba(15, 23, 42, 0.4)'
               : 'rgba(255, 255, 255, 0.15)',
@@ -332,7 +332,7 @@ export const createAppTheme = (mode = 'light') => createTheme(
       MuiChip: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
+            borderRadius: 6,
             backdropFilter: 'blur(10px)',
             WebkitBackdropFilter: 'blur(10px)',
             '& .MuiChip-label': {

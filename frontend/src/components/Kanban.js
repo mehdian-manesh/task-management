@@ -14,6 +14,7 @@ import {
   DialogActions,
   Button,
   TextField,
+  useTheme,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -32,6 +33,8 @@ const COLUMNS = [
 ];
 
 const Kanban = () => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [tasks, setTasks] = useState([]);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('all');
@@ -183,7 +186,17 @@ const Kanban = () => {
         <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
           {COLUMNS.map((column) => (
             <Box key={column.id} sx={{ minWidth: 280, flex: '0 0 280px' }}>
-              <Paper sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
+              <Paper sx={{ 
+                p: 2, 
+                backgroundColor: isDark 
+                  ? 'rgba(15, 23, 42, 0.4)' 
+                  : 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                border: isDark
+                  ? '1px solid rgba(255, 255, 255, 0.15)'
+                  : '1px solid rgba(0, 0, 0, 0.08)',
+              }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
                   <Box
                     sx={{
@@ -193,7 +206,13 @@ const Kanban = () => {
                       backgroundColor: column.color,
                     }}
                   />
-                  <Typography variant="h6" sx={{ fontSize: '0.9rem' }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      fontSize: '0.9rem',
+                      color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
+                    }}
+                  >
                     {column.title}
                   </Typography>
                   <Chip
@@ -226,7 +245,11 @@ const Kanban = () => {
                       {...provided.droppableProps}
                       sx={{
                         minHeight: 400,
-                        backgroundColor: snapshot.isDraggingOver ? '#e3f2fd' : 'transparent',
+                        backgroundColor: snapshot.isDraggingOver 
+                          ? (isDark 
+                              ? 'rgba(37, 99, 235, 0.15)' 
+                              : 'rgba(37, 99, 235, 0.08)')
+                          : 'transparent',
                         borderRadius: 1,
                         transition: 'background-color 0.2s',
                       }}

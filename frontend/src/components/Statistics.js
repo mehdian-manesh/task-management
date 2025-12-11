@@ -67,7 +67,7 @@ const Statistics = () => {
           background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRadius: '8px',
+          borderRadius: '6px',
           border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
           overflow: 'hidden',
           transition: 'all 0.2s ease',
