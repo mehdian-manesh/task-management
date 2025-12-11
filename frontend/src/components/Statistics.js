@@ -64,14 +64,16 @@ const Statistics = () => {
           height: '100%',
           minHeight: 140,
           position: 'relative',
-          background: '#1e1e1e',
+          background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           borderRadius: '8px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
           overflow: 'hidden',
           transition: 'all 0.2s ease',
           '&:hover': {
-            borderColor: 'rgba(255, 255, 255, 0.12)',
-            background: 'rgba(255, 255, 255, 0.02)',
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.15)',
+            background: isDark ? 'rgba(15, 23, 42, 0.5)' : 'rgba(255, 255, 255, 0.2)',
           },
         }}
       >
@@ -89,7 +91,7 @@ const Statistics = () => {
           <Typography
             variant="body2"
             sx={{
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
               mb: 1.5,
               fontWeight: 500,
               fontSize: '0.875rem',
@@ -102,7 +104,7 @@ const Statistics = () => {
             sx={{
               fontWeight: 700,
               mb: subtitle ? 1.5 : 0,
-              color: '#ffffff',
+              color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
               lineHeight: 1.2,
               fontSize: '2rem',
             }}
@@ -113,7 +115,7 @@ const Statistics = () => {
             <Typography
               variant="body2"
               sx={{
-                color: 'rgba(255, 255, 255, 0.6)',
+                color: isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
                 mt: 1,
                 fontSize: '0.8125rem',
                 fontWeight: 400,
@@ -135,7 +137,7 @@ const Statistics = () => {
           mb: 3,
           fontWeight: 600,
           fontSize: '1.75rem',
-          color: '#ffffff',
+          color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
           lineHeight: 1.3,
         }}
       >
@@ -203,18 +205,18 @@ const Statistics = () => {
           sx={{
             p: 3,
             mt: 4,
-            borderRadius: 2,
+            borderRadius: '6px !important',
             background: isDark
-              ? 'rgba(30, 41, 59, 0.4)'
-              : 'rgba(255, 255, 255, 0.5)',
+              ? 'rgba(15, 23, 42, 0.4)'
+              : 'rgba(255, 255, 255, 0.15)',
             backdropFilter: 'blur(20px) saturate(180%)',
             WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: isDark
-              ? '1px solid rgba(255, 255, 255, 0.08)'
-              : '1px solid rgba(255, 255, 255, 0.6)',
+              ? '1px solid rgba(255, 255, 255, 0.2)'
+              : '1px solid rgba(0, 0, 0, 0.12)',
             boxShadow: isDark
-              ? '0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.05)'
-              : '0 8px 32px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)',
+              ? '0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
           }}
         >
           <Typography
@@ -233,13 +235,13 @@ const Statistics = () => {
                 <Card
                   sx={{
                     p: 2.5,
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                    border: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.08)',
                     borderRadius: '6px',
                     transition: 'all 0.2s ease',
                     '&:hover': {
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      borderColor: 'rgba(255, 255, 255, 0.08)',
+                      background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+                      borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.12)',
                     },
                   }}
                 >
@@ -248,7 +250,7 @@ const Statistics = () => {
                     sx={{
                       mb: 1.5,
                       fontWeight: 500,
-                      color: 'rgba(255, 255, 255, 0.7)',
+                      color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
                       fontSize: '0.8125rem',
                     }}
                   >
@@ -258,7 +260,7 @@ const Statistics = () => {
                     variant="h5"
                     sx={{
                       fontWeight: 700,
-                      color: '#ffffff',
+                      color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
                       fontSize: '1.5rem',
                     }}
                   >

@@ -39,6 +39,7 @@ const collapsedWidth = 64;
 const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, collapsed, onToggleCollapse }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isDark = theme.palette.mode === 'dark';
   
   // #region agent log
   React.useEffect(() => {
@@ -76,7 +77,29 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
   };
 
   const drawerContent = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#1e1e1e' }}>
+    <Box sx={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+      borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.3)',
+      position: 'relative',
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '1px',
+        background: isDark 
+          ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)'
+          : 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+        zIndex: 1,
+      },
+    }}>
       {/* Toggle Button */}
       {!isMobile && (
         <Box
@@ -88,16 +111,28 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
             minHeight: 56,
             maxHeight: 56,
             px: 1,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '1px',
+              background: isDark 
+                ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)'
+                : 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent)',
+            },
           }}
         >
           <IconButton
             onClick={onToggleCollapse}
             sx={{
-              color: 'rgba(255, 255, 255, 0.7)',
+              color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
               '&:hover': {
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                color: '#ffffff',
+                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
               },
             }}
           >
@@ -114,15 +149,33 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
           maxHeight: 96,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'flex-start',
+          justifyContent: 'flex-start', // Always align to right in RTL
           px: collapsed ? 1.5 : 2.5,
           py: 2.5,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: '#1e1e1e',
-          transition: 'padding 0.3s ease, justify-content 0.3s ease',
+          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
+          background: 'transparent',
+          transition: 'padding 0.3s ease',
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '1px',
+            background: isDark 
+              ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)'
+              : 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent)',
+          },
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 1.5, flexDirection: collapsed ? 'column' : 'row' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: collapsed ? 0 : 1.5, 
+          flexDirection: collapsed ? 'column' : 'row',
+          justifyContent: 'flex-start', // Always align to right in RTL
+        }}>
           <Avatar 
             sx={{ 
               width: collapsed ? 36 : 40, 
@@ -137,31 +190,31 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
           </Avatar>
           {!collapsed && (
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  fontWeight: 600, 
-                  color: '#ffffff',
-                  fontSize: '0.9375rem',
-                  lineHeight: 1.4,
-                  overflow: 'hidden', 
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {user?.username || 'کاربر'}
-              </Typography>
-              <Typography 
-                variant="caption" 
-                sx={{ 
-                  color: 'rgba(255, 255, 255, 0.6)',
-                  fontSize: '0.8125rem',
-                  display: 'block',
-                  overflow: 'hidden', 
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                fontWeight: 600, 
+                color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
+                fontSize: '0.9375rem',
+                lineHeight: 1.4,
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {user?.username || 'کاربر'}
+            </Typography>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+                fontSize: '0.8125rem',
+                display: 'block',
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
                 {user?.email || (user?.isAdmin ? 'مدیر سیستم' : 'کاربر عادی')}
               </Typography>
             </Box>
@@ -176,6 +229,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
         p: 1, 
         pt: 0.5,
         transition: 'padding 0.3s ease',
+        background: 'transparent',
       }}>
         {allMenuItems.map((item) => {
           const isSelected = currentView === item.id;
@@ -184,7 +238,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
               onClick={() => handleMenuClick(item.id)}
               selected={isSelected}
               sx={{
-                borderRadius: '6px',
+                borderRadius: 12,
                 pl: 1.5, // Left padding (right side in RTL) - consistent spacing from blue line
                 pr: collapsed ? 1 : 1.5, // Right padding (left side in RTL) - changes based on state
                 py: 1,
@@ -193,36 +247,51 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
                 maxHeight: 48,
                 position: 'relative',
                 justifyContent: 'flex-start', // Always align to right in RTL
-                transition: 'padding 0.3s ease',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
                 '&.Mui-selected': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  color: '#ffffff',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    left: 0,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    width: '3px',
-                    height: '60%',
-                    backgroundColor: '#6366f1',
-                    borderRadius: '2px 0 0 2px',
-                  },
+                  background: isDark 
+                    ? 'rgba(99, 102, 241, 0.2)' 
+                    : 'rgba(99, 102, 241, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: isDark 
+                    ? '1px solid rgba(99, 102, 241, 0.3)' 
+                    : '1px solid rgba(99, 102, 241, 0.4)',
+                  color: isDark ? '#ffffff' : '#6366f1',
+                  boxShadow: isDark
+                    ? '0 4px 16px 0 rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                    : '0 4px 16px 0 rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                    background: isDark 
+                      ? 'rgba(99, 102, 241, 0.25)' 
+                      : 'rgba(99, 102, 241, 0.2)',
+                    boxShadow: isDark
+                      ? '0 6px 20px 0 rgba(99, 102, 241, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)'
+                      : '0 6px 20px 0 rgba(99, 102, 241, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
                   },
                   '& .MuiListItemIcon-root': {
-                    color: '#ffffff',
+                    color: isDark ? '#ffffff' : '#6366f1',
                   },
                 },
                 '&:hover': {
-                  backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                  background: isSelected 
+                    ? 'rgba(99, 102, 241, 0.25)' 
+                    : (isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'),
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: isSelected 
+                    ? '1px solid rgba(99, 102, 241, 0.3)' 
+                    : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
                 },
               }}
             >
               <ListItemIcon
                 sx={{
-                  color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                  color: isSelected 
+                    ? (isDark ? '#ffffff' : '#6366f1')
+                    : (isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)'),
                   minWidth: collapsed ? 0 : 36,
                   justifyContent: 'center',
                   transition: 'min-width 0.3s ease',
@@ -239,7 +308,9 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
                   primaryTypographyProps={{
                     fontWeight: isSelected ? 600 : 400,
                     fontSize: '0.9375rem',
-                    color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.9)',
+                    color: isSelected 
+                      ? (isDark ? '#ffffff' : '#6366f1')
+                      : (isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)'),
                   }}
                 />
               )}
@@ -277,25 +348,42 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
         display: 'flex',
         alignItems: 'center',
         p: 1, 
-        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        borderTop: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
         transition: 'height 0.3s ease, padding 0.3s ease',
+        position: 'relative',
+        background: 'transparent',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: isDark 
+            ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)'
+            : 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.08), transparent)',
+        },
       }}>
         {collapsed ? (
           <Tooltip title="خروج" placement="left" arrow>
             <ListItemButton
               onClick={onLogout}
               sx={{
-                borderRadius: '6px',
+                borderRadius: 12,
                 px: 1,
                 py: 1,
                 height: 48,
                 minHeight: 48,
                 maxHeight: 48,
-                color: 'rgba(255, 255, 255, 0.9)',
+                color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
                 justifyContent: 'flex-start', // Always align to right in RTL
-                transition: 'padding 0.3s ease',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
                 '&:hover': {
-                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  boxShadow: '0 4px 16px 0 rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
                   color: '#ef4444',
                 },
               }}
@@ -309,16 +397,20 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
           <ListItemButton
             onClick={onLogout}
             sx={{
-              borderRadius: '6px',
+              borderRadius: 12,
               px: 1.5,
               py: 1,
               height: 48,
               minHeight: 48,
               maxHeight: 48,
-              color: 'rgba(255, 255, 255, 0.9)',
-              transition: 'padding 0.3s ease',
+              color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
               '&:hover': {
-                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                background: 'rgba(239, 68, 68, 0.2)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                boxShadow: '0 4px 16px 0 rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
                 color: '#ef4444',
               },
             }}
@@ -352,9 +444,14 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
             '& .MuiDrawer-paper': {
               width: drawerWidth,
               boxSizing: 'border-box',
-              background: '#1e1e1e',
-              borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+              background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
               overflowX: 'hidden',
+              boxShadow: isDark 
+                ? '0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
             },
           }}
         >
@@ -381,9 +478,11 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
               '& .MuiDrawer-paper': {
                 width: collapsed ? collapsedWidth : drawerWidth,
                 boxSizing: 'border-box',
-                borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+                borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
                 borderRight: 'none',
-                background: '#1e1e1e',
+                background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 position: 'relative',
                 height: '100%',
                 right: 'auto !important',
@@ -391,6 +490,9 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
                 transform: 'none !important',
                 transition: 'width 0.3s ease',
                 overflowX: 'hidden',
+                boxShadow: isDark 
+                  ? '0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                  : '0 8px 32px 0 rgba(31, 38, 135, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
               },
               '&.MuiDrawer-root': {
                 position: 'relative',

@@ -204,8 +204,9 @@ const Dashboard = () => {
       sx={{ 
         display: 'flex', 
         minHeight: '100vh', 
-        background: '#0d0d0d', 
+        background: 'transparent',
         flexDirection: 'row-reverse',
+        position: 'relative',
       }}
     >
       {/* Top App Bar for Mobile */}
@@ -214,8 +215,17 @@ const Dashboard = () => {
           position="fixed"
           sx={{
             zIndex: (theme) => theme.zIndex.drawer + 1,
-            background: '#1e1e1e',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            background: (theme) => theme.palette.mode === 'dark' 
+              ? 'rgba(15, 23, 42, 0.4)' 
+              : 'rgba(255, 255, 255, 0.15)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            borderBottom: (theme) => theme.palette.mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.15)'
+              : '1px solid rgba(0, 0, 0, 0.1)',
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 4px 16px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+              : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
           }}
         >
           <Toolbar>
@@ -235,15 +245,16 @@ const Dashboard = () => {
       {/* Main Content - Windows 11 Style */}
       <Box
         component="main"
-        sx={{
-          flexGrow: 1,
-          width: { md: `calc(100% - ${sidebarWidth}px)` },
-          minHeight: '100vh',
-          background: '#0d0d0d',
-          mt: { xs: 7, md: 0 },
-          overflow: 'auto',
-          transition: 'width 0.3s ease',
-        }}
+          sx={{
+            flexGrow: 1,
+            width: { md: `calc(100% - ${sidebarWidth}px)` },
+            minHeight: '100vh',
+            background: 'transparent',
+            mt: { xs: 7, md: 0 },
+            overflow: 'auto',
+            transition: 'width 0.3s ease',
+            position: 'relative',
+          }}
       >
         <Box
           sx={{

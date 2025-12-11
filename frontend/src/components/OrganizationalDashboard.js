@@ -14,10 +14,13 @@ import {
 } from '@mui/material';
 import { adminService } from '../api/services';
 import { toPersianNumbers } from '../utils/numberUtils';
+import { useTheme } from '@mui/material';
 
 const OrganizationalDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   useEffect(() => {
     loadDashboard();
@@ -51,7 +54,7 @@ const OrganizationalDashboard = () => {
           mb: 3,
           fontWeight: 600,
           fontSize: '1.75rem',
-          color: '#ffffff',
+          color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
           lineHeight: 1.3,
         }}
       >
@@ -65,9 +68,28 @@ const OrganizationalDashboard = () => {
               p: 3,
               height: '100%',
               minHeight: 200,
-              borderRadius: '8px',
-              background: '#1e1e1e',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '6px !important',
+              background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.12)',
+              boxShadow: isDark 
+                ? '0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: isDark
+                  ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)'
+                  : 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                zIndex: 1,
+              },
             }}
           >
             <Typography 
@@ -75,7 +97,7 @@ const OrganizationalDashboard = () => {
               sx={{ 
                 mb: 3, 
                 fontWeight: 600, 
-                color: '#ffffff',
+                color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
                 fontSize: '1.125rem',
               }}
             >
@@ -93,17 +115,17 @@ const OrganizationalDashboard = () => {
                       mb: 1.5,
                       p: 1.5,
                       borderRadius: '6px',
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                      background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid rgba(0, 0, 0, 0.05)',
                       '&:hover': {
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
                       },
                     }}
                   >
                     <Typography 
                       sx={{ 
                         fontWeight: 500, 
-                        color: 'rgba(255, 255, 255, 0.9)',
+                        color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
                         fontSize: '0.9375rem',
                       }}
                     >
@@ -138,8 +160,23 @@ const OrganizationalDashboard = () => {
               minHeight: 200,
               background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
               color: 'white',
-              borderRadius: '8px',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '6px !important',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              boxShadow: '0 2px 8px 0 rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                zIndex: 1,
+              },
             }}
           >
             <Typography 
@@ -180,9 +217,28 @@ const OrganizationalDashboard = () => {
           <Paper
             sx={{
               p: 3,
-              borderRadius: '8px',
-              background: '#1e1e1e',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '6px !important',
+              background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.12)',
+              boxShadow: isDark 
+                ? '0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: isDark
+                  ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)'
+                  : 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                zIndex: 1,
+              },
             }}
           >
             <Typography 
@@ -190,7 +246,7 @@ const OrganizationalDashboard = () => {
               sx={{ 
                 mb: 3, 
                 fontWeight: 600, 
-                color: '#ffffff',
+                color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
                 fontSize: '1.125rem',
               }}
             >
@@ -204,8 +260,8 @@ const OrganizationalDashboard = () => {
                       align="right" 
                       sx={{ 
                         fontWeight: 600, 
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                        borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
                         fontSize: '0.875rem',
                       }}
                     >
@@ -215,8 +271,8 @@ const OrganizationalDashboard = () => {
                       align="right" 
                       sx={{ 
                         fontWeight: 600, 
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                        borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
                         fontSize: '0.875rem',
                       }}
                     >
@@ -230,11 +286,11 @@ const OrganizationalDashboard = () => {
                       key={index}
                       sx={{
                         '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
                         },
                         '& td': {
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                          color: 'rgba(255, 255, 255, 0.9)',
+                          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
+                          color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
                           fontSize: '0.9375rem',
                         },
                       }}
@@ -267,9 +323,28 @@ const OrganizationalDashboard = () => {
           <Paper
             sx={{
               p: 3,
-              borderRadius: '8px',
-              background: '#1e1e1e',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '6px !important',
+              background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.12)',
+              boxShadow: isDark 
+                ? '0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: isDark
+                  ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)'
+                  : 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                zIndex: 1,
+              },
             }}
           >
             <Typography 
@@ -277,7 +352,7 @@ const OrganizationalDashboard = () => {
               sx={{ 
                 mb: 3, 
                 fontWeight: 600, 
-                color: '#ffffff',
+                color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
                 fontSize: '1.125rem',
               }}
             >
@@ -291,8 +366,8 @@ const OrganizationalDashboard = () => {
                       align="right" 
                       sx={{ 
                         fontWeight: 600, 
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                        borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
                         fontSize: '0.875rem',
                       }}
                     >
@@ -302,8 +377,8 @@ const OrganizationalDashboard = () => {
                       align="right" 
                       sx={{ 
                         fontWeight: 600, 
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                        borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
                         fontSize: '0.875rem',
                       }}
                     >
@@ -317,11 +392,11 @@ const OrganizationalDashboard = () => {
                       key={index}
                       sx={{
                         '&:hover': {
-                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                          backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
                         },
                         '& td': {
-                          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                          color: 'rgba(255, 255, 255, 0.9)',
+                          borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
+                          color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
                           fontSize: '0.9375rem',
                         },
                       }}
