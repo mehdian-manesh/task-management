@@ -36,6 +36,12 @@ const drawerWidth = 280;
 const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  
+  // #region agent log
+  React.useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Sidebar.js:39',message:'Sidebar render',data:{isMobile,open,anchor:'right'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+  }, [isMobile, open]);
+  // #endregion
 
   const adminMenuItems = [
     { id: 'organizational-dashboard', label: 'داشبورد سازمانی', icon: <DashboardIcon /> },
@@ -67,125 +73,150 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
   };
 
   const drawerContent = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Header */}
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#1e1e1e' }}>
+      {/* User Info - Windows 11 Style */}
       <Box
         sx={{
-          p: 2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)'
-            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          color: 'white',
+          p: 2.5,
+          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          background: '#1e1e1e',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AccessTimeIcon />
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            مدیریت زمان
-          </Typography>
-        </Box>
-        {isMobile && (
-          <IconButton onClick={onClose} sx={{ color: 'white' }}>
-            <CloseIcon />
-          </IconButton>
-        )}
-      </Box>
-
-      {/* User Info */}
-      <Box
-        sx={{
-          p: 2,
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          background: theme.palette.mode === 'dark'
-            ? 'rgba(30, 41, 59, 0.4)'
-            : 'rgba(245, 247, 250, 0.6)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar 
+            sx={{ 
+              width: 40, 
+              height: 40, 
+              bgcolor: '#6366f1',
+              fontSize: '1rem',
+              fontWeight: 600,
+            }}
+          >
             {user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon />}
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                fontWeight: 600, 
+                color: '#ffffff',
+                fontSize: '0.9375rem',
+                lineHeight: 1.4,
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
               {user?.username || 'کاربر'}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {user?.isAdmin ? 'مدیر سیستم' : 'کاربر عادی'}
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: '0.8125rem',
+                display: 'block',
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {user?.email || (user?.isAdmin ? 'مدیر سیستم' : 'کاربر عادی')}
             </Typography>
           </Box>
         </Box>
       </Box>
 
-      {/* Menu Items */}
-      <List sx={{ flex: 1, overflow: 'auto', p: 1 }}>
-        {allMenuItems.map((item) => (
-          <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              onClick={() => handleMenuClick(item.id)}
-              selected={currentView === item.id}
-              sx={{
-                borderRadius: 1.5,
-                '&.Mui-selected': {
-                  backgroundColor: 'primary.main',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: 'primary.dark',
-                  },
-                  '& .MuiListItemIcon-root': {
-                    color: 'white',
-                  },
-                },
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                },
-              }}
-            >
-              <ListItemIcon
+      {/* Menu Items - Windows 11 Style */}
+      <List sx={{ flex: 1, overflow: 'auto', p: 1, pt: 0.5 }}>
+        {allMenuItems.map((item) => {
+          const isSelected = currentView === item.id;
+          return (
+            <ListItem key={item.id} disablePadding sx={{ mb: 0.25 }}>
+              <ListItemButton
+                onClick={() => handleMenuClick(item.id)}
+                selected={isSelected}
                 sx={{
-                  color: currentView === item.id ? 'white' : 'text.secondary',
-                  minWidth: 40,
+                  borderRadius: '6px',
+                  px: 1.5,
+                  py: 1,
+                  minHeight: 40,
+                  position: 'relative',
+                  '&.Mui-selected': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    color: '#ffffff',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      right: 0,
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      width: '3px',
+                      height: '60%',
+                      backgroundColor: '#6366f1',
+                      borderRadius: '0 2px 2px 0',
+                    },
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                    },
+                    '& .MuiListItemIcon-root': {
+                      color: '#ffffff',
+                    },
+                  },
+                  '&:hover': {
+                    backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                  },
                 }}
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{
-                  fontWeight: currentView === item.id ? 600 : 400,
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+                <ListItemIcon
+                  sx={{
+                    color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                    minWidth: 36,
+                    '& svg': {
+                      fontSize: '1.25rem',
+                    },
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontWeight: isSelected ? 600 : 400,
+                    fontSize: '0.9375rem',
+                    color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.9)',
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
 
-      {/* Logout */}
-      <Box sx={{ p: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+      {/* Logout - Windows 11 Style */}
+      <Box sx={{ p: 1, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
         <ListItemButton
           onClick={onLogout}
           sx={{
-            borderRadius: 1.5,
-            color: 'error.main',
+            borderRadius: '6px',
+            px: 1.5,
+            py: 1,
+            minHeight: 40,
+            color: 'rgba(255, 255, 255, 0.9)',
             '&:hover': {
-              backgroundColor: 'error.light',
-              color: 'white',
+              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+              color: '#ef4444',
             },
           }}
         >
-          <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
+          <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
             <LogoutIcon />
           </ListItemIcon>
-          <ListItemText primary="خروج" />
+          <ListItemText 
+            primary="خروج"
+            primaryTypographyProps={{
+              fontSize: '0.9375rem',
+            }}
+          />
         </ListItemButton>
       </Box>
     </Box>
@@ -199,47 +230,58 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
           open={open}
           onClose={onClose}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             '& .MuiDrawer-paper': {
               width: drawerWidth,
               boxSizing: 'border-box',
-              background: theme.palette.mode === 'dark'
-                ? 'rgba(30, 41, 59, 0.8)'
-                : 'rgba(255, 255, 255, 0.8)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
+              background: '#1e1e1e',
+              borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
             },
           }}
         >
           {drawerContent}
         </Drawer>
       ) : (
-        <Drawer
-          variant="permanent"
-          open
+        <Box
+          data-testid="sidebar-wrapper"
           sx={{
             width: drawerWidth,
             flexShrink: 0,
-            '& .MuiDrawer-paper': {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              borderLeft: 'none',
-              background: theme.palette.mode === 'dark'
-                ? 'rgba(30, 41, 59, 0.8)'
-                : 'rgba(255, 255, 255, 0.8)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              borderRight: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-              boxShadow: theme.palette.mode === 'dark'
-                ? '2px 0 8px rgba(0,0,0,0.5)'
-                : '2px 0 8px rgba(0,0,0,0.1)',
-            },
+            position: 'relative',
           }}
         >
-          {drawerContent}
-        </Drawer>
+          <Drawer
+            variant="permanent"
+            anchor="right"
+            open
+            sx={{
+              width: drawerWidth,
+              flexShrink: 0,
+              '& .MuiDrawer-paper': {
+                width: drawerWidth,
+                boxSizing: 'border-box',
+                borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRight: 'none',
+                background: '#1e1e1e',
+                position: 'relative',
+                height: '100%',
+                right: 'auto !important',
+                left: 'auto !important',
+                transform: 'none !important',
+              },
+              '&.MuiDrawer-root': {
+                position: 'relative',
+                right: 'auto',
+                left: 'auto',
+                transform: 'none',
+              },
+            }}
+          >
+            {drawerContent}
+          </Drawer>
+        </Box>
       )}
     </>
   );

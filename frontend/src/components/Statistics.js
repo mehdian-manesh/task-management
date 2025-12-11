@@ -64,54 +64,14 @@ const Statistics = () => {
           height: '100%',
           minHeight: 140,
           position: 'relative',
-          background: isDark
-            ? 'rgba(30, 41, 59, 0.4)'
-            : 'rgba(255, 255, 255, 0.5)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRadius: 2,
-          border: isDark
-            ? `1px solid rgba(255, 255, 255, 0.08)`
-            : `1px solid rgba(255, 255, 255, 0.6)`,
-          boxShadow: isDark
-            ? '0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.05)'
-            : '0 8px 32px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)',
+          background: '#1e1e1e',
+          borderRadius: '8px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
           overflow: 'hidden',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '2px',
-            background: gradient,
-            opacity: 0.8,
-          },
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: gradient,
-            opacity: 0.1,
-            pointerEvents: 'none',
-          },
+          transition: 'all 0.2s ease',
           '&:hover': {
-            transform: 'translateY(-6px) scale(1.02)',
-            boxShadow: isDark
-              ? '0 16px 48px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)'
-              : '0 16px 48px 0 rgba(31, 38, 135, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)',
-            borderColor: accentColor,
-            '&::before': {
-              opacity: 1,
-              height: '3px',
-            },
-            '&::after': {
-              opacity: 0.15,
-            },
+            borderColor: 'rgba(255, 255, 255, 0.12)',
+            background: 'rgba(255, 255, 255, 0.02)',
           },
         }}
       >
@@ -129,12 +89,10 @@ const Statistics = () => {
           <Typography
             variant="body2"
             sx={{
-              color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+              color: 'rgba(255, 255, 255, 0.7)',
               mb: 1.5,
-              fontWeight: 600,
+              fontWeight: 500,
               fontSize: '0.875rem',
-              letterSpacing: '0.02em',
-              textTransform: 'uppercase',
             }}
           >
             {title}
@@ -142,17 +100,11 @@ const Statistics = () => {
           <Typography
             variant="h3"
             sx={{
-              fontWeight: 800,
+              fontWeight: 700,
               mb: subtitle ? 1.5 : 0,
-              background: gradient,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              color: '#ffffff',
               lineHeight: 1.2,
-              textShadow: isDark
-                ? '0 0 20px rgba(96, 165, 250, 0.3)'
-                : '0 0 10px rgba(37, 99, 235, 0.2)',
-              filter: 'brightness(1.1)',
+              fontSize: '2rem',
             }}
           >
             {toPersianNumbers(value)}
@@ -161,10 +113,10 @@ const Statistics = () => {
             <Typography
               variant="body2"
               sx={{
-                color: isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.55)',
+                color: 'rgba(255, 255, 255, 0.6)',
                 mt: 1,
                 fontSize: '0.8125rem',
-                fontWeight: 500,
+                fontWeight: 400,
               }}
             >
               {subtitle}
@@ -177,7 +129,16 @@ const Statistics = () => {
 
   return (
     <Box>
-      <Typography variant="h5" sx={{ mb: 3 }}>
+      <Typography 
+        variant="h4" 
+        sx={{ 
+          mb: 3,
+          fontWeight: 600,
+          fontSize: '1.75rem',
+          color: '#ffffff',
+          lineHeight: 1.3,
+        }}
+      >
         آمار سیستم
       </Typography>
 
@@ -272,41 +233,13 @@ const Statistics = () => {
                 <Card
                   sx={{
                     p: 2.5,
-                    background: isDark
-                      ? 'rgba(30, 41, 59, 0.5)'
-                      : 'rgba(255, 255, 255, 0.6)',
-                    backdropFilter: 'blur(15px) saturate(180%)',
-                    WebkitBackdropFilter: 'blur(15px) saturate(180%)',
-                    border: isDark
-                      ? '1px solid rgba(255, 255, 255, 0.08)'
-                      : '1px solid rgba(255, 255, 255, 0.7)',
-                    borderRadius: 1.5,
-                    boxShadow: isDark
-                      ? '0 4px 16px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.05)'
-                      : '0 4px 16px 0 rgba(31, 38, 135, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: '2px',
-                      background: getCardGradient(),
-                      opacity: 0.6,
-                    },
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.05)',
+                    borderRadius: '6px',
+                    transition: 'all 0.2s ease',
                     '&:hover': {
-                      transform: 'translateY(-4px) scale(1.02)',
-                      boxShadow: isDark
-                        ? '0 8px 24px 0 rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)'
-                        : '0 8px 24px 0 rgba(31, 38, 135, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 0.9)',
-                      borderColor: getAccentColor(),
-                      '&::before': {
-                        opacity: 1,
-                        height: '3px',
-                      },
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderColor: 'rgba(255, 255, 255, 0.08)',
                     },
                   }}
                 >
@@ -314,8 +247,8 @@ const Statistics = () => {
                     variant="body2"
                     sx={{
                       mb: 1.5,
-                      fontWeight: 600,
-                      color: isDark ? 'rgba(255, 255, 255, 0.65)' : 'rgba(0, 0, 0, 0.6)',
+                      fontWeight: 500,
+                      color: 'rgba(255, 255, 255, 0.7)',
                       fontSize: '0.8125rem',
                     }}
                   >
@@ -324,15 +257,9 @@ const Statistics = () => {
                   <Typography
                     variant="h5"
                     sx={{
-                      fontWeight: 800,
-                      background: getCardGradient(),
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      textShadow: isDark
-                        ? '0 0 15px rgba(96, 165, 250, 0.3)'
-                        : '0 0 8px rgba(37, 99, 235, 0.2)',
-                      filter: 'brightness(1.1)',
+                      fontWeight: 700,
+                      color: '#ffffff',
+                      fontSize: '1.5rem',
                     }}
                   >
                     {toPersianNumbers(count)}

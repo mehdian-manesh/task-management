@@ -16,16 +16,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
   direction: rtl;
   text-align: right;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: #0d0d0d;
   background-attachment: fixed;
   min-height: 100vh;
   overflow-x: hidden;
   transition: background 0.3s ease;
 }
 
-/* Dark mode background */
+/* Dark mode background - Windows 11 Style */
 body.dark-mode {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  background: #0d0d0d;
   background-attachment: fixed;
 }
 
@@ -62,11 +62,27 @@ select {
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
+  background-color: rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   border: transparent;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(155, 155, 155, 0.7);
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Force sidebar to right side in RTL */
+[data-testid="dashboard-container"] {
+  direction: rtl !important;
+}
+
+.MuiDrawer-root.MuiDrawer-anchorRight {
+  right: 0 !important;
+  left: auto !important;
+}
+
+.MuiDrawer-root.MuiDrawer-anchorRight .MuiDrawer-paper {
+  right: 0 !important;
+  left: auto !important;
+  transform: none !important;
 }
