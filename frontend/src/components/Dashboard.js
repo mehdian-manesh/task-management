@@ -127,14 +127,19 @@ const Dashboard = () => {
   const drawerWidth = 280;
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       {/* Top App Bar for Mobile */}
       {isMobile && (
         <AppBar
           position="fixed"
           sx={{
             zIndex: (theme) => theme.zIndex.drawer + 1,
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: (theme) => theme.palette.mode === 'dark'
+              ? 'rgba(102, 126, 234, 0.3)'
+              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            borderBottom: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'}`,
           }}
         >
           <Toolbar>
@@ -168,7 +173,6 @@ const Dashboard = () => {
           flexGrow: 1,
           width: { md: `calc(100% - ${drawerWidth}px)` },
           minHeight: '100vh',
-          bgcolor: 'background.default',
           p: { xs: 2, sm: 3, md: 4 },
           mt: { xs: 7, md: 0 },
         }}
@@ -176,10 +180,17 @@ const Dashboard = () => {
         <Paper
           sx={{
             p: { xs: 2, sm: 3, md: 4 },
-            borderRadius: 3,
+            borderRadius: 1.5,
             minHeight: 'calc(100vh - 64px)',
-            background: 'linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%)',
-            boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            background: (theme) => theme.palette.mode === 'dark'
+              ? 'rgba(15, 23, 42, 0.6)'
+              : 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.3)'}`,
+            boxShadow: (theme) => theme.palette.mode === 'dark'
+              ? '0 8px 32px 0 rgba(0, 0, 0, 0.5)'
+              : '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
           }}
         >
           {renderView()}

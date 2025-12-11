@@ -25,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { projectService } from '../api/services';
 import moment from 'moment-jalaali';
+import { toPersianNumbers } from '../utils/numberUtils';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -197,7 +198,7 @@ const ProjectManager = () => {
                 <TableCell align="right">
                   {project.deadline ? moment(project.deadline).format('jYYYY/jMM/jDD') : '-'}
                 </TableCell>
-                <TableCell align="right">{project.estimated_hours || '-'}</TableCell>
+                <TableCell align="right">{project.estimated_hours ? toPersianNumbers(project.estimated_hours) : '-'}</TableCell>
                 <TableCell align="right">
                   <IconButton size="small" onClick={() => handleOpenDialog(project)}>
                     <EditIcon fontSize="small" />

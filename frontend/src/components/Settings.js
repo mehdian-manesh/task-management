@@ -9,10 +9,17 @@ import {
   FormControlLabel,
   Grid,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Divider,
 } from '@mui/material';
 import { adminService } from '../api/services';
+import { useThemeMode } from '../context/ThemeContext';
 
 const Settings = () => {
+  const { themeMode, setThemeMode } = useThemeMode();
   const [settings, setSettings] = useState({
     system_name: '',
     timezone: '',
@@ -71,6 +78,42 @@ const Settings = () => {
 
       <Paper sx={{ p: 3 }}>
         <Grid container spacing={3}>
+          {/* Theme Selection */}
+          <Grid item xs={12}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              تنظیمات نمایش
+            </Typography>
+            <FormControl fullWidth>
+              <InputLabel>تم نمایش</InputLabel>
+              <Select
+                value={themeMode}
+                label="تم نمایش"
+                onChange={(e) => setThemeMode(e.target.value)}
+              >
+                <MenuItem value="light">روشن</MenuItem>
+                <MenuItem value="dark">تاریک</MenuItem>
+                <MenuItem value="system">هماهنگ با سیستم</MenuItem>
+              </Select>
+            </FormControl>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {themeMode === 'system' 
+                ? 'تم بر اساس تنظیمات سیستم شما تنظیم می‌شود'
+                : themeMode === 'dark'
+                ? 'تم تاریک فعال است'
+                : 'تم روشن فعال است'}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Divider />
+          </Grid>
+
+          <Grid item xs={12}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              تنظیمات سیستم
+            </Typography>
+          </Grid>
+
           <Grid item xs={12} md={6}>
             <TextField
               label="نام سیستم"

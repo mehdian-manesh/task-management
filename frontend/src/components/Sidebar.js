@@ -77,7 +77,11 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
           justifyContent: 'space-between',
           borderBottom: '1px solid',
           borderColor: 'divider',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%)'
+            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
           color: 'white',
         }}
       >
@@ -100,7 +104,11 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
           p: 2,
           borderBottom: '1px solid',
           borderColor: 'divider',
-          background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+          background: theme.palette.mode === 'dark'
+            ? 'rgba(30, 41, 59, 0.4)'
+            : 'rgba(245, 247, 250, 0.6)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -126,7 +134,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
               onClick={() => handleMenuClick(item.id)}
               selected={currentView === item.id}
               sx={{
-                borderRadius: 2,
+                borderRadius: 1.5,
                 '&.Mui-selected': {
                   backgroundColor: 'primary.main',
                   color: 'white',
@@ -166,7 +174,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
         <ListItemButton
           onClick={onLogout}
           sx={{
-            borderRadius: 2,
+            borderRadius: 1.5,
             color: 'error.main',
             '&:hover': {
               backgroundColor: 'error.light',
@@ -197,6 +205,11 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
             '& .MuiDrawer-paper': {
               width: drawerWidth,
               boxSizing: 'border-box',
+              background: theme.palette.mode === 'dark'
+                ? 'rgba(30, 41, 59, 0.8)'
+                : 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
             },
           }}
         >
@@ -213,7 +226,15 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
               width: drawerWidth,
               boxSizing: 'border-box',
               borderLeft: 'none',
-              boxShadow: '2px 0 8px rgba(0,0,0,0.1)',
+              background: theme.palette.mode === 'dark'
+                ? 'rgba(30, 41, 59, 0.8)'
+                : 'rgba(255, 255, 255, 0.8)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              borderRight: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '2px 0 8px rgba(0,0,0,0.5)'
+                : '2px 0 8px rgba(0,0,0,0.1)',
             },
           }}
         >

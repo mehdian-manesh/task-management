@@ -61,7 +61,14 @@ const SystemLogs = () => {
         لاگ‌های سیستم
       </Typography>
 
-      <TableContainer component={Paper}>
+      <TableContainer
+        component={Paper}
+        sx={{
+          borderRadius: 1.5,
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}
+      >
         <Table>
           <TableHead>
             <TableRow>

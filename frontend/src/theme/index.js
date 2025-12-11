@@ -10,8 +10,25 @@ export const cacheRtl = createCache({
   stylisPlugins: [prefixer, rtlPlugin],
 });
 
-// Modern professional theme configuration
-export const theme = createTheme(
+// Glassmorphism styles
+export const glassmorphismStyle = {
+  background: 'rgba(255, 255, 255, 0.1)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+};
+
+export const glassmorphismStyleDark = {
+  background: 'rgba(0, 0, 0, 0.2)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
+};
+
+// Create theme function
+export const createAppTheme = (mode = 'light') => createTheme(
   {
     direction: 'rtl',
     typography: {
@@ -60,7 +77,7 @@ export const theme = createTheme(
       },
     },
     palette: {
-      mode: 'light',
+      mode: mode,
       primary: {
         main: '#2563eb',
         light: '#3b82f6',
@@ -94,16 +111,16 @@ export const theme = createTheme(
         dark: '#059669',
       },
       background: {
-        default: '#f8fafc',
-        paper: '#ffffff',
+        default: mode === 'dark' ? '#0f172a' : '#f8fafc',
+        paper: mode === 'dark' ? '#1e293b' : '#ffffff',
       },
       text: {
-        primary: '#1e293b',
-        secondary: '#64748b',
+        primary: mode === 'dark' ? '#f1f5f9' : '#1e293b',
+        secondary: mode === 'dark' ? '#94a3b8' : '#64748b',
       },
     },
     shape: {
-      borderRadius: 12,
+      borderRadius: 6, // Reduced from 12 for less curve
     },
     shadows: [
       'none',
@@ -122,7 +139,7 @@ export const theme = createTheme(
         styleOverrides: {
           root: {
             '& .MuiOutlinedInput-root': {
-              borderRadius: 8,
+              borderRadius: 6,
             },
           },
         },
@@ -142,7 +159,7 @@ export const theme = createTheme(
       MuiButton: {
         styleOverrides: {
           root: {
-            borderRadius: 8,
+            borderRadius: 6,
             padding: '10px 24px',
             fontWeight: 500,
           },
@@ -157,11 +174,24 @@ export const theme = createTheme(
       MuiCard: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
-            boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.05), 0px 1px 2px rgba(0, 0, 0, 0.1)',
+            borderRadius: 6,
+            background: mode === 'dark' 
+              ? 'rgba(30, 41, 59, 0.6)' 
+              : 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(255, 255, 255, 0.3)',
+            boxShadow: mode === 'dark'
+              ? '0 8px 32px 0 rgba(0, 0, 0, 0.5)'
+              : '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
             transition: 'all 0.3s ease-in-out',
             '&:hover': {
-              boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
+              transform: 'translateY(-2px)',
+              boxShadow: mode === 'dark'
+                ? '0 12px 40px 0 rgba(0, 0, 0, 0.6)'
+                : '0 12px 40px 0 rgba(31, 38, 135, 0.3)',
             },
           },
         },
@@ -169,11 +199,53 @@ export const theme = createTheme(
       MuiPaper: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
+            borderRadius: 6,
+            background: mode === 'dark'
+              ? 'rgba(30, 41, 59, 0.6)'
+              : 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.1)'
+              : '1px solid rgba(255, 255, 255, 0.3)',
             backgroundImage: 'none',
           },
           elevation1: {
-            boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.05), 0px 1px 2px rgba(0, 0, 0, 0.1)',
+            boxShadow: mode === 'dark'
+              ? '0 8px 32px 0 rgba(0, 0, 0, 0.5)'
+              : '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            '& .MuiChip-label': {
+              fontWeight: 500,
+            },
+          },
+          colorDefault: {
+            backgroundColor: mode === 'dark'
+              ? 'rgba(255, 255, 255, 0.15)'
+              : 'rgba(0, 0, 0, 0.08)',
+            color: mode === 'dark'
+              ? '#ffffff'
+              : '#1e293b',
+            '& .MuiChip-label': {
+              color: mode === 'dark'
+                ? '#ffffff'
+                : '#1e293b',
+              fontWeight: 600,
+            },
+          },
+        },
+      },
+      MuiDrawer: {
+        styleOverrides: {
+          paper: {
+            '& .MuiChip-label': {
+              fontWeight: 600,
+            },
           },
         },
       },

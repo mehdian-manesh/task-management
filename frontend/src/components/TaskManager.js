@@ -26,6 +26,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { taskService, projectService } from '../api/services';
 import { formatToJalali, jalaliToGregorian } from '../utils/dateUtils';
+import { toPersianNumbers } from '../utils/numberUtils';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -214,7 +215,7 @@ const TaskManager = () => {
                     size="small"
                   />
                 </TableCell>
-                <TableCell align="right">{task.phase || '-'}</TableCell>
+                <TableCell align="right">{task.phase ? toPersianNumbers(task.phase) : '-'}</TableCell>
                 <TableCell align="right">
                   {formatToJalali(task.deadline)}
                 </TableCell>

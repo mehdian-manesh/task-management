@@ -19,6 +19,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { taskService, projectService } from '../api/services';
 import moment from 'moment-jalaali';
+import { toPersianNumbers } from '../utils/numberUtils';
 
 const COLUMNS = [
   { id: 'backlog', title: 'لیست انتظار', color: '#9e9e9e' },
@@ -196,9 +197,22 @@ const Kanban = () => {
                     {column.title}
                   </Typography>
                   <Chip
-                    label={getTasksByStatus(column.id).length}
+                    label={toPersianNumbers(getTasksByStatus(column.id).length)}
                     size="small"
-                    sx={{ ml: 'auto' }}
+                    sx={{
+                      ml: 'auto',
+                      color: 'text.primary',
+                      fontWeight: 600,
+                      backgroundColor: (theme) => theme.palette.mode === 'dark'
+                        ? 'rgba(255, 255, 255, 0.2)'
+                        : 'rgba(0, 0, 0, 0.08)',
+                      '& .MuiChip-label': {
+                        color: (theme) => theme.palette.mode === 'dark'
+                          ? '#ffffff'
+                          : '#1e293b',
+                        fontWeight: 600,
+                      }
+                    }}
                   />
                 </Box>
 
@@ -273,7 +287,25 @@ const Kanban = () => {
                                   <Chip label="پیش‌نویس" size="small" color="warning" sx={{ mt: 0.5 }} />
                                 )}
                                 {task.phase > 0 && (
-                                  <Chip label={`فاز ${task.phase}`} size="small" sx={{ mt: 0.5, ml: 0.5 }} />
+                                  <Chip
+                                    label={toPersianNumbers(`فاز ${task.phase}`)}
+                                    size="small"
+                                    sx={{
+                                      mt: 0.5,
+                                      ml: 0.5,
+                                      color: 'text.primary',
+                                      fontWeight: 600,
+                                      backgroundColor: (theme) => theme.palette.mode === 'dark'
+                                        ? 'rgba(255, 255, 255, 0.2)'
+                                        : 'rgba(0, 0, 0, 0.08)',
+                                      '& .MuiChip-label': {
+                                        color: (theme) => theme.palette.mode === 'dark'
+                                          ? '#ffffff'
+                                          : '#1e293b',
+                                        fontWeight: 600,
+                                      }
+                                    }}
+                                  />
                                 )}
                               </CardContent>
                             </Card>
@@ -320,7 +352,18 @@ const Kanban = () => {
               {selectedTask.phase > 0 && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="subtitle2" color="text.secondary">فاز:</Typography>
-                  <Typography variant="body2">{selectedTask.phase}</Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: (theme) => theme.palette.mode === 'dark'
+                        ? '#ffffff'
+                        : '#1e293b',
+                      fontWeight: 600,
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {toPersianNumbers(selectedTask.phase)}
+                  </Typography>
                 </Box>
               )}
               {selectedTask.start_date && (
@@ -338,7 +381,18 @@ const Kanban = () => {
               {selectedTask.estimated_hours > 0 && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="subtitle2" color="text.secondary">برآورد نفر-ساعت:</Typography>
-                  <Typography variant="body2">{selectedTask.estimated_hours}</Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: (theme) => theme.palette.mode === 'dark'
+                        ? '#ffffff'
+                        : '#1e293b',
+                      fontWeight: 600,
+                      fontSize: '1rem'
+                    }}
+                  >
+                    {toPersianNumbers(selectedTask.estimated_hours)}
+                  </Typography>
                 </Box>
               )}
               <Box sx={{ mb: 2 }}>
