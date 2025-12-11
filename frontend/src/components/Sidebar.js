@@ -30,10 +30,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import FolderIcon from '@mui/icons-material/Folder';
 import FeedbackIcon from '@mui/icons-material/Feedback';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
-const drawerWidth = 280;
+const drawerWidth = 240;
+const collapsedWidth = 64;
 
-const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView }) => {
+const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, collapsed, onToggleCollapse }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
@@ -74,110 +77,163 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
 
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', background: '#1e1e1e' }}>
+      {/* Toggle Button */}
+      {!isMobile && (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            height: 56,
+            minHeight: 56,
+            maxHeight: 56,
+            px: 1,
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          }}
+        >
+          <IconButton
+            onClick={onToggleCollapse}
+            sx={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                color: '#ffffff',
+              },
+            }}
+          >
+            {collapsed ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+          </IconButton>
+        </Box>
+      )}
+
       {/* User Info - Windows 11 Style */}
       <Box
         sx={{
-          p: 2.5,
+          height: 96,
+          minHeight: 96,
+          maxHeight: 96,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          px: collapsed ? 1.5 : 2.5,
+          py: 2.5,
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           background: '#1e1e1e',
+          transition: 'padding 0.3s ease, justify-content 0.3s ease',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: collapsed ? 0 : 1.5, flexDirection: collapsed ? 'column' : 'row' }}>
           <Avatar 
             sx={{ 
-              width: 40, 
-              height: 40, 
+              width: collapsed ? 36 : 40, 
+              height: collapsed ? 36 : 40, 
               bgcolor: '#6366f1',
               fontSize: '1rem',
               fontWeight: 600,
+              transition: 'width 0.3s ease, height 0.3s ease',
             }}
           >
             {user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon />}
           </Avatar>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                fontWeight: 600, 
-                color: '#ffffff',
-                fontSize: '0.9375rem',
-                lineHeight: 1.4,
-                overflow: 'hidden', 
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {user?.username || 'کاربر'}
-            </Typography>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                color: 'rgba(255, 255, 255, 0.6)',
-                fontSize: '0.8125rem',
-                display: 'block',
-                overflow: 'hidden', 
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {user?.email || (user?.isAdmin ? 'مدیر سیستم' : 'کاربر عادی')}
-            </Typography>
-          </Box>
+          {!collapsed && (
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  fontWeight: 600, 
+                  color: '#ffffff',
+                  fontSize: '0.9375rem',
+                  lineHeight: 1.4,
+                  overflow: 'hidden', 
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {user?.username || 'کاربر'}
+              </Typography>
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  fontSize: '0.8125rem',
+                  display: 'block',
+                  overflow: 'hidden', 
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {user?.email || (user?.isAdmin ? 'مدیر سیستم' : 'کاربر عادی')}
+              </Typography>
+            </Box>
+          )}
         </Box>
       </Box>
 
       {/* Menu Items - Windows 11 Style */}
-      <List sx={{ flex: 1, overflow: 'auto', p: 1, pt: 0.5 }}>
+      <List sx={{ 
+        flex: 1, 
+        overflow: 'auto', 
+        p: 1, 
+        pt: 0.5,
+        transition: 'padding 0.3s ease',
+      }}>
         {allMenuItems.map((item) => {
           const isSelected = currentView === item.id;
-          return (
-            <ListItem key={item.id} disablePadding sx={{ mb: 0.25 }}>
-              <ListItemButton
-                onClick={() => handleMenuClick(item.id)}
-                selected={isSelected}
-                sx={{
-                  borderRadius: '6px',
-                  px: 1.5,
-                  py: 1,
-                  minHeight: 40,
-                  position: 'relative',
-                  '&.Mui-selected': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    color: '#ffffff',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      right: 0,
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      width: '3px',
-                      height: '60%',
-                      backgroundColor: '#6366f1',
-                      borderRadius: '0 2px 2px 0',
-                    },
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.12)',
-                    },
-                    '& .MuiListItemIcon-root': {
-                      color: '#ffffff',
-                    },
+          const buttonContent = (
+            <ListItemButton
+              onClick={() => handleMenuClick(item.id)}
+              selected={isSelected}
+              sx={{
+                borderRadius: '6px',
+                pl: 1.5, // Left padding (right side in RTL) - consistent spacing from blue line
+                pr: collapsed ? 1 : 1.5, // Right padding (left side in RTL) - changes based on state
+                py: 1,
+                height: 48,
+                minHeight: 48,
+                maxHeight: 48,
+                position: 'relative',
+                justifyContent: 'flex-start', // Always align to right in RTL
+                transition: 'padding 0.3s ease',
+                '&.Mui-selected': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: '#ffffff',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    left: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: '3px',
+                    height: '60%',
+                    backgroundColor: '#6366f1',
+                    borderRadius: '2px 0 0 2px',
                   },
                   '&:hover': {
-                    backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+                  },
+                  '& .MuiListItemIcon-root': {
+                    color: '#ffffff',
+                  },
+                },
+                '&:hover': {
+                  backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.05)',
+                },
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
+                  minWidth: collapsed ? 0 : 36,
+                  justifyContent: 'center',
+                  transition: 'min-width 0.3s ease',
+                  '& svg': {
+                    fontSize: '1.25rem',
                   },
                 }}
               >
-                <ListItemIcon
-                  sx={{
-                    color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.7)',
-                    minWidth: 36,
-                    '& svg': {
-                      fontSize: '1.25rem',
-                    },
-                  }}
-                >
-                  {item.icon}
-                </ListItemIcon>
+                {item.icon}
+              </ListItemIcon>
+              {!collapsed && (
                 <ListItemText
                   primary={item.label}
                   primaryTypographyProps={{
@@ -186,38 +242,98 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
                     color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.9)',
                   }}
                 />
-              </ListItemButton>
+              )}
+            </ListItemButton>
+          );
+
+          return (
+            <ListItem 
+              key={item.id} 
+              disablePadding 
+              sx={{ 
+                mb: 0.25,
+                height: 48,
+                minHeight: 48,
+                maxHeight: 48,
+              }}
+            >
+              {collapsed ? (
+                <Tooltip title={item.label} placement="left" arrow>
+                  {buttonContent}
+                </Tooltip>
+              ) : (
+                buttonContent
+              )}
             </ListItem>
           );
         })}
       </List>
 
       {/* Logout - Windows 11 Style */}
-      <Box sx={{ p: 1, borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-        <ListItemButton
-          onClick={onLogout}
-          sx={{
-            borderRadius: '6px',
-            px: 1.5,
-            py: 1,
-            minHeight: 40,
-            color: 'rgba(255, 255, 255, 0.9)',
-            '&:hover': {
-              backgroundColor: 'rgba(239, 68, 68, 0.15)',
-              color: '#ef4444',
-            },
-          }}
-        >
-          <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
-            <LogoutIcon />
-          </ListItemIcon>
-          <ListItemText 
-            primary="خروج"
-            primaryTypographyProps={{
-              fontSize: '0.9375rem',
+      <Box sx={{ 
+        height: 72,
+        minHeight: 72,
+        maxHeight: 72,
+        display: 'flex',
+        alignItems: 'center',
+        p: 1, 
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        transition: 'height 0.3s ease, padding 0.3s ease',
+      }}>
+        {collapsed ? (
+          <Tooltip title="خروج" placement="left" arrow>
+            <ListItemButton
+              onClick={onLogout}
+              sx={{
+                borderRadius: '6px',
+                px: 1,
+                py: 1,
+                height: 48,
+                minHeight: 48,
+                maxHeight: 48,
+                color: 'rgba(255, 255, 255, 0.9)',
+                justifyContent: 'flex-start', // Always align to right in RTL
+                transition: 'padding 0.3s ease',
+                '&:hover': {
+                  backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                  color: '#ef4444',
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: 'inherit', minWidth: 0, justifyContent: 'center' }}>
+                <LogoutIcon />
+              </ListItemIcon>
+            </ListItemButton>
+          </Tooltip>
+        ) : (
+          <ListItemButton
+            onClick={onLogout}
+            sx={{
+              borderRadius: '6px',
+              px: 1.5,
+              py: 1,
+              height: 48,
+              minHeight: 48,
+              maxHeight: 48,
+              color: 'rgba(255, 255, 255, 0.9)',
+              transition: 'padding 0.3s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                color: '#ef4444',
+              },
             }}
-          />
-        </ListItemButton>
+          >
+            <ListItemIcon sx={{ color: 'inherit', minWidth: 36 }}>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary="خروج"
+              primaryTypographyProps={{
+                fontSize: '0.9375rem',
+              }}
+            />
+          </ListItemButton>
+        )}
       </Box>
     </Box>
   );
@@ -238,6 +354,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
               boxSizing: 'border-box',
               background: '#1e1e1e',
               borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
+              overflowX: 'hidden',
             },
           }}
         >
@@ -247,9 +364,10 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
         <Box
           data-testid="sidebar-wrapper"
           sx={{
-            width: drawerWidth,
+            width: collapsed ? collapsedWidth : drawerWidth,
             flexShrink: 0,
             position: 'relative',
+            transition: 'width 0.3s ease',
           }}
         >
           <Drawer
@@ -257,10 +375,11 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
             anchor="right"
             open
             sx={{
-              width: drawerWidth,
+              width: collapsed ? collapsedWidth : drawerWidth,
               flexShrink: 0,
+              transition: 'width 0.3s ease',
               '& .MuiDrawer-paper': {
-                width: drawerWidth,
+                width: collapsed ? collapsedWidth : drawerWidth,
                 boxSizing: 'border-box',
                 borderLeft: '1px solid rgba(255, 255, 255, 0.08)',
                 borderRight: 'none',
@@ -270,6 +389,8 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView })
                 right: 'auto !important',
                 left: 'auto !important',
                 transform: 'none !important',
+                transition: 'width 0.3s ease',
+                overflowX: 'hidden',
               },
               '&.MuiDrawer-root': {
                 position: 'relative',

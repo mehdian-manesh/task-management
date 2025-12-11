@@ -29,6 +29,7 @@ const Dashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentView, setCurrentView] = useState('working-day');
   const [todayWorkingDay, setTodayWorkingDay] = useState(null);
 
@@ -181,7 +182,9 @@ const Dashboard = () => {
     }
   };
 
-  const drawerWidth = 280;
+  const drawerWidth = 240;
+  const collapsedWidth = 64;
+  const sidebarWidth = sidebarCollapsed ? collapsedWidth : drawerWidth;
   const containerRef = React.useRef(null);
 
   // #region agent log
@@ -234,11 +237,12 @@ const Dashboard = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          width: { md: `calc(100% - ${sidebarWidth}px)` },
           minHeight: '100vh',
           background: '#0d0d0d',
           mt: { xs: 7, md: 0 },
           overflow: 'auto',
+          transition: 'width 0.3s ease',
         }}
       >
         <Box
@@ -260,6 +264,8 @@ const Dashboard = () => {
           onLogout={handleLogout}
           currentView={currentView}
           setCurrentView={setCurrentView}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
       </Box>
     </Box>
