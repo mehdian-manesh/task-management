@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 
@@ -9,10 +10,53 @@ const axiosInstance = axios.create({
   },
 });
 
-// Add token to requests
+// Helper function to check if token is expired or will expire soon
+const isTokenExpiredOrExpiringSoon = (token) => {
+  if (!token) return true;
+  try {
+    const decoded = jwtDecode(token);
+    const currentTime = Date.now() / 1000;
+    const expirationTime = decoded.exp;
+    // Consider token expired if it expires in less than 5 minutes (300 seconds)
+    return expirationTime - currentTime < 300;
+  } catch (error) {
+    return true;
+  }
+};
+
+// Helper function to refresh access token
+const refreshAccessToken = async () => {
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) {
+    throw new Error('No refresh token available');
+  }
+
+  const response = await axios.post(`${API_URL}/api/token/refresh/`, {
+    refresh: refreshToken,
+  });
+
+  const { access } = response.data;
+  localStorage.setItem('access_token', access);
+  return access;
+};
+
+// Add token to requests and refresh if needed
 axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('access_token');
+  async (config) => {
+    let token = localStorage.getItem('access_token');
+    
+    // Check if token exists and is expired or expiring soon
+    if (token && isTokenExpiredOrExpiringSoon(token)) {
+      try {
+        // Try to refresh the token before making the request
+        token = await refreshAccessToken();
+      } catch (refreshError) {
+        // If refresh fails, the request will proceed without token
+        // The response interceptor will handle the 401
+        console.error('Token refresh failed:', refreshError);
+      }
+    }
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

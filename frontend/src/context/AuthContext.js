@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { authService } from '../api/services';
-import {jwtDecode} from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
+import axios from 'axios';
 
 const AuthContext = createContext();
 
@@ -12,17 +13,94 @@ export const useAuth = () => {
   return context;
 };
 
+// Helper function to check if token is expired or will expire soon
+const isTokenExpiredOrExpiringSoon = (token) => {
+  if (!token) return true;
+  try {
+    const decoded = jwtDecode(token);
+    const currentTime = Date.now() / 1000;
+    const expirationTime = decoded.exp;
+    // Consider token expired if it expires in less than 5 minutes (300 seconds)
+    return expirationTime - currentTime < 300;
+  } catch (error) {
+    return true;
+  }
+};
+
+// Helper function to refresh access token
+const refreshAccessToken = async () => {
+  const refreshToken = localStorage.getItem('refresh_token');
+  if (!refreshToken) {
+    throw new Error('No refresh token available');
+  }
+
+  try {
+    const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+    const response = await axios.post(`${API_URL}/api/token/refresh/`, {
+      refresh: refreshToken,
+    });
+
+    const { access } = response.data;
+    localStorage.setItem('access_token', access);
+    return access;
+  } catch (error) {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    throw error;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const refreshIntervalRef = useRef(null);
+
+  // Function to set up token refresh interval
+  const setupTokenRefresh = () => {
+    // Clear existing interval if any
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+    }
+
+    // Check token expiration every 5 minutes
+    refreshIntervalRef.current = setInterval(async () => {
+      const accessToken = localStorage.getItem('access_token');
+      if (accessToken && isTokenExpiredOrExpiringSoon(accessToken)) {
+        try {
+          await refreshAccessToken();
+        } catch (error) {
+          // If refresh fails, logout user
+          setUser(null);
+          clearInterval(refreshIntervalRef.current);
+        }
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+  };
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      const loadUser = async () => {
+    const initializeAuth = async () => {
+      let accessToken = localStorage.getItem('access_token');
+      
+      if (accessToken) {
         try {
-          const decoded = jwtDecode(token);
+          // Check if token is expired or expiring soon
+          if (isTokenExpiredOrExpiringSoon(accessToken)) {
+            // Try to refresh the token
+            try {
+              accessToken = await refreshAccessToken();
+            } catch (refreshError) {
+              // If refresh fails, clear tokens and exit
+              localStorage.removeItem('access_token');
+              localStorage.removeItem('refresh_token');
+              setLoading(false);
+              return;
+            }
+          }
+
+          // Decode token to get user info
+          const decoded = jwtDecode(accessToken);
+          
           // Try to get user info from API to ensure we have is_staff
           try {
             const response = await authService.getCurrentUser();
@@ -35,20 +113,31 @@ export const AuthProvider = ({ children }) => {
             // Fallback to token if API call fails
             setUser({
               id: decoded.user_id,
+              username: decoded.username || decoded.user_id,
               isAdmin: decoded.is_staff || false,
             });
           }
+
+          // Set up automatic token refresh
+          setupTokenRefresh();
         } catch (error) {
+          // If token is invalid, clear it
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
-        } finally {
-          setLoading(false);
         }
-      };
-      loadUser();
-    } else {
+      }
+      
       setLoading(false);
-    }
+    };
+
+    initializeAuth();
+
+    // Cleanup interval on unmount
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+    };
   }, []);
 
   const login = async (username, password) => {
@@ -76,6 +165,9 @@ export const AuthProvider = ({ children }) => {
           isAdmin: decoded.is_staff || false,
         });
       }
+
+      // Set up automatic token refresh after login
+      setupTokenRefresh();
       
       return { success: true };
     } catch (error) {
@@ -92,6 +184,11 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear token refresh interval
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       setUser(null);
