@@ -7,6 +7,9 @@ export const authService = {
   
   logout: () => 
     axiosInstance.post('/logout/'),
+  
+  getCurrentUser: () => 
+    axiosInstance.get('/current-user/'),
 };
 
 // Project Services
@@ -53,4 +56,27 @@ export const feedbackService = {
   create: (data) => axiosInstance.post('/feedbacks/', data),
   update: (id, data) => axiosInstance.patch(`/feedbacks/${id}/`, data),
   delete: (id) => axiosInstance.delete(`/feedbacks/${id}/`),
+};
+
+// Admin Services
+export const adminService = {
+  // User Management
+  getAllUsers: () => axiosInstance.get('/users/'),
+  getUserById: (id) => axiosInstance.get(`/users/${id}/`),
+  createUser: (data) => axiosInstance.post('/users/', data),
+  updateUser: (id, data) => axiosInstance.patch(`/users/${id}/`, data),
+  deleteUser: (id) => axiosInstance.delete(`/users/${id}/`),
+  
+  // Statistics
+  getStatistics: () => axiosInstance.get('/admin/statistics/'),
+  
+  // Organizational Dashboard
+  getOrganizationalDashboard: () => axiosInstance.get('/admin/organizational-dashboard/'),
+  
+  // System Logs
+  getSystemLogs: () => axiosInstance.get('/admin/system-logs/'),
+  
+  // Settings
+  getSettings: () => axiosInstance.get('/admin/settings/'),
+  updateSettings: (data) => axiosInstance.post('/admin/settings/', data),
 };

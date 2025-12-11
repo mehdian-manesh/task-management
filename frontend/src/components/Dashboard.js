@@ -3,166 +3,188 @@ import { useAuth } from '../context/AuthContext';
 import {
   Box,
   Container,
-  Grid,
   Paper,
-  Typography,
-  Button,
   AppBar,
   Toolbar,
   IconButton,
-  Menu,
-  MenuItem,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+import MenuIcon from '@mui/icons-material/Menu';
 import { workingDayService } from '../api/services';
 import WorkingDayManager from './WorkingDayManager';
 import TaskManager from './TaskManager';
 import ProjectManager from './ProjectManager';
 import FeedbackManager from './FeedbackManager';
 import Kanban from './Kanban';
+import UserManagement from './UserManagement';
+import Statistics from './Statistics';
+import OrganizationalDashboard from './OrganizationalDashboard';
+import SystemLogs from './SystemLogs';
+import Settings from './Settings';
+import Sidebar from './Sidebar';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
-  const [anchorEl, setAnchorEl] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
   const [currentView, setCurrentView] = useState('working-day');
   const [todayWorkingDay, setTodayWorkingDay] = useState(null);
 
   useEffect(() => {
     loadTodayWorkingDay();
-  }, []);
+    // Set default view based on user role
+    if (user?.isAdmin && currentView === 'working-day') {
+      setCurrentView('organizational-dashboard');
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Close sidebar on mobile when view changes
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [currentView, isMobile]);
 
   const loadTodayWorkingDay = async () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:36',message:'loadTodayWorkingDay entry',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     try {
       const response = await workingDayService.getAll();
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:39',message:'loadTodayWorkingDay response received',data:{responseDataLength:response.data?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       const today = response.data.find(wd => !wd.check_out && !wd.is_on_leave);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:40',message:'loadTodayWorkingDay before setState',data:{today:today},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       setTodayWorkingDay(today);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:41',message:'loadTodayWorkingDay after setState',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:43',message:'loadTodayWorkingDay error',data:{errorMessage:error.message,errorStack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       console.error('Error loading working day:', error);
     }
   };
 
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
+  const handleSidebarToggle = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   const handleLogout = () => {
-    handleClose();
     logout();
   };
 
   const renderView = () => {
-    switch (currentView) {
-      case 'working-day':
-        return <WorkingDayManager todayWorkingDay={todayWorkingDay} onUpdate={loadTodayWorkingDay} />;
-      case 'tasks':
-        return <TaskManager />;
-      case 'kanban':
-        return <Kanban />;
-      case 'projects':
-        return <ProjectManager />;
-      case 'feedback':
-        return <FeedbackManager />;
-      default:
-        return <WorkingDayManager todayWorkingDay={todayWorkingDay} onUpdate={loadTodayWorkingDay} />;
+    if (user?.isAdmin) {
+      // Admin views
+      switch (currentView) {
+        case 'user-management':
+          return <UserManagement />;
+        case 'statistics':
+          return <Statistics />;
+        case 'organizational-dashboard':
+          return <OrganizationalDashboard />;
+        case 'system-logs':
+          return <SystemLogs />;
+        case 'settings':
+          return <Settings />;
+        case 'working-day':
+          return <WorkingDayManager todayWorkingDay={todayWorkingDay} onUpdate={loadTodayWorkingDay} />;
+        case 'tasks':
+          return <TaskManager />;
+        case 'kanban':
+          return <Kanban />;
+        case 'projects':
+          return <ProjectManager />;
+        case 'feedback':
+          return <FeedbackManager />;
+        default:
+          return <OrganizationalDashboard />;
+      }
+    } else {
+      // Normal user views
+      switch (currentView) {
+        case 'working-day':
+          return <WorkingDayManager todayWorkingDay={todayWorkingDay} onUpdate={loadTodayWorkingDay} />;
+        case 'tasks':
+          return <TaskManager />;
+        case 'kanban':
+          return <Kanban />;
+        case 'feedback':
+          return <FeedbackManager />;
+        default:
+          return <WorkingDayManager todayWorkingDay={todayWorkingDay} onUpdate={loadTodayWorkingDay} />;
+      }
     }
   };
 
+  const drawerWidth = 280;
+
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <AccessTimeIcon sx={{ mr: 2 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            سیستم مدیریت زمان و گزارش کار
-          </Typography>
-          <IconButton
-            size="large"
-            aria-label="account of current user"
-            aria-controls="menu-appbar"
-            aria-haspopup="true"
-            onClick={handleMenu}
-            color="inherit"
-          >
-            <AccountCircle />
-          </IconButton>
-          <Menu
-            id="menu-appbar"
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-          >
-            <MenuItem onClick={handleLogout}>خروج</MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
+    <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      {/* Top App Bar for Mobile */}
+      {isMobile && (
+        <AppBar
+          position="fixed"
+          sx={{
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleSidebarToggle}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+      )}
 
-      <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item>
-            <Button
-              variant={currentView === 'working-day' ? 'contained' : 'outlined'}
-              onClick={() => setCurrentView('working-day')}
-              startIcon={<AccessTimeIcon />}
-            >
-              روز کاری
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              variant={currentView === 'tasks' ? 'contained' : 'outlined'}
-              onClick={() => setCurrentView('tasks')}
-              startIcon={<AssignmentIcon />}
-            >
-              وظایف
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              variant={currentView === 'kanban' ? 'contained' : 'outlined'}
-              onClick={() => setCurrentView('kanban')}
-            >
-              کانبان
-            </Button>
-          </Grid>
-          {user?.isAdmin && (
-            <Grid item>
-              <Button
-                variant={currentView === 'projects' ? 'contained' : 'outlined'}
-                onClick={() => setCurrentView('projects')}
-              >
-                پروژه‌ها
-              </Button>
-            </Grid>
-          )}
-          <Grid item>
-            <Button
-              variant={currentView === 'feedback' ? 'contained' : 'outlined'}
-              onClick={() => setCurrentView('feedback')}
-            >
-              بازخورد
-            </Button>
-          </Grid>
-        </Grid>
+      {/* Sidebar */}
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        user={user}
+        onLogout={handleLogout}
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+      />
 
-        <Paper sx={{ p: 3 }}>
+      {/* Main Content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+          p: { xs: 2, sm: 3, md: 4 },
+          mt: { xs: 7, md: 0 },
+        }}
+      >
+        <Paper
+          sx={{
+            p: { xs: 2, sm: 3, md: 4 },
+            borderRadius: 3,
+            minHeight: 'calc(100vh - 64px)',
+            background: 'linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%)',
+            boxShadow: '0px 4px 6px -1px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          }}
+        >
           {renderView()}
         </Paper>
-      </Container>
+      </Box>
     </Box>
   );
 };

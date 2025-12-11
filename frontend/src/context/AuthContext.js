@@ -20,18 +20,35 @@ export const AuthProvider = ({ children }) => {
     // Check if user is already logged in
     const token = localStorage.getItem('access_token');
     if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        setUser({
-          id: decoded.user_id,
-          isAdmin: decoded.is_staff || false,
-        });
-      } catch (error) {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-      }
+      const loadUser = async () => {
+        try {
+          const decoded = jwtDecode(token);
+          // Try to get user info from API to ensure we have is_staff
+          try {
+            const response = await authService.getCurrentUser();
+            setUser({
+              id: response.data.id,
+              username: response.data.username,
+              isAdmin: response.data.is_staff || false,
+            });
+          } catch (apiError) {
+            // Fallback to token if API call fails
+            setUser({
+              id: decoded.user_id,
+              isAdmin: decoded.is_staff || false,
+            });
+          }
+        } catch (error) {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadUser();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (username, password) => {
@@ -42,12 +59,23 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
       
-      const decoded = jwtDecode(access);
-      setUser({
-        id: decoded.user_id,
-        username,
-        isAdmin: decoded.is_staff || false,
-      });
+      // Get user info from API to ensure we have is_staff
+      try {
+        const userResponse = await authService.getCurrentUser();
+        setUser({
+          id: userResponse.data.id,
+          username: userResponse.data.username,
+          isAdmin: userResponse.data.is_staff || false,
+        });
+      } catch (apiError) {
+        // Fallback to token if API call fails
+        const decoded = jwtDecode(access);
+        setUser({
+          id: decoded.user_id,
+          username,
+          isAdmin: decoded.is_staff || false,
+        });
+      }
       
       return { success: true };
     } catch (error) {

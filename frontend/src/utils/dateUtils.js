@@ -12,7 +12,14 @@ export const formatToJalali = (date) => {
 // Format date and time to Jalali
 export const formatToJalaliWithTime = (date) => {
   if (!date) return '-';
-  return moment(date).format('jYYYY/jMM/jDD - HH:mm');
+  try {
+    const m = moment(date);
+    if (!m.isValid()) return '-';
+    return m.format('jYYYY/jMM/jDD - HH:mm');
+  } catch (error) {
+    console.error('Error formatting date:', error, date);
+    return '-';
+  }
 };
 
 // Convert Jalali to Gregorian for API

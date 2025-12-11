@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -43,25 +43,76 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   });
   const [message, setMessage] = useState(null);
 
+  // Global error handler
   useEffect(() => {
+    const originalConsoleError = console.error;
+    const originalConsoleWarn = console.warn;
+    
+    console.error = (...args) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:45',message:'Console error intercepted',data:{args:args.map(a=>typeof a==='object'?JSON.stringify(a):String(a))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      originalConsoleError.apply(console, args);
+    };
+    
+    console.warn = (...args) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:49',message:'Console warn intercepted',data:{args:args.map(a=>typeof a==='object'?JSON.stringify(a):String(a))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      originalConsoleWarn.apply(console, args);
+    };
+    
+    const handleError = (event) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:55',message:'Global error caught',data:{error:event.error?.message,stack:event.error?.stack,filename:event.filename,lineno:event.lineno},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+    };
+    const handleUnhandledRejection = (event) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:59',message:'Unhandled promise rejection',data:{reason:event.reason?.message || event.reason,stack:event.reason?.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+    };
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => {
+      console.error = originalConsoleError;
+      console.warn = originalConsoleWarn;
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  const loadReports = useCallback(async (workingDayId) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:77',message:'loadReports entry',data:{workingDayId:workingDayId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    try {
+      const response = await reportService.getByWorkingDay(workingDayId);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:80',message:'loadReports response received',data:{responseData:response.data,responseDataLength:response.data?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      setReports(response.data);
+    } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:84',message:'loadReports error',data:{errorMessage:error.message,errorStack:error.stack,errorResponse:error.response?.data,errorStatus:error.response?.status},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      console.error('Error loading reports:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:66',message:'useEffect todayWorkingDay triggered',data:{todayWorkingDay:todayWorkingDay,todayWorkingDayId:todayWorkingDay?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     setWorkingDay(todayWorkingDay);
     if (todayWorkingDay) {
       loadReports(todayWorkingDay.id);
     }
-  }, [todayWorkingDay]);
+  }, [todayWorkingDay, loadReports]);
 
   useEffect(() => {
     loadTasks();
   }, []);
-
-  const loadReports = async (workingDayId) => {
-    try {
-      const response = await reportService.getByWorkingDay(workingDayId);
-      setReports(response.data);
-    } catch (error) {
-      console.error('Error loading reports:', error);
-    }
-  };
 
   const loadTasks = async () => {
     try {
@@ -73,17 +124,44 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   };
 
   const handleCheckIn = async () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:75',message:'handleCheckIn entry',data:{todayWorkingDay:todayWorkingDay,onUpdateType:typeof onUpdate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:77',message:'handleCheckIn before API call',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       const response = await workingDayService.checkIn();
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:79',message:'handleCheckIn API response received',data:{responseStatus:response.status,responseData:response.data,hasData:!!response.data},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
       setWorkingDay(response.data);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:81',message:'handleCheckIn after setWorkingDay',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       setMessage({ type: 'success', text: 'با موفقیت چک‌این شدید' });
-      onUpdate();
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:82',message:'handleCheckIn before onUpdate',data:{onUpdateType:typeof onUpdate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
+      if (onUpdate && typeof onUpdate === 'function') {
+        onUpdate();
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:84',message:'handleCheckIn after onUpdate',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+      }
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:87',message:'handleCheckIn error caught',data:{errorMessage:error.message,errorStack:error.stack,errorResponse:error.response?.data,errorStatus:error.response?.status},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
       setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در چک‌این' });
     }
   };
 
   const handleCheckOut = async () => {
+    if (!workingDay?.id) {
+      setMessage({ type: 'error', text: 'روز کاری یافت نشد' });
+      return;
+    }
     try {
       await workingDayService.checkOut(workingDay.id);
       setMessage({ type: 'success', text: 'با موفقیت چک‌اوت شدید' });
@@ -95,6 +173,10 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   };
 
   const handleLeave = async () => {
+    if (!workingDay?.id) {
+      setMessage({ type: 'error', text: 'روز کاری یافت نشد' });
+      return;
+    }
     try {
       await workingDayService.leave(workingDay.id);
       setMessage({ type: 'success', text: 'روز به عنوان مرخصی ثبت شد' });
@@ -106,6 +188,10 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   };
 
   const handleAddReport = async () => {
+    if (!workingDay?.id) {
+      setMessage({ type: 'error', text: 'روز کاری یافت نشد' });
+      return;
+    }
     try {
       let taskId = newReport.task_id;
       
@@ -176,21 +262,21 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
         </Card>
       ) : (
         <Grid container spacing={3}>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   وضعیت روز کاری
                 </Typography>
                 <Typography variant="body1">
-                  زمان ورود: {formatToJalaliWithTime(workingDay.check_in)}
+                  زمان ورود: {workingDay?.check_in ? formatToJalaliWithTime(workingDay.check_in) : '-'}
                 </Typography>
-                {workingDay.check_out && (
+                {workingDay?.check_out && (
                   <Typography variant="body1">
                     زمان خروج: {formatToJalaliWithTime(workingDay.check_out)}
                   </Typography>
                 )}
-                {!workingDay.check_out && (
+                {!workingDay?.check_out && (
                   <Box sx={{ mt: 2 }}>
                     <Button
                       variant="contained"
@@ -215,14 +301,14 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
             </Card>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                   <Typography variant="h6">
                     گزارش‌های کاری امروز
                   </Typography>
-                  {!workingDay.check_out && (
+                  {!workingDay?.check_out && (
                     <Button
                       variant="contained"
                       startIcon={<AddIcon />}

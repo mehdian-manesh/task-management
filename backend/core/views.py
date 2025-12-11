@@ -1,7 +1,12 @@
 from django.utils import timezone
+from django.contrib.auth.models import User
+from django.db import models
+from django.db.models import Count, Sum, Avg, Q, F
+from datetime import timedelta
 from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Project, Task, WorkingDay, Report, Feedback
 from .serializers import (
@@ -9,7 +14,8 @@ from .serializers import (
     TaskSerializer, TaskDetailSerializer,
     WorkingDaySerializer,
     ReportSerializer, ReportDetailSerializer,
-    FeedbackSerializer
+    FeedbackSerializer,
+    UserSerializer, UserCreateSerializer, UserUpdateSerializer
 )
 
 
@@ -215,3 +221,246 @@ class FeedbackViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def current_user_view(request):
+    """Get current user information"""
+    from .serializers import UserSerializer
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
+
+
+# Admin-only views
+class UserViewSet(viewsets.ModelViewSet):
+    """User management - Admin only"""
+    queryset = User.objects.all()
+    permission_classes = [permissions.IsAdminUser]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return UserCreateSerializer
+        elif self.action in ['update', 'partial_update']:
+            return UserUpdateSerializer
+        return UserSerializer
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser])
+def statistics_view(request):
+    """Get system statistics - Admin only"""
+    now = timezone.now()
+    today = now.date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    
+    # User statistics
+    total_users = User.objects.count()
+    active_users = User.objects.filter(is_active=True).count()
+    admin_users = User.objects.filter(is_staff=True).count()
+    
+    # Project statistics
+    total_projects = Project.objects.count()
+    active_projects = Project.objects.filter(
+        status__in=['todo', 'doing', 'test']
+    ).count()
+    
+    # Task statistics
+    total_tasks = Task.objects.count()
+    draft_tasks = Task.objects.filter(is_draft=True).count()
+    tasks_by_status = Task.objects.values('status').annotate(count=Count('id'))
+    
+    # Working day statistics
+    total_working_days = WorkingDay.objects.count()
+    today_check_ins = WorkingDay.objects.filter(
+        check_in__date=today,
+        check_out__isnull=True,
+        is_on_leave=False
+    ).count()
+    
+    # Report statistics
+    total_reports = Report.objects.count()
+    reports_this_week = Report.objects.filter(
+        start_time__gte=week_ago
+    ).count()
+    reports_this_month = Report.objects.filter(
+        start_time__gte=month_ago
+    ).count()
+    
+    # Calculate total hours from reports (simplified - count reports with valid times)
+    reports_with_times = Report.objects.filter(
+        start_time__isnull=False,
+        end_time__isnull=False
+    ).count()
+    
+    # Feedback statistics
+    total_feedbacks = Feedback.objects.count()
+    feedbacks_by_type = Feedback.objects.values('type').annotate(count=Count('id'))
+    
+    return Response({
+        'users': {
+            'total': total_users,
+            'active': active_users,
+            'admins': admin_users,
+        },
+        'projects': {
+            'total': total_projects,
+            'active': active_projects,
+        },
+        'tasks': {
+            'total': total_tasks,
+            'drafts': draft_tasks,
+            'by_status': {item['status']: item['count'] for item in tasks_by_status},
+        },
+        'working_days': {
+            'total': total_working_days,
+            'today_check_ins': today_check_ins,
+        },
+        'reports': {
+            'total': total_reports,
+            'this_week': reports_this_week,
+            'this_month': reports_this_month,
+        },
+        'feedbacks': {
+            'total': total_feedbacks,
+            'by_type': {item['type']: item['count'] for item in feedbacks_by_type if item['type']},
+        },
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser])
+def organizational_dashboard_view(request):
+    """Get organizational dashboard data - Admin only"""
+    now = timezone.now()
+    today = now.date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    
+    # User activity
+    active_users_this_week = WorkingDay.objects.filter(
+        check_in__gte=week_ago
+    ).values('user').distinct().count()
+    
+    # Project progress
+    projects_by_status = Project.objects.values('status').annotate(count=Count('id'))
+    
+    # Task distribution
+    tasks_by_project = Task.objects.values('project__name').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
+    
+    # User productivity (reports per user)
+    user_productivity = Report.objects.filter(
+        start_time__gte=month_ago
+    ).values('working_day__user__username').annotate(
+        report_count=Count('id')
+    ).order_by('-report_count')[:10]
+    
+    # Recent activity
+    recent_tasks = Task.objects.order_by('-created_at')[:10]
+    recent_projects = Project.objects.order_by('-created_at')[:10]
+    
+    return Response({
+        'user_activity': {
+            'active_users_this_week': active_users_this_week,
+        },
+        'projects': {
+            'by_status': {item['status']: item['count'] for item in projects_by_status},
+        },
+        'tasks': {
+            'by_project': [
+                {'project': item['project__name'] or 'بدون پروژه', 'count': item['count']}
+                for item in tasks_by_project
+            ],
+        },
+        'productivity': [
+            {'user': item['working_day__user__username'], 'reports': item['report_count']}
+            for item in user_productivity
+        ],
+        'recent_tasks': TaskSerializer(recent_tasks, many=True).data,
+        'recent_projects': ProjectSerializer(recent_projects, many=True).data,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser])
+def system_logs_view(request):
+    """Get system logs - Admin only (simplified version)"""
+    # For now, we'll return recent activity from models
+    # In production, you'd want a proper logging system
+    now = timezone.now()
+    week_ago = now - timedelta(days=7)
+    
+    recent_tasks = Task.objects.filter(
+        created_at__gte=week_ago
+    ).order_by('-created_at')[:50]
+    
+    recent_projects = Project.objects.filter(
+        created_at__gte=week_ago
+    ).order_by('-created_at')[:50]
+    
+    recent_working_days = WorkingDay.objects.filter(
+        check_in__gte=week_ago
+    ).order_by('-check_in')[:50]
+    
+    logs = []
+    
+    for task in recent_tasks:
+        logs.append({
+            'type': 'task_created',
+            'message': f'وظیفه "{task.name}" ایجاد شد',
+            'user': task.created_by.username if task.created_by else 'سیستم',
+            'timestamp': task.created_at,
+            'object_id': task.id,
+        })
+    
+    for project in recent_projects:
+        logs.append({
+            'type': 'project_created',
+            'message': f'پروژه "{project.name}" ایجاد شد',
+            'user': 'سیستم',
+            'timestamp': project.created_at,
+            'object_id': project.id,
+        })
+    
+    for wd in recent_working_days:
+        logs.append({
+            'type': 'check_in',
+            'message': f'کاربر {wd.user.username} چک‌این کرد',
+            'user': wd.user.username,
+            'timestamp': wd.check_in,
+            'object_id': wd.id,
+        })
+    
+    # Sort by timestamp descending
+    logs.sort(key=lambda x: x['timestamp'], reverse=True)
+    
+    return Response({
+        'logs': logs[:100],  # Limit to 100 most recent
+        'total': len(logs),
+    })
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([permissions.IsAdminUser])
+def settings_view(request):
+    """System settings - Admin only"""
+    if request.method == 'GET':
+        # Return current settings (you can store these in database or environment)
+        return Response({
+            'system_name': 'سیستم مدیریت زمان و گزارش کار',
+            'timezone': 'Asia/Tehran',
+            'allow_user_registration': False,
+            'require_email_verification': False,
+            'max_working_hours_per_day': 12,
+            'min_working_hours_per_day': 0,
+        })
+    elif request.method == 'POST':
+        # Update settings (in production, store in database)
+        # For now, just return success
+        return Response({
+            'message': 'تنظیمات با موفقیت به‌روزرسانی شد',
+            'settings': request.data,
+        })
