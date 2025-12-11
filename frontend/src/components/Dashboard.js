@@ -23,6 +23,7 @@ import OrganizationalDashboard from './OrganizationalDashboard';
 import SystemLogs from './SystemLogs';
 import Settings from './Settings';
 import Sidebar from './Sidebar';
+import UserProfile from './UserProfile';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -162,6 +163,8 @@ const Dashboard = () => {
           return <ProjectManager />;
         case 'feedback':
           return <FeedbackManager />;
+        case 'profile':
+          return <UserProfile />;
         default:
           return <OrganizationalDashboard />;
       }
@@ -176,6 +179,8 @@ const Dashboard = () => {
           return <Kanban />;
         case 'feedback':
           return <FeedbackManager />;
+        case 'profile':
+          return <UserProfile />;
         default:
           return <WorkingDayManager todayWorkingDay={todayWorkingDay} onUpdate={loadTodayWorkingDay} />;
       }
@@ -277,6 +282,7 @@ const Dashboard = () => {
           setCurrentView={setCurrentView}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onProfileClick={() => setCurrentView('profile')}
         />
       </Box>
     </Box>

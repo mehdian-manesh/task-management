@@ -225,11 +225,23 @@ class FeedbackViewSet(viewsets.ModelViewSet):
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
+@api_view(['GET', 'PATCH'])
+@permission_classes([permissions.IsAuthenticated])
 def current_user_view(request):
-    """Get current user information"""
-    from .serializers import UserSerializer
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+    """Get or update current user information"""
+    from .serializers import UserSerializer, UserUpdateSerializer
+    
+    if request.method == 'GET':
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+    elif request.method == 'PATCH':
+        serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            # Return updated user data
+            user_serializer = UserSerializer(serializer.instance)
+            return Response(user_serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Admin-only views

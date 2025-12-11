@@ -36,7 +36,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 const drawerWidth = 240;
 const collapsedWidth = 64;
 
-const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, collapsed, onToggleCollapse }) => {
+const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, collapsed, onToggleCollapse, onProfileClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
@@ -169,13 +169,29 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
           },
         }}
       >
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: collapsed ? 0 : 1.5, 
-          flexDirection: collapsed ? 'column' : 'row',
-          justifyContent: 'flex-start', // Always align to right in RTL
-        }}>
+        <Box 
+          onClick={onProfileClick}
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: collapsed ? 0 : 1.5, 
+            flexDirection: collapsed ? 'column' : 'row',
+            justifyContent: 'flex-start', // Always align to right in RTL
+            cursor: 'pointer',
+            borderRadius: '8px',
+            p: collapsed ? 1 : 1.5,
+            transition: 'background-color 0.2s ease, transform 0.2s ease',
+            '&:hover': {
+              backgroundColor: isDark 
+                ? 'rgba(99, 102, 241, 0.1)' 
+                : 'rgba(99, 102, 241, 0.08)',
+              transform: 'translateX(-2px)',
+            },
+            '&:active': {
+              transform: 'translateX(0)',
+            },
+          }}
+        >
           <Avatar 
             sx={{ 
               width: collapsed ? 36 : 40, 
@@ -183,7 +199,13 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
               bgcolor: '#6366f1',
               fontSize: '1rem',
               fontWeight: 600,
-              transition: 'width 0.3s ease, height 0.3s ease',
+              transition: 'width 0.3s ease, height 0.3s ease, transform 0.2s ease',
+              '&:hover': {
+                transform: 'scale(1.05)',
+                boxShadow: isDark 
+                  ? '0 4px 12px 0 rgba(99, 102, 241, 0.4)'
+                  : '0 4px 12px 0 rgba(99, 102, 241, 0.3)',
+              },
             }}
           >
             {user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon />}

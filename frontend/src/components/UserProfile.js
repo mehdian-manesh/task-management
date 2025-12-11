@@ -1,0 +1,300 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Typography,
+  Paper,
+  TextField,
+  Button,
+  Grid,
+  Alert,
+  Avatar,
+  IconButton,
+  useTheme,
+} from '@mui/material';
+import { useAuth } from '../context/AuthContext';
+import { authService, adminService } from '../api/services';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import EditIcon from '@mui/icons-material/Edit';
+
+const UserProfile = () => {
+  const { user, setUser } = useAuth();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    first_name: '',
+    last_name: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || '',
+        email: user.email || '',
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        password: '',
+        confirmPassword: '',
+      });
+    }
+  }, [user]);
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage(null);
+    setSaving(true);
+
+    // Validate password match if password is provided
+    if (formData.password && formData.password !== formData.confirmPassword) {
+      setMessage({ type: 'error', text: 'رمز عبور و تکرار آن باید یکسان باشند' });
+      setSaving(false);
+      return;
+    }
+
+    try {
+      const updateData = {
+        username: formData.username,
+        email: formData.email,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+      };
+
+      // Only include password if it's provided
+      if (formData.password) {
+        updateData.password = formData.password;
+      }
+
+      // Try to use current-user endpoint first, fallback to admin endpoint
+      let response;
+      try {
+        response = await authService.updateProfile(updateData);
+      } catch (error) {
+        // If current-user endpoint doesn't exist, try admin endpoint
+        if (error.response?.status === 404 || error.response?.status === 405) {
+          response = await adminService.updateUser(user.id, updateData);
+        } else {
+          throw error;
+        }
+      }
+      
+      // Update user in context
+      setUser({
+        ...user,
+        ...response.data,
+      });
+
+      setMessage({ type: 'success', text: 'پروفایل با موفقیت به‌روزرسانی شد' });
+      
+      // Clear password fields
+      setFormData({
+        ...formData,
+        password: '',
+        confirmPassword: '',
+      });
+    } catch (error) {
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.detail || error.response?.data?.message || 'خطا در به‌روزرسانی پروفایل' 
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Box>
+      <Typography 
+        variant="h4" 
+        sx={{ 
+          mb: 3,
+          fontWeight: 600,
+          fontSize: '1.75rem',
+          color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
+          lineHeight: 1.3,
+        }}
+      >
+        پروفایل کاربری
+      </Typography>
+
+      {message && (
+        <Alert 
+          severity={message.type} 
+          sx={{ mb: 3 }} 
+          onClose={() => setMessage(null)}
+        >
+          {message.text}
+        </Alert>
+      )}
+
+      <Paper
+        sx={{
+          p: 4,
+          borderRadius: 6,
+          background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.12)',
+          boxShadow: isDark
+            ? '0 2px 8px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+            : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: 2 }}>
+          <Avatar 
+            sx={{ 
+              width: 80, 
+              height: 80, 
+              bgcolor: '#6366f1',
+              fontSize: '2rem',
+              fontWeight: 600,
+            }}
+          >
+            {user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon sx={{ fontSize: 40 }} />}
+          </Avatar>
+          <Box>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 600,
+                color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
+                mb: 0.5,
+              }}
+            >
+              {user?.username || 'کاربر'}
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: isDark ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.6)',
+              }}
+            >
+              {user?.email || ''}
+            </Typography>
+            {user?.isAdmin && (
+              <Typography 
+                variant="caption" 
+                sx={{ 
+                  color: '#6366f1',
+                  fontWeight: 500,
+                  mt: 0.5,
+                  display: 'block',
+                }}
+              >
+                مدیر سیستم
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        <Box component="form" onSubmit={handleSubmit}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="نام کاربری"
+                name="username"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                dir="rtl"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="ایمیل"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                dir="rtl"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="نام"
+                name="first_name"
+                value={formData.first_name}
+                onChange={handleChange}
+                dir="rtl"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="نام خانوادگی"
+                name="last_name"
+                value={formData.last_name}
+                onChange={handleChange}
+                dir="rtl"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  mb: 2,
+                  fontWeight: 600,
+                  color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
+                }}
+              >
+                تغییر رمز عبور
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="رمز عبور جدید"
+                name="password"
+                type="password"
+                value={formData.password}
+                onChange={handleChange}
+                dir="rtl"
+                helperText="در صورت عدم نیاز به تغییر رمز عبور، این فیلد را خالی بگذارید"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="تکرار رمز عبور"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                dir="rtl"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={saving}
+                startIcon={<EditIcon />}
+                sx={{ minWidth: 150 }}
+              >
+                {saving ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </Paper>
+    </Box>
+  );
+};
+
+export default UserProfile;

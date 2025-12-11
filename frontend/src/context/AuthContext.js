@@ -107,6 +107,9 @@ export const AuthProvider = ({ children }) => {
             setUser({
               id: response.data.id,
               username: response.data.username,
+              email: response.data.email,
+              first_name: response.data.first_name,
+              last_name: response.data.last_name,
               isAdmin: response.data.is_staff || false,
             });
           } catch (apiError) {
@@ -154,6 +157,9 @@ export const AuthProvider = ({ children }) => {
         setUser({
           id: userResponse.data.id,
           username: userResponse.data.username,
+          email: userResponse.data.email,
+          first_name: userResponse.data.first_name,
+          last_name: userResponse.data.last_name,
           isAdmin: userResponse.data.is_staff || false,
         });
       } catch (apiError) {
@@ -197,6 +203,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    setUser,
     login,
     logout,
     loading,

@@ -10,6 +10,9 @@ export const authService = {
   
   getCurrentUser: () => 
     axiosInstance.get('/current-user/'),
+  
+  updateProfile: (data) => 
+    axiosInstance.patch('/current-user/', data),
 };
 
 // Project Services

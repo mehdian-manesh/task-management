@@ -32,9 +32,13 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_staff', 'is_active']
+        read_only_fields = ['is_staff', 'is_active']  # Regular users can't change these
     
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
+        # Remove is_staff and is_active if present (only admins can change these)
+        validated_data.pop('is_staff', None)
+        validated_data.pop('is_active', None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if password:
