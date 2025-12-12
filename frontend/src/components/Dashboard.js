@@ -198,8 +198,6 @@ const Dashboard = () => {
             background: (theme) => theme.palette.mode === 'dark' 
               ? 'rgba(15, 23, 42, 0.4)' 
               : 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             borderBottom: (theme) => theme.palette.mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.15)'
               : '1px solid rgba(0, 0, 0, 0.1)',

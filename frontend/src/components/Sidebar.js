@@ -76,8 +76,6 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
       display: 'flex', 
       flexDirection: 'column', 
       background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
-      backdropFilter: 'blur(20px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(255, 255, 255, 0.3)',
       position: 'relative',
       overflow: 'hidden',
@@ -265,14 +263,10 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
                 position: 'relative',
                 justifyContent: 'flex-start', // Always align to right in RTL
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
                 '&.Mui-selected': {
                   background: isDark 
                     ? 'rgba(99, 102, 241, 0.2)' 
                     : 'rgba(99, 102, 241, 0.15)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
                   border: isDark 
                     ? '1px solid rgba(99, 102, 241, 0.3)' 
                     : '1px solid rgba(99, 102, 241, 0.4)',
@@ -296,8 +290,6 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
                   background: isSelected 
                     ? 'rgba(99, 102, 241, 0.25)' 
                     : (isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)'),
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
                   border: isSelected 
                     ? '1px solid rgba(99, 102, 241, 0.3)' 
                     : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'),
@@ -395,8 +387,6 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
                 color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
                 justifyContent: 'flex-start', // Always align to right in RTL
                 transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
                 '&:hover': {
                   background: 'rgba(239, 68, 68, 0.2)',
                   border: '1px solid rgba(239, 68, 68, 0.3)',
@@ -422,8 +412,6 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
               maxHeight: 48,
               color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
               '&:hover': {
                 background: 'rgba(239, 68, 68, 0.2)',
                 border: '1px solid rgba(239, 68, 68, 0.3)',
@@ -462,8 +450,6 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
               width: drawerWidth,
               boxSizing: 'border-box',
               background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(20px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
               borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
               overflowX: 'hidden',
               boxShadow: isDark 
@@ -498,8 +484,6 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
                 borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
                 borderRight: 'none',
                 background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(20px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 position: 'relative',
                 height: '100%',
                 right: 'auto !important',

@@ -13,8 +13,6 @@ export const cacheRtl = createCache({
 // Enhanced Liquid Glass styles
 export const glassmorphismStyle = {
   background: 'rgba(255, 255, 255, 0.15)',
-  backdropFilter: 'blur(20px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
   border: '1px solid rgba(255, 255, 255, 0.3)',
   boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
   position: 'relative',
@@ -31,8 +29,6 @@ export const glassmorphismStyle = {
 
 export const glassmorphismStyleDark = {
   background: 'rgba(15, 23, 42, 0.4)',
-  backdropFilter: 'blur(20px) saturate(180%)',
-  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
   border: '1px solid rgba(255, 255, 255, 0.15)',
   boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
   position: 'relative',
@@ -167,8 +163,6 @@ export const createAppTheme = (mode = 'light') => createTheme(
               background: mode === 'dark'
                 ? 'rgba(15, 23, 42, 0.3)'
                 : 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               '& fieldset': {
                 borderColor: mode === 'dark'
@@ -217,8 +211,6 @@ export const createAppTheme = (mode = 'light') => createTheme(
             borderRadius: 6,
             padding: '10px 24px',
             fontWeight: 500,
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
             transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           },
           contained: {
@@ -226,8 +218,6 @@ export const createAppTheme = (mode = 'light') => createTheme(
               ? 'rgba(37, 99, 235, 0.3)'
               : '#2563eb',
             color: '#ffffff',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
             border: mode === 'dark'
               ? '1px solid rgba(37, 99, 235, 0.3)'
               : '1px solid rgba(37, 99, 235, 0.5)',
@@ -261,8 +251,6 @@ export const createAppTheme = (mode = 'light') => createTheme(
             background: mode === 'dark' 
               ? 'rgba(15, 23, 42, 0.4)' 
               : 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.2)'
               : '1px solid rgba(0, 0, 0, 0.12)',
@@ -302,8 +290,6 @@ export const createAppTheme = (mode = 'light') => createTheme(
             background: mode === 'dark'
               ? 'rgba(15, 23, 42, 0.4)'
               : 'rgba(255, 255, 255, 0.15)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
             border: mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.15)'
               : '1px solid rgba(255, 255, 255, 0.3)',
@@ -333,8 +319,6 @@ export const createAppTheme = (mode = 'light') => createTheme(
         styleOverrides: {
           root: {
             borderRadius: 6,
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
             '& .MuiChip-label': {
               fontWeight: 500,
             },
@@ -343,8 +327,6 @@ export const createAppTheme = (mode = 'light') => createTheme(
             background: mode === 'dark'
               ? 'rgba(255, 255, 255, 0.15)'
               : 'rgba(255, 255, 255, 0.2)',
-            backdropFilter: 'blur(10px)',
-            WebkitBackdropFilter: 'blur(10px)',
             border: mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.15)'
               : '1px solid rgba(255, 255, 255, 0.3)',

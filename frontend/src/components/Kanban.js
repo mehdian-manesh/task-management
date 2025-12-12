@@ -324,8 +324,6 @@ const Kanban = () => {
                 backgroundColor: isDark 
                   ? 'rgba(15, 23, 42, 0.4)' 
                   : 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(20px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 border: isDark
                   ? '1px solid rgba(255, 255, 255, 0.15)'
                   : '1px solid rgba(0, 0, 0, 0.08)',

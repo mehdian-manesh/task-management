@@ -65,8 +65,6 @@ const SystemLogs = () => {
         component={Paper}
         sx={{
           borderRadius: 0.75,
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
         }}
       >
         <Table>
