@@ -46,6 +46,7 @@ const Kanban = () => {
   const [draggedTaskId, setDraggedTaskId] = useState(null); // Keep for logging
   const lastMousePosRef = useRef({ x: 0, y: 0 }); // Track mouse position
   const dragStartOffsetRef = useRef({ x: 0, y: 0 }); // Track initial click offset from element
+  const dragStartElementPosRef = useRef({ x: 0, y: 0 }); // Track initial element screen position
 
   useEffect(() => {
     loadTasks();
@@ -168,11 +169,17 @@ const Kanban = () => {
     // Use tracked mouse position
     mousePos = lastMousePosRef.current;
     
-    // Calculate initial offset from mouse to element (for RTL fix)
+    // Use a very small fixed offset to keep card close to cursor
     if (elementRect && mousePos.x > 0 && mousePos.y > 0) {
+      // Fixed small offset - card will be very close to cursor (more left/top)
       dragStartOffsetRef.current = {
-        x: mousePos.x - elementRect.left,
-        y: mousePos.y - elementRect.top,
+        x: 20, // 20px offset
+        y: 20, // 20px offset
+      };
+      // Store initial element screen position
+      dragStartElementPosRef.current = {
+        x: elementRect.left,
+        y: elementRect.top,
       };
     }
     
@@ -207,6 +214,7 @@ const Kanban = () => {
     draggedTaskIdRef.current = null;
     frozenTasksByStatusRef.current = null; // Clear frozen list
     dragStartOffsetRef.current = { x: 0, y: 0 }; // Reset offset
+    dragStartElementPosRef.current = { x: 0, y: 0 }; // Reset element position
     setIsDragging(false);
     setDraggedTaskId(null);
 
@@ -425,48 +433,7 @@ const Kanban = () => {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              style={(() => {
-                                const baseStyle = provided.draggableProps.style || {};
-                                // Fix RTL positioning: adjust transform to make card follow mouse cursor
-                                if (snapshot.isDragging && baseStyle.transform) {
-                                  const mousePos = lastMousePosRef.current;
-                                  const offset = dragStartOffsetRef.current;
-                                  
-                                  if (mousePos.x > 0 && mousePos.y > 0 && offset.x !== 0 && offset.y !== 0) {
-                                    // Get the element's current position from the base style
-                                    const element = provided.innerRef?.current;
-                                    if (element) {
-                                      // Calculate where the card should be positioned (mouse position minus initial offset)
-                                      // The baseStyle.left is the position react-beautiful-dnd calculated
-                                      // We need to adjust it to position at mouse minus offset
-                                      const baseLeft = parseFloat(baseStyle.left) || 0;
-                                      const baseTop = parseFloat(baseStyle.top) || 0;
-                                      
-                                      // Calculate the correct position: mouse position minus the initial click offset
-                                      const targetLeft = mousePos.x - offset.x;
-                                      const targetTop = mousePos.y - offset.y;
-                                      
-                                      // Calculate the adjustment needed to the transform
-                                      const adjustX = targetLeft - baseLeft;
-                                      const adjustY = targetTop - baseTop;
-                                      
-                                      // Parse the existing transform
-                                      const transformMatch = baseStyle.transform.match(/matrix\(1,\s*0,\s*0,\s*1,\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)/);
-                                      if (transformMatch) {
-                                        const [, tx, ty] = transformMatch;
-                                        const newTx = parseFloat(tx) + adjustX;
-                                        const newTy = parseFloat(ty) + adjustY;
-                                        
-                                        return {
-                                          ...baseStyle,
-                                          transform: `matrix(1, 0, 0, 1, ${newTx}, ${newTy})`,
-                                        };
-                                      }
-                                    }
-                                  }
-                                }
-                                return baseStyle;
-                              })()}
+                              style={provided.draggableProps.style}
                               sx={{
                                 mb: 1,
                                 cursor: 'grab',
