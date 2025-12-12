@@ -10,12 +10,14 @@ djangorestframework-simplejwt = "*"
 django-cors-headers = "*"
 drf-nested-routers = "*"
 pillow = "*"
+pytest-cov = "*"
 
 [dev-packages]
 drf-spectacular = "*"
 django-extensions = "*"
 pytest = "*"
 pytest-django = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.13"
