@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import {
   Box,
@@ -17,7 +17,6 @@ import {
   useTheme,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { taskService, projectService } from '../api/services';
 import moment from 'moment-jalaali';
 import { toPersianNumbers } from '../utils/numberUtils';
@@ -40,11 +39,25 @@ const Kanban = () => {
   const [selectedProject, setSelectedProject] = useState('all');
   const [selectedTask, setSelectedTask] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
+  const draggedTaskIdRef = useRef(null);
+  const frozenTasksByStatusRef = useRef(null); // Freeze tasksByStatus during drag
+  const [isDragging, setIsDragging] = useState(false); // Keep for UI updates (like disabling dropdown)
+  const [draggedTaskId, setDraggedTaskId] = useState(null); // Keep for logging
+  const lastMousePosRef = useRef({ x: 0, y: 0 }); // Track mouse position
+  const dragStartOffsetRef = useRef({ x: 0, y: 0 }); // Track initial click offset from element
 
   useEffect(() => {
     loadTasks();
     loadProjects();
+    
+    // Track mouse position globally for drag offset calculation
+    const handleMouseMove = (e) => {
+      lastMousePosRef.current = { x: e.clientX, y: e.clientY };
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    return () => document.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
   const loadTasks = async () => {
@@ -74,6 +87,7 @@ const Kanban = () => {
   }, [tasks]);
 
   // Memoize tasks by status - CRITICAL: Don't include isDragging to prevent re-render during drag
+  // During drag, we need to ensure the dragged task remains in its original column
   const tasksByStatus = useMemo(() => {
     const result = {};
     COLUMNS.forEach(column => {
@@ -89,22 +103,117 @@ const Kanban = () => {
 
       result[column.id] = filteredTasks;
     });
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:77',message:'tasksByStatus calculated',data:{isDragging:isDragging,draggedTaskId:draggedTaskId,validTasksCount:validTasks.length,columnsWithTasks:Object.keys(result).map(k=>`${k}:${result[k].length}`).join(',')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    
     return result;
   }, [validTasks, selectedProject]);
 
   const getTasksByStatus = (status) => {
+    // During drag, use frozen list to maintain stability for react-beautiful-dnd
+    if (isDraggingRef.current && frozenTasksByStatusRef.current) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:104',message:'Using frozen tasks list during drag',data:{status:status,frozenCount:frozenTasksByStatusRef.current[status]?.length || 0,currentCount:tasksByStatus[status]?.length || 0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+      // #endregion
+      return frozenTasksByStatusRef.current[status] || [];
+    }
+    
     return tasksByStatus[status] || [];
   };
 
   const handleDragStart = (start) => {
+    // #region agent log
+    // Capture mouse position and element position at drag start
+    const draggedElement = document.querySelector(`[data-rbd-draggable-id="${start.draggableId}"]`);
+    const container = document.querySelector('[data-rbd-drag-drop-context-id]');
+    const scrollContainer = container?.closest('[style*="overflow"]') || document.querySelector('body');
+    
+    let mousePos = { x: 0, y: 0 };
+    let elementRect = null;
+    let containerRect = null;
+    let scrollInfo = null;
+    let computedStyles = null;
+    let rtlInfo = null;
+    
+    if (draggedElement) {
+      elementRect = draggedElement.getBoundingClientRect();
+      computedStyles = window.getComputedStyle(draggedElement);
+      rtlInfo = {
+        direction: computedStyles.direction,
+        textAlign: computedStyles.textAlign,
+        transform: computedStyles.transform,
+        position: computedStyles.position,
+        left: computedStyles.left,
+        right: computedStyles.right,
+      };
+    }
+    
+    if (container) {
+      containerRect = container.getBoundingClientRect();
+    }
+    
+    if (scrollContainer) {
+      scrollInfo = {
+        scrollLeft: scrollContainer.scrollLeft,
+        scrollTop: scrollContainer.scrollTop,
+        scrollWidth: scrollContainer.scrollWidth,
+        scrollHeight: scrollContainer.scrollHeight,
+        clientWidth: scrollContainer.clientWidth,
+        clientHeight: scrollContainer.clientHeight,
+      };
+    }
+    
+    // Use tracked mouse position
+    mousePos = lastMousePosRef.current;
+    
+    // Calculate initial offset from mouse to element (for RTL fix)
+    if (elementRect && mousePos.x > 0 && mousePos.y > 0) {
+      dragStartOffsetRef.current = {
+        x: mousePos.x - elementRect.left,
+        y: mousePos.y - elementRect.top,
+      };
+    }
+    
+    fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:117',message:'Drag start - positioning data',data:{draggableId:start.draggableId,source:start.source,mousePos:mousePos,elementRect:elementRect,containerRect:containerRect,scrollInfo:scrollInfo,rtlInfo:rtlInfo,computedStyles:computedStyles,dragStartOffset:dragStartOffsetRef.current},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
+    
+    // Freeze the current tasksByStatus to maintain list stability during drag
+    // This is critical for react-beautiful-dnd - it needs stable list references
+    frozenTasksByStatusRef.current = { ...tasksByStatus };
+    
+    // Use refs to avoid re-renders during drag
+    isDraggingRef.current = true;
+    draggedTaskIdRef.current = start.draggableId;
+    
+    // Only update state for UI (like disabling dropdown) - this causes minimal re-render
     setIsDragging(true);
+    setDraggedTaskId(start.draggableId);
+    
+    // #region agent log
+    const task = validTasks.find(t => t.id === parseInt(start.draggableId));
+    fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:138',message:'Drag start - task found and frozen',data:{taskFound:!!task,taskId:task?.id,taskStatus:task?.status,sourceColumn:start.source.droppableId,frozenTasksCount:frozenTasksByStatusRef.current[start.source.droppableId]?.length || 0},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
   };
 
   const handleDragEnd = async (result) => {
-    // Reset dragging state immediately
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:103',message:'Drag end',data:{draggableId:result.draggableId,source:result.source,destination:result.destination,hasDestination:!!result.destination},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    
+    // Reset dragging state immediately (both refs and state)
+    isDraggingRef.current = false;
+    draggedTaskIdRef.current = null;
+    frozenTasksByStatusRef.current = null; // Clear frozen list
+    dragStartOffsetRef.current = { x: 0, y: 0 }; // Reset offset
     setIsDragging(false);
+    setDraggedTaskId(null);
 
     if (!result.destination) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:110',message:'Drag cancelled - no destination',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       return;
     }
 
@@ -182,6 +291,22 @@ const Kanban = () => {
       <DragDropContext 
         onDragStart={handleDragStart} 
         onDragEnd={handleDragEnd}
+        onDragUpdate={(update) => {
+          // #region agent log
+          const draggedEl = document.querySelector(`[data-rbd-draggable-id="${update.draggableId}"]`);
+          if (draggedEl) {
+            const rect = draggedEl.getBoundingClientRect();
+            const styles = window.getComputedStyle(draggedEl);
+            const mousePos = lastMousePosRef.current;
+            const offsetFromMouse = {
+              x: rect.left - mousePos.x,
+              y: rect.top - mousePos.y,
+            };
+            
+            fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:230',message:'Drag update - position tracking',data:{draggableId:update.draggableId,destination:update.destination,elementRect:rect,mousePos:mousePos,offsetFromMouse:offsetFromMouse,transform:styles.transform,direction:styles.direction},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'C'})}).catch(()=>{});
+          }
+          // #endregion
+        }}
       >
         <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
           {COLUMNS.map((column) => (
@@ -238,6 +363,9 @@ const Kanban = () => {
                 <Droppable 
                   droppableId={column.id}
                   type="TASK"
+                  isDropDisabled={false}
+                  isCombineEnabled={false}
+                  ignoreContainerClipping={true}
                 >
                   {(provided, snapshot) => (
                     <Box
@@ -254,44 +382,106 @@ const Kanban = () => {
                         transition: 'background-color 0.2s',
                       }}
                     >
-                      {getTasksByStatus(column.id).map((task, index) => (
+                      {(() => {
+                        const columnTasks = getTasksByStatus(column.id);
+                        // #region agent log
+                        fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:281',message:'Rendering column tasks',data:{columnId:column.id,tasksCount:columnTasks.length,isDragging:isDraggingRef.current,draggedTaskId:draggedTaskIdRef.current,taskIds:columnTasks.map(t=>t.id)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+                        // #endregion
+                        return columnTasks.map((task, index) => {
+                          // #region agent log
+                          if (isDraggingRef.current && draggedTaskIdRef.current && String(task.id) === draggedTaskIdRef.current) {
+                            fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:257',message:'Rendering dragged task',data:{taskId:task.id,taskStatus:task.status,columnId:column.id,index:index,tasksInColumn:columnTasks.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                          }
+                          // #endregion
+                          return (
                         <Draggable
                           key={task.id}
                           draggableId={String(task.id)}
                           index={index}
+                          isDragDisabled={false}
+                          isCombineEnabled={false}
                         >
-                          {(provided, snapshot) => (
+                          {(provided, snapshot) => {
+                            // #region agent log
+                            if (snapshot.isDragging) {
+                              const draggedEl = provided.innerRef?.current || document.querySelector(`[data-rbd-draggable-id="${task.id}"]`);
+                              if (draggedEl) {
+                                const rect = draggedEl.getBoundingClientRect();
+                                const styles = window.getComputedStyle(draggedEl);
+                                const transform = styles.transform;
+                                const mousePos = lastMousePosRef.current;
+                                const offsetFromMouse = {
+                                  x: rect.left - mousePos.x,
+                                  y: rect.top - mousePos.y,
+                                };
+                                
+                                fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:322',message:'Dragging - transform and offset',data:{taskId:task.id,elementRect:rect,mousePos:mousePos,offsetFromMouse:offsetFromMouse,transform:transform,computedStyles:{position:styles.position,left:styles.left,right:styles.right,top:styles.top,bottom:styles.bottom,direction:styles.direction}},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+                              }
+                            }
+                            // #endregion
+                            
+                            return (
                             <Card
                               ref={provided.innerRef}
                               {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              style={(() => {
+                                const baseStyle = provided.draggableProps.style || {};
+                                // Fix RTL positioning: adjust transform to make card follow mouse cursor
+                                if (snapshot.isDragging && baseStyle.transform) {
+                                  const mousePos = lastMousePosRef.current;
+                                  const offset = dragStartOffsetRef.current;
+                                  
+                                  if (mousePos.x > 0 && mousePos.y > 0 && offset.x !== 0 && offset.y !== 0) {
+                                    // Get the element's current position from the base style
+                                    const element = provided.innerRef?.current;
+                                    if (element) {
+                                      // Calculate where the card should be positioned (mouse position minus initial offset)
+                                      // The baseStyle.left is the position react-beautiful-dnd calculated
+                                      // We need to adjust it to position at mouse minus offset
+                                      const baseLeft = parseFloat(baseStyle.left) || 0;
+                                      const baseTop = parseFloat(baseStyle.top) || 0;
+                                      
+                                      // Calculate the correct position: mouse position minus the initial click offset
+                                      const targetLeft = mousePos.x - offset.x;
+                                      const targetTop = mousePos.y - offset.y;
+                                      
+                                      // Calculate the adjustment needed to the transform
+                                      const adjustX = targetLeft - baseLeft;
+                                      const adjustY = targetTop - baseTop;
+                                      
+                                      // Parse the existing transform
+                                      const transformMatch = baseStyle.transform.match(/matrix\(1,\s*0,\s*0,\s*1,\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)\)/);
+                                      if (transformMatch) {
+                                        const [, tx, ty] = transformMatch;
+                                        const newTx = parseFloat(tx) + adjustX;
+                                        const newTy = parseFloat(ty) + adjustY;
+                                        
+                                        return {
+                                          ...baseStyle,
+                                          transform: `matrix(1, 0, 0, 1, ${newTx}, ${newTy})`,
+                                        };
+                                      }
+                                    }
+                                  }
+                                }
+                                return baseStyle;
+                              })()}
                               sx={{
                                 mb: 1,
-                                cursor: 'pointer',
+                                cursor: 'grab',
                                 opacity: snapshot.isDragging ? 0.8 : 1,
                                 borderLeft: `4px solid ${task.color || column.color}`,
                                 position: 'relative',
                                 '&:hover': {
                                   boxShadow: 3,
                                 },
+                                '&:active': {
+                                  cursor: 'grabbing',
+                                },
                               }}
                               onClick={() => !isDragging && handleTaskClick(task)}
                             >
-                              <Box
-                                {...provided.dragHandleProps}
-                                sx={{
-                                  position: 'absolute',
-                                  right: 4,
-                                  top: 4,
-                                  cursor: 'grab',
-                                  color: 'text.secondary',
-                                  '&:active': {
-                                    cursor: 'grabbing',
-                                  },
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <DragIndicatorIcon fontSize="small" />
-                              </Box>
                               <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
                                 <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, pr: 3 }}>
                                   {task.name}
@@ -332,9 +522,12 @@ const Kanban = () => {
                                 )}
                               </CardContent>
                             </Card>
-                          )}
+                            );
+                          }}
                         </Draggable>
-                      ))}
+                        );
+                        });
+                      })()}
                       {provided.placeholder}
                     </Box>
                   )}

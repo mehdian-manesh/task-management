@@ -132,7 +132,7 @@ const FeedbackManager = () => {
 
       <Grid container spacing={2}>
         {feedbacks.map((feedback) => (
-          <Grid item xs={12} md={6} key={feedback.id}>
+          <Grid size={{ xs: 12, md: 6 }} key={feedback.id}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -166,7 +166,7 @@ const FeedbackManager = () => {
           </Grid>
         ))}
         {feedbacks.length === 0 && (
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 4 }}>
               هنوز بازخوردی ثبت نشده است
             </Typography>

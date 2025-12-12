@@ -377,7 +377,7 @@ const UserProfile = () => {
 
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="نام کاربری"
@@ -388,7 +388,7 @@ const UserProfile = () => {
                 dir="rtl"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="ایمیل"
@@ -400,7 +400,7 @@ const UserProfile = () => {
                 dir="rtl"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="نام"
@@ -410,7 +410,7 @@ const UserProfile = () => {
                 dir="rtl"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="نام خانوادگی"
@@ -420,7 +420,7 @@ const UserProfile = () => {
                 dir="rtl"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography 
                 variant="h6" 
                 sx={{ 
@@ -432,7 +432,7 @@ const UserProfile = () => {
                 تغییر رمز عبور
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="رمز عبور جدید"
@@ -444,7 +444,7 @@ const UserProfile = () => {
                 helperText="در صورت عدم نیاز به تغییر رمز عبور، این فیلد را خالی بگذارید"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <TextField
                 fullWidth
                 label="تکرار رمز عبور"
@@ -455,7 +455,7 @@ const UserProfile = () => {
                 dir="rtl"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Button
                 type="submit"
                 variant="contained"

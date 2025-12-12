@@ -145,54 +145,54 @@ const Statistics = () => {
       </Typography>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="کل کاربران"
             value={stats.users?.total || 0}
             subtitle={toPersianNumbers(`${stats.users?.active || 0} کاربر فعال`)}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="کاربران مدیر"
             value={stats.users?.admins || 0}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="کل پروژه‌ها"
             value={stats.projects?.total || 0}
             subtitle={toPersianNumbers(`${stats.projects?.active || 0} پروژه فعال`)}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="کل وظایف"
             value={stats.tasks?.total || 0}
             subtitle={toPersianNumbers(`${stats.tasks?.drafts || 0} پیش‌نویس`)}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="روزهای کاری"
             value={stats.working_days?.total || 0}
             subtitle={toPersianNumbers(`${stats.working_days?.today_check_ins || 0} ورود امروز`)}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="کل گزارش‌ها"
             value={stats.reports?.total || 0}
             subtitle={toPersianNumbers(`${stats.reports?.this_week || 0} این هفته`)}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="گزارش‌های این ماه"
             value={stats.reports?.this_month || 0}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <StatCard
             title="کل بازخوردها"
             value={stats.feedbacks?.total || 0}
@@ -231,7 +231,7 @@ const Statistics = () => {
           </Typography>
           <Grid container spacing={2}>
             {Object.entries(stats.tasks.by_status).map(([status, count], index) => (
-              <Grid item xs={6} sm={4} md={3} key={status}>
+              <Grid size={{ xs: 6, sm: 4, md: 3 }} key={status}>
                 <Card
                   sx={{
                     p: 2.5,

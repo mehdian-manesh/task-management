@@ -79,7 +79,7 @@ const Settings = () => {
       <Paper sx={{ p: 3 }}>
         <Grid container spacing={3}>
           {/* Theme Selection */}
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
               تنظیمات نمایش
             </Typography>
@@ -104,17 +104,17 @@ const Settings = () => {
             </Typography>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Divider />
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
               تنظیمات سیستم
             </Typography>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label="نام سیستم"
               value={settings.system_name}
@@ -122,7 +122,7 @@ const Settings = () => {
               fullWidth
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label="منطقه زمانی"
               value={settings.timezone}
@@ -130,7 +130,7 @@ const Settings = () => {
               fullWidth
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label="حداکثر ساعت کاری روزانه"
               type="number"
@@ -139,7 +139,7 @@ const Settings = () => {
               fullWidth
             />
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               label="حداقل ساعت کاری روزانه"
               type="number"
@@ -148,7 +148,7 @@ const Settings = () => {
               fullWidth
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormControlLabel
               control={
                 <Switch
@@ -159,7 +159,7 @@ const Settings = () => {
               label="اجازه ثبت‌نام کاربر جدید"
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <FormControlLabel
               control={
                 <Switch
@@ -170,7 +170,7 @@ const Settings = () => {
               label="نیاز به تایید ایمیل"
             />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Button
               variant="contained"
               onClick={handleSave}
