@@ -62,32 +62,27 @@ const Dashboard = () => {
       if (parentBox) {
         const parentStyles = window.getComputedStyle(parentBox);
         const parentRect = parentBox.getBoundingClientRect();
-        fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:49',message:'Parent Box styles',data:{flexDirection:parentStyles.flexDirection,direction:parentStyles.direction,display:parentStyles.display,left:parentRect.left,right:parentRect.right,width:parentRect.width},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
       }
       
       if (mainContent) {
         const mainStyles = window.getComputedStyle(mainContent);
         const mainRect = mainContent.getBoundingClientRect();
-        fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:56',message:'Main content position',data:{left:mainRect.left,right:mainRect.right,width:mainRect.width,order:mainStyles.order},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'B'})}).catch(()=>{});
       }
       
       const sidebarWrapper = document.querySelector('[data-testid="sidebar-wrapper"]')?.parentElement;
       if (sidebarWrapper) {
         const wrapperStyles = window.getComputedStyle(sidebarWrapper);
         const wrapperRect = sidebarWrapper.getBoundingClientRect();
-        fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:60',message:'Sidebar wrapper position',data:{left:wrapperRect.left,right:wrapperRect.right,width:wrapperRect.width,order:wrapperStyles.order},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'H'})}).catch(()=>{});
       }
       
       if (sidebarDrawer) {
         const drawerStyles = window.getComputedStyle(sidebarDrawer);
         const drawerRect = sidebarDrawer.getBoundingClientRect();
-        fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:66',message:'Drawer root position',data:{left:drawerRect.left,right:drawerRect.right,width:drawerRect.width,position:drawerStyles.position,transform:drawerStyles.transform},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'C'})}).catch(()=>{});
       }
       
       if (sidebarPaper) {
         const paperStyles = window.getComputedStyle(sidebarPaper);
         const paperRect = sidebarPaper.getBoundingClientRect();
-        fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:72',message:'Drawer paper position',data:{left:paperRect.left,right:paperRect.right,width:paperRect.width,position:paperStyles.position,transform:paperStyles.transform,rightStyle:paperStyles.right,leftStyle:paperStyles.left},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'D'})}).catch(()=>{});
       }
       
       // Check if sidebar is visually on left or right
@@ -96,7 +91,6 @@ const Dashboard = () => {
         const sidebarRect = sidebarPaper.getBoundingClientRect();
         const sidebarOnRight = sidebarRect.left > mainRect.right;
         const computedDirection = parentBox ? window.getComputedStyle(parentBox).direction : 'unknown';
-        fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:79',message:'Sidebar position relative to main',data:{sidebarOnRight,mainLeft:mainRect.left,mainRight:mainRect.right,sidebarLeft:sidebarRect.left,sidebarRight:sidebarRect.right,computedDirection},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'E'})}).catch(()=>{});
       }
     };
     
@@ -107,26 +101,11 @@ const Dashboard = () => {
   }, [currentView, isMobile, sidebarOpen]);
 
   const loadTodayWorkingDay = async () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:36',message:'loadTodayWorkingDay entry',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-    // #endregion
     try {
       const response = await workingDayService.getAll();
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:39',message:'loadTodayWorkingDay response received',data:{responseDataLength:response.data?.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
       const today = response.data.find(wd => !wd.check_out && !wd.is_on_leave);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:40',message:'loadTodayWorkingDay before setState',data:{today:today},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       setTodayWorkingDay(today);
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:41',message:'loadTodayWorkingDay after setState',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:43',message:'loadTodayWorkingDay error',data:{errorMessage:error.message,errorStack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
       console.error('Error loading working day:', error);
     }
   };
@@ -192,15 +171,11 @@ const Dashboard = () => {
   const sidebarWidth = sidebarCollapsed ? collapsedWidth : drawerWidth;
   const containerRef = React.useRef(null);
 
-  // #region agent log
   React.useEffect(() => {
     if (containerRef.current) {
       containerRef.current.style.direction = 'rtl';
-      const computed = window.getComputedStyle(containerRef.current).direction;
-      fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Dashboard.js:180',message:'Setting direction via ref',data:{setDirection:'rtl',computedDirection:computed},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix-2',hypothesisId:'G'})}).catch(()=>{});
     }
   }, []);
-  // #endregion
 
   return (
     <Box 

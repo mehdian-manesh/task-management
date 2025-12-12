@@ -111,6 +111,7 @@ export const AuthProvider = ({ children }) => {
               first_name: response.data.first_name,
               last_name: response.data.last_name,
               isAdmin: response.data.is_staff || false,
+              profile_picture: response.data.profile_picture || null,
             });
           } catch (apiError) {
             // Fallback to token if API call fails
@@ -118,6 +119,7 @@ export const AuthProvider = ({ children }) => {
               id: decoded.user_id,
               username: decoded.username || decoded.user_id,
               isAdmin: decoded.is_staff || false,
+              profile_picture: null,
             });
           }
 
@@ -161,6 +163,7 @@ export const AuthProvider = ({ children }) => {
           first_name: userResponse.data.first_name,
           last_name: userResponse.data.last_name,
           isAdmin: userResponse.data.is_staff || false,
+          profile_picture: userResponse.data.profile_picture || null,
         });
       } catch (apiError) {
         // Fallback to token if API call fails
@@ -169,6 +172,7 @@ export const AuthProvider = ({ children }) => {
           id: decoded.user_id,
           username,
           isAdmin: decoded.is_staff || false,
+          profile_picture: null,
         });
       }
 

@@ -40,12 +40,6 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
-  
-  // #region agent log
-  React.useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Sidebar.js:39',message:'Sidebar render',data:{isMobile,open,anchor:'right'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-  }, [isMobile, open]);
-  // #endregion
 
   const adminMenuItems = [
     { id: 'organizational-dashboard', label: 'داشبورد سازمانی', icon: <DashboardIcon /> },

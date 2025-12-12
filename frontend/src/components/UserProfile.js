@@ -116,19 +116,11 @@ const UserProfile = () => {
 
       const response = await authService.updateProfile(formData);
       
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UserProfile.js:117',message:'Upload response received',data:{profile_picture:response.data.profile_picture,has_profile_picture:!!response.data.profile_picture,user_id:response.data.id,full_response_keys:Object.keys(response.data)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-      // #endregion
-      
       // Update user in context
       const updatedUser = {
         ...user,
         ...response.data,
       };
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UserProfile.js:125',message:'Updating user state',data:{profile_picture:updatedUser.profile_picture,has_profile_picture:!!updatedUser.profile_picture,profile_picture_url:updatedUser.profile_picture},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-      // #endregion
       
       setUser(updatedUser);
       
@@ -141,9 +133,6 @@ const UserProfile = () => {
         }
         // Add cache-busting parameter to force image reload
         imageUrl = imageUrl + (imageUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UserProfile.js:133',message:'Setting previewUrl',data:{imageUrl:imageUrl,original_url:response.data.profile_picture,window_protocol:window.location.protocol},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-        // #endregion
         setPreviewUrl(imageUrl);
       } else {
         setPreviewUrl(null);
