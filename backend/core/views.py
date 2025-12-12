@@ -22,6 +22,7 @@ from .serializers import (
 class IsAdminUserOrReadOnly(permissions.BasePermission):
     """Permission class: Admins can do everything, regular users can only read"""
     def has_permission(self, request, view):
+        # Require authentication for all operations
         if not request.user or not request.user.is_authenticated:
             return False
         if request.method in permissions.SAFE_METHODS:
@@ -39,8 +40,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return ProjectSerializer
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return self.queryset.none()
         if self.request.user.is_staff:
             return self.queryset.all()
         # Regular users only see projects they're assigned to
@@ -107,18 +106,23 @@ class WorkingDayViewSet(viewsets.ModelViewSet):
             return self.queryset.all()
         return self.queryset.filter(user=self.request.user)
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
         # Check if user already has an open working day
         open_working_day = WorkingDay.objects.filter(
-            user=self.request.user,
+            user=request.user,
             check_out__isnull=True,
             is_on_leave=False
         ).first()
         
         if open_working_day:
-            from rest_framework.exceptions import ValidationError
-            raise ValidationError({'detail': 'شما یک روز کاری باز دارید. ابتدا آن را check-out کنید.'})
+            return Response(
+                {'detail': 'شما یک روز کاری باز دارید. ابتدا آن را check-out کنید.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
+        return super().create(request, *args, **kwargs)
+    
+    def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     @action(detail=True, methods=['post'])
@@ -179,6 +183,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         working_day_pk = self.kwargs.get('working_day_pk')
         
         if working_day_pk:
+            # Nested under working-days/<id>/reports/
             queryset = self.queryset.filter(working_day_id=working_day_pk)
         else:
             queryset = self.queryset.all()
@@ -196,21 +201,32 @@ class ReportViewSet(viewsets.ModelViewSet):
             try:
                 working_day = WorkingDay.objects.get(id=working_day_pk)
                 if not request.user.is_staff and working_day.user != request.user:
-                    from rest_framework.exceptions import NotFound
-                    raise NotFound('روز کاری یافت نشد.')
+                    return Response(
+                        {'detail': 'روز کاری یافت نشد.'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
             except WorkingDay.DoesNotExist:
-                from rest_framework.exceptions import NotFound
-                raise NotFound('روز کاری یافت نشد.')
+                return Response(
+                    {'detail': 'روز کاری یافت نشد.'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
         return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         working_day_pk = self.kwargs.get('working_day_pk')
         if working_day_pk:
             try:
-                working_day = WorkingDay.objects.get(
-                    id=working_day_pk,
-                    user=request.user
-                )
+                # Get working day without user filter (admins can access any)
+                # Follow same pattern as list() method - get first, then check access
+                working_day = WorkingDay.objects.get(id=working_day_pk)
+                
+                # Check access: admin can access any, regular users only their own
+                # This matches the pattern in list() method above
+                if not request.user.is_staff and working_day.user != request.user:
+                    return Response(
+                        {'detail': 'روز کاری یافت نشد.'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
             except WorkingDay.DoesNotExist:
                 return Response(
                     {'detail': 'روز کاری یافت نشد.'},
@@ -220,6 +236,7 @@ class ReportViewSet(viewsets.ModelViewSet):
             # Make a mutable copy of request.data and add working_day
             data = request.data.copy()
             data['working_day'] = working_day.id
+            
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             self.perform_create(serializer)

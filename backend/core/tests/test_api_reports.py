@@ -183,6 +183,21 @@ class TestReportCreate:
         assert response.status_code == status.HTTP_201_CREATED
         task.refresh_from_db()
         assert task.status == StatusChoices.DONE.value
+    
+    def test_admin_create_report_for_other_user_working_day(self, authenticated_admin_client, regular_user):
+        """Test admin can create report for another user's working day"""
+        other_user = User.objects.create_user(username='other', password='pass')
+        other_working_day = WorkingDay.objects.create(user=other_user)
+        task = Task.objects.create(name='Task', created_by=other_user)
+        
+        data = {'task_id': task.id, 'result': ReportResultChoices.SUCCESS.value}
+        response = authenticated_admin_client.post(
+            reverse('working-day-reports-list', kwargs={'working_day_pk': other_working_day.id}),
+            data
+        )
+        
+        assert response.status_code == status.HTTP_201_CREATED
+        assert Report.objects.filter(working_day=other_working_day, task=task).exists()
 
 
 @pytest.mark.django_db
