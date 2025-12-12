@@ -37,7 +37,7 @@ const SystemLogs = () => {
     const labels = {
       task_created: 'ایجاد وظیفه',
       project_created: 'ایجاد پروژه',
-      check_in: 'چک‌این',
+      check_in: 'ورود',
     };
     return labels[type] || type;
   };

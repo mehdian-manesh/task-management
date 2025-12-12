@@ -176,7 +176,7 @@ const Statistics = () => {
           <StatCard
             title="روزهای کاری"
             value={stats.working_days?.total || 0}
-            subtitle={toPersianNumbers(`${stats.working_days?.today_check_ins || 0} چک‌این امروز`)}
+            subtitle={toPersianNumbers(`${stats.working_days?.today_check_ins || 0} ورود امروز`)}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>

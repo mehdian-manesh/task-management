@@ -11,8 +11,11 @@ export const authService = {
   getCurrentUser: () => 
     axiosInstance.get('/current-user/'),
   
-  updateProfile: (data) => 
-    axiosInstance.patch('/current-user/', data),
+  updateProfile: (data) => {
+    // Axios will automatically handle FormData and set Content-Type with boundary
+    // The interceptor will remove the default Content-Type for FormData
+    return axiosInstance.patch('/current-user/', data);
+  },
 };
 
 // Project Services

@@ -10,11 +10,14 @@ import {
   Avatar,
   IconButton,
   useTheme,
+  CircularProgress,
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import { authService, adminService } from '../api/services';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import EditIcon from '@mui/icons-material/Edit';
+import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const UserProfile = () => {
   const { user, setUser } = useAuth();
@@ -22,7 +25,10 @@ const UserProfile = () => {
   const isDark = theme.palette.mode === 'dark';
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingPicture, setUploadingPicture] = useState(false);
   const [message, setMessage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -42,6 +48,12 @@ const UserProfile = () => {
         password: '',
         confirmPassword: '',
       });
+      // Set preview URL from user profile picture
+      if (user.profile_picture) {
+        setPreviewUrl(user.profile_picture);
+      } else {
+        setPreviewUrl(null);
+      }
     }
   }, [user]);
 
@@ -50,6 +62,104 @@ const UserProfile = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Client-side validation
+    const maxSize = 1024 * 1024; // 1MB
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+
+    if (!allowedTypes.includes(file.type)) {
+      setMessage({ 
+        type: 'error', 
+        text: 'فقط فایل‌های تصویری با فرمت JPG یا PNG مجاز هستند' 
+      });
+      return;
+    }
+
+    if (file.size > maxSize) {
+      setMessage({ 
+        type: 'error', 
+        text: 'حجم فایل نباید بیشتر از 1MB باشد' 
+      });
+      return;
+    }
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    setSelectedFile(file);
+    setMessage(null);
+  };
+
+  const handleRemovePicture = () => {
+    setSelectedFile(null);
+    setPreviewUrl(user?.profile_picture || null);
+  };
+
+  const handleUploadPicture = async () => {
+    if (!selectedFile) return;
+
+    setUploadingPicture(true);
+    setMessage(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('profile_picture', selectedFile);
+
+      const response = await authService.updateProfile(formData);
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UserProfile.js:117',message:'Upload response received',data:{profile_picture:response.data.profile_picture,has_profile_picture:!!response.data.profile_picture,user_id:response.data.id,full_response_keys:Object.keys(response.data)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+      
+      // Update user in context
+      const updatedUser = {
+        ...user,
+        ...response.data,
+      };
+      
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UserProfile.js:125',message:'Updating user state',data:{profile_picture:updatedUser.profile_picture,has_profile_picture:!!updatedUser.profile_picture,profile_picture_url:updatedUser.profile_picture},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+      
+      setUser(updatedUser);
+      
+      // Immediately update previewUrl with the new profile picture URL
+      if (response.data.profile_picture) {
+        // Ensure URL uses HTTPS if we're on HTTPS (fix mixed content issues)
+        let imageUrl = response.data.profile_picture;
+        if (window.location.protocol === 'https:' && imageUrl.startsWith('http://')) {
+          imageUrl = imageUrl.replace('http://', 'https://');
+        }
+        // Add cache-busting parameter to force image reload
+        imageUrl = imageUrl + (imageUrl.includes('?') ? '&' : '?') + 't=' + Date.now();
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'UserProfile.js:133',message:'Setting previewUrl',data:{imageUrl:imageUrl,original_url:response.data.profile_picture,window_protocol:window.location.protocol},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+        // #endregion
+        setPreviewUrl(imageUrl);
+      } else {
+        setPreviewUrl(null);
+      }
+
+      setSelectedFile(null);
+      setMessage({ type: 'success', text: 'عکس پروفایل با موفقیت به‌روزرسانی شد' });
+    } catch (error) {
+      const errorMessage = error.response?.data?.profile_picture?.[0] 
+        || error.response?.data?.detail 
+        || error.response?.data?.message 
+        || 'خطا در آپلود عکس پروفایل';
+      setMessage({ type: 'error', text: errorMessage });
+    } finally {
+      setUploadingPicture(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -65,16 +175,29 @@ const UserProfile = () => {
     }
 
     try {
-      const updateData = {
-        username: formData.username,
-        email: formData.email,
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-      };
-
-      // Only include password if it's provided
-      if (formData.password) {
-        updateData.password = formData.password;
+      // Use FormData if profile picture is being uploaded, otherwise use JSON
+      let updateData;
+      if (selectedFile) {
+        updateData = new FormData();
+        updateData.append('username', formData.username);
+        updateData.append('email', formData.email);
+        updateData.append('first_name', formData.first_name);
+        updateData.append('last_name', formData.last_name);
+        if (formData.password) {
+          updateData.append('password', formData.password);
+        }
+        updateData.append('profile_picture', selectedFile);
+      } else {
+        updateData = {
+          username: formData.username,
+          email: formData.email,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+        };
+        // Only include password if it's provided
+        if (formData.password) {
+          updateData.password = formData.password;
+        }
       }
 
       // Try to use current-user endpoint first, fallback to admin endpoint
@@ -98,12 +221,13 @@ const UserProfile = () => {
 
       setMessage({ type: 'success', text: 'پروفایل با موفقیت به‌روزرسانی شد' });
       
-      // Clear password fields
+      // Clear password fields and selected file
       setFormData({
         ...formData,
         password: '',
         confirmPassword: '',
       });
+      setSelectedFile(null);
     } catch (error) {
       setMessage({ 
         type: 'error', 
@@ -153,18 +277,65 @@ const UserProfile = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: 2 }}>
-          <Avatar 
-            sx={{ 
-              width: 80, 
-              height: 80, 
-              bgcolor: '#6366f1',
-              fontSize: '2rem',
-              fontWeight: 600,
-            }}
-          >
-            {user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon sx={{ fontSize: 40 }} />}
-          </Avatar>
-          <Box>
+          <Box sx={{ position: 'relative' }}>
+            <Avatar 
+              src={previewUrl || undefined}
+              sx={{ 
+                width: 100, 
+                height: 100, 
+                bgcolor: '#6366f1',
+                fontSize: '2.5rem',
+                fontWeight: 600,
+                border: `3px solid ${isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.12)'}`,
+              }}
+            >
+              {!previewUrl && (user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon sx={{ fontSize: 50 }} />)}
+            </Avatar>
+            <input
+              accept="image/jpeg,image/jpg,image/png"
+              style={{ display: 'none' }}
+              id="profile-picture-upload"
+              type="file"
+              onChange={handleFileSelect}
+            />
+            <label htmlFor="profile-picture-upload">
+              <IconButton
+                color="primary"
+                component="span"
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  bgcolor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                  border: `2px solid ${isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.12)'}`,
+                  '&:hover': {
+                    bgcolor: isDark ? 'rgba(15, 23, 42, 1)' : 'rgba(255, 255, 255, 1)',
+                  },
+                }}
+              >
+                <PhotoCameraIcon />
+              </IconButton>
+            </label>
+            {selectedFile && (
+              <IconButton
+                color="error"
+                onClick={handleRemovePicture}
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  bgcolor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                  border: `2px solid ${isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.12)'}`,
+                  '&:hover': {
+                    bgcolor: isDark ? 'rgba(15, 23, 42, 1)' : 'rgba(255, 255, 255, 1)',
+                  },
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            )}
+          </Box>
+          <Box sx={{ flex: 1 }}>
             <Typography 
               variant="h5" 
               sx={{ 
@@ -197,6 +368,22 @@ const UserProfile = () => {
               </Typography>
             )}
           </Box>
+          {selectedFile && (
+            <Box sx={{ mt: 2 }}>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={handleUploadPicture}
+                disabled={uploadingPicture}
+                startIcon={uploadingPicture ? <CircularProgress size={16} /> : <PhotoCameraIcon />}
+              >
+                {uploadingPicture ? 'در حال آپلود...' : 'آپلود عکس'}
+              </Button>
+              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
+                حداکثر اندازه: 1MB، حداکثر ابعاد: 100x100px
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         <Box component="form" onSubmit={handleSubmit}>

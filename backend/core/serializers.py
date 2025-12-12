@@ -1,14 +1,36 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from .models import Project, Task, WorkingDay, Report, Feedback, ReportResultChoices, StatusChoices
 
 
 class UserSerializer(serializers.ModelSerializer):
+    profile_picture = serializers.SerializerMethodField()
+    
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined', 'profile_picture']
         read_only_fields = ['date_joined']
+    
+    def get_profile_picture(self, obj):
+        """Return the profile picture URL if it exists"""
+        try:
+            profile = obj.profile
+            if profile.profile_picture:
+                request = self.context.get('request')
+                if request:
+                    url = request.build_absolute_uri(profile.profile_picture.url)
+                    # Ensure HTTPS if request is HTTPS (fix for proxy scenarios)
+                    if request.is_secure() and url.startswith('http://'):
+                        url = url.replace('http://', 'https://')
+                    return url
+                return profile.profile_picture.url
+        except AttributeError:
+            # Profile doesn't exist yet (shouldn't happen due to signal, but handle gracefully)
+            # Django's OneToOne reverse accessor raises AttributeError if related object doesn't exist
+            pass
+        return None
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -28,22 +50,97 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    profile_picture = serializers.ImageField(write_only=True, required=False, allow_null=True)
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_staff', 'is_active']
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_staff', 'is_active', 'profile_picture']
         read_only_fields = ['is_staff', 'is_active']  # Regular users can't change these
+    
+    def validate_profile_picture(self, value):
+        """Validate and sanitize the profile picture"""
+        if value is None:
+            return value
+        
+        from accounts.utils import process_profile_picture
+        
+        try:
+            # Process and sanitize the image
+            processed_file = process_profile_picture(value)
+            return processed_file
+        except Exception as e:
+            raise serializers.ValidationError(str(e))
     
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
+        profile_picture = validated_data.pop('profile_picture', None)
+        
         # Remove is_staff and is_active if present (only admins can change these)
         validated_data.pop('is_staff', None)
         validated_data.pop('is_active', None)
+        
+        # Update user fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if password:
             instance.set_password(password)
         instance.save()
+        
+        # Handle profile picture update
+        if profile_picture is not None:
+            import os
+            from django.conf import settings
+            
+            # Ensure media directory exists
+            media_root = settings.MEDIA_ROOT
+            if not os.path.exists(media_root):
+                os.makedirs(media_root, exist_ok=True)
+            profile_pictures_dir = os.path.join(media_root, 'profile_pictures')
+            if not os.path.exists(profile_pictures_dir):
+                os.makedirs(profile_pictures_dir, exist_ok=True)
+            
+            # Get or create user profile
+            from accounts.models import UserProfile
+            try:
+                profile, created = UserProfile.objects.get_or_create(user=instance)
+                
+                # Store old picture path for deletion AFTER new one is saved
+                old_picture_path = None
+                if profile.profile_picture:
+                    try:
+                        old_picture_path = profile.profile_picture.path
+                    except:
+                        old_picture_path = None
+                
+                # Save new profile picture
+                # Ensure file pointer is at beginning
+                if hasattr(profile_picture, 'seek'):
+                    profile_picture.seek(0)
+                
+                profile.profile_picture = profile_picture
+                profile.save()
+                
+                # Refresh from database to get the actual file path
+                profile.refresh_from_db()
+                
+                # Get the new file path
+                actual_path = None
+                try:
+                    actual_path = profile.profile_picture.path if profile.profile_picture else None
+                except:
+                    actual_path = None
+                
+                # Delete old picture file AFTER new one is saved (to avoid conflicts)
+                if old_picture_path and old_picture_path != actual_path:
+                    try:
+                        if os.path.exists(old_picture_path):
+                            os.remove(old_picture_path)
+                    except Exception as del_err:
+                        import sys
+                        print(f"Error deleting old picture: {del_err}", file=sys.stderr)
+            except Exception as e:
+                raise
+        
         return instance
 
 

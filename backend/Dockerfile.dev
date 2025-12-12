@@ -3,9 +3,13 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (including Pillow requirements)
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gcc \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+        libjpeg-dev \
+        zlib1g-dev \
+        libpng-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pipenv

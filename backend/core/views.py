@@ -223,8 +223,6 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-@api_view(['GET'])
-@permission_classes([permissions.IsAuthenticated])
 @api_view(['GET', 'PATCH'])
 @permission_classes([permissions.IsAuthenticated])
 def current_user_view(request):
@@ -232,15 +230,25 @@ def current_user_view(request):
     from .serializers import UserSerializer, UserUpdateSerializer
     
     if request.method == 'GET':
-        serializer = UserSerializer(request.user)
+        serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data)
     elif request.method == 'PATCH':
-        serializer = UserUpdateSerializer(request.user, data=request.data, partial=True)
+        serializer = UserUpdateSerializer(request.user, data=request.data, partial=True, context={'request': request})
+        
         if serializer.is_valid():
-            serializer.save()
-            # Return updated user data
-            user_serializer = UserSerializer(serializer.instance)
-            return Response(user_serializer.data)
+            try:
+                serializer.save()
+                
+                # Refresh the user instance to get the latest profile data
+                serializer.instance.refresh_from_db()
+                if hasattr(serializer.instance, 'profile'):
+                    serializer.instance.profile.refresh_from_db()
+                
+                # Return updated user data with profile picture URL
+                user_serializer = UserSerializer(serializer.instance, context={'request': request})
+                return Response(user_serializer.data)
+            except Exception as e:
+                return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -440,7 +448,7 @@ def system_logs_view(request):
     for wd in recent_working_days:
         logs.append({
             'type': 'check_in',
-            'message': f'کاربر {wd.user.username} چک‌این کرد',
+            'message': f'کاربر {wd.user.username} ورود کرد',
             'user': wd.user.username,
             'timestamp': wd.check_in,
             'object_id': wd.id,

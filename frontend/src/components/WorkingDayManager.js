@@ -139,7 +139,7 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:81',message:'handleCheckIn after setWorkingDay',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
       // #endregion
-      setMessage({ type: 'success', text: 'با موفقیت چک‌این شدید' });
+      setMessage({ type: 'success', text: 'با موفقیت ورود کردید' });
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:82',message:'handleCheckIn before onUpdate',data:{onUpdateType:typeof onUpdate},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
       // #endregion
@@ -153,7 +153,7 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       // #region agent log
       fetch('http://127.0.0.1:7242/ingest/f44376ad-653c-4bd4-9eca-7540f6fc0e32',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'WorkingDayManager.js:87',message:'handleCheckIn error caught',data:{errorMessage:error.message,errorStack:error.stack,errorResponse:error.response?.data,errorStatus:error.response?.status},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
       // #endregion
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در چک‌این' });
+      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در ورود' });
     }
   };
 
@@ -164,11 +164,11 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
     }
     try {
       await workingDayService.checkOut(workingDay.id);
-      setMessage({ type: 'success', text: 'با موفقیت چک‌اوت شدید' });
+      setMessage({ type: 'success', text: 'با موفقیت خروج کردید' });
       onUpdate();
       setWorkingDay(null);
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در چک‌اوت' });
+      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در خروج' });
     }
   };
 
@@ -246,17 +246,17 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
         <Card>
           <CardContent>
             <Typography variant="h6" gutterBottom>
-              شما هنوز چک‌این نکرده‌اید
+              شما هنوز ورود نکرده‌اید
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              برای شروع ثبت گزارش کار، ابتدا چک‌این کنید
+              برای شروع ثبت گزارش کار، ابتدا ورود کنید
             </Typography>
             <Button
               variant="contained"
               startIcon={<AccessTimeIcon />}
               onClick={handleCheckIn}
             >
-              چک‌این
+              ورود
             </Button>
           </CardContent>
         </Card>
@@ -285,7 +285,7 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
                       onClick={handleCheckOut}
                       sx={{ mr: 2 }}
                     >
-                      چک‌اوت
+                      خروج
                     </Button>
                     <Button
                       variant="outlined"

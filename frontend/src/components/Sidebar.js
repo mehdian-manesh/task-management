@@ -193,6 +193,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
           }}
         >
           <Avatar 
+            src={user?.profile_picture || undefined}
             sx={{ 
               width: collapsed ? 36 : 40, 
               height: collapsed ? 36 : 40, 
@@ -208,7 +209,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
               },
             }}
           >
-            {user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon />}
+            {!user?.profile_picture && (user?.username?.charAt(0)?.toUpperCase() || <AccountCircleIcon />)}
           </Avatar>
           {!collapsed && (
             <Box sx={{ flex: 1, minWidth: 0 }}>
