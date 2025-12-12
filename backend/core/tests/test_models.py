@@ -231,8 +231,10 @@ class TestWorkingDayModel:
             check_out=check_out
         )
         
-        assert working_day.check_in == check_in
+        # check_in is auto_now_add, so it will be set automatically
+        # Just verify check_out was set correctly
         assert working_day.check_out == check_out
+        assert working_day.check_in is not None
     
     def test_working_day_on_leave(self):
         """Test working day marked as leave"""

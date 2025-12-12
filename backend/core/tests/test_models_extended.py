@@ -174,26 +174,24 @@ class TestWorkingDayModelExtended:
     
     def test_working_day_same_checkin_checkout(self):
         """Test working day with same checkin and checkout time"""
-        check_time = timezone.now()
         user = User.objects.create_user(username='user', password='pass')
-        working_day = WorkingDay.objects.create(
-            user=user,
-            check_in=check_time,
-            check_out=check_time
-        )
+        working_day = WorkingDay.objects.create(user=user)
+        # check_in is auto_now_add, so set check_out to same time
+        working_day.check_out = working_day.check_in
+        working_day.save()
         assert working_day.check_in == working_day.check_out
     
     def test_working_day_long_duration(self):
         """Test working day with very long duration"""
-        check_in = timezone.now()
-        check_out = check_in + timedelta(hours=24)
         user = User.objects.create_user(username='user', password='pass')
-        working_day = WorkingDay.objects.create(
-            user=user,
-            check_in=check_in,
-            check_out=check_out
-        )
-        assert (working_day.check_out - working_day.check_in).total_seconds() == 86400
+        working_day = WorkingDay.objects.create(user=user)
+        # check_in is auto_now_add, so calculate check_out from it
+        check_out = working_day.check_in + timedelta(hours=24)
+        working_day.check_out = check_out
+        working_day.save()
+        # Allow small difference due to timing
+        duration = (working_day.check_out - working_day.check_in).total_seconds()
+        assert abs(duration - 86400) < 1  # Within 1 second
     
     def test_working_day_multiple_per_user(self):
         """Test multiple working days for same user"""

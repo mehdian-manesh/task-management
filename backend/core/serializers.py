@@ -196,7 +196,21 @@ class WorkingDaySerializer(serializers.ModelSerializer):
     date = serializers.SerializerMethodField()
 
     def get_date(self, obj):
-        return obj.check_in.date() if obj.check_in else None
+        # obj can be a WorkingDay instance or a dict (during create)
+        if isinstance(obj, dict):
+            check_in = obj.get('check_in')
+            if check_in:
+                if hasattr(check_in, 'date'):
+                    return check_in.date().isoformat()
+                # If it's a string, try to parse it
+                from django.utils.dateparse import parse_datetime
+                parsed = parse_datetime(str(check_in))
+                if parsed:
+                    return parsed.date().isoformat()
+            return None
+        if obj.check_in:
+            return obj.check_in.date().isoformat()
+        return None
 
     class Meta:
         model = WorkingDay
@@ -239,10 +253,11 @@ class ReportSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Either task_id or task_name must be provided")
         
         validated_data['task'] = task
+        result = validated_data.get('result', ReportResultChoices.ONGOING.value)
         report = Report.objects.create(**validated_data)
         
         # Update task status based on report result
-        self._update_task_status(task, validated_data['result'])
+        self._update_task_status(task, result)
         
         return report
     

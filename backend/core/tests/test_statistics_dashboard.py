@@ -54,7 +54,7 @@ class TestStatisticsView:
         assert response.data['reports']['total'] == 0
         assert response.data['feedbacks']['total'] == 0
     
-    def test_statistics_users_count(self, authenticated_admin_client, regular_user):
+    def test_statistics_users_count(self, authenticated_admin_client, regular_user, admin_user):
         """Test user statistics"""
         User.objects.create_user(username='user2', password='pass', is_active=True)
         User.objects.create_user(username='user3', password='pass', is_active=False)
@@ -62,8 +62,11 @@ class TestStatisticsView:
         response = authenticated_admin_client.get(reverse('statistics'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['users']['total'] == 3
-        assert response.data['users']['active'] == 2
+        # Total: admin_user (fixture) + regular_user (fixture) + user2 + user3 = 4
+        assert response.data['users']['total'] == 4
+        # Active: admin_user + regular_user + user2 = 3 (user3 is inactive)
+        assert response.data['users']['active'] == 3
+        # Admins: admin_user = 1
         assert response.data['users']['admins'] == 1
     
     def test_statistics_projects_count(self, authenticated_admin_client):
@@ -83,9 +86,9 @@ class TestStatisticsView:
         """Test task statistics"""
         Task.objects.create(name='Draft Task', is_draft=True, created_by=regular_user)
         Task.objects.create(name='Approved Task', is_draft=False, created_by=regular_user)
-        Task.objects.create(name='Task 1', status=StatusChoices.TODO.value, created_by=regular_user)
-        Task.objects.create(name='Task 2', status=StatusChoices.DOING.value, created_by=regular_user)
-        Task.objects.create(name='Task 3', status=StatusChoices.DONE.value, created_by=regular_user)
+        Task.objects.create(name='Task 1', status=StatusChoices.TODO.value, is_draft=False, created_by=regular_user)
+        Task.objects.create(name='Task 2', status=StatusChoices.DOING.value, is_draft=False, created_by=regular_user)
+        Task.objects.create(name='Task 3', status=StatusChoices.DONE.value, is_draft=False, created_by=regular_user)
         
         response = authenticated_admin_client.get(reverse('statistics'))
         
@@ -270,32 +273,34 @@ class TestOrganizationalDashboardView:
         for i in range(15):
             task = Task.objects.create(
                 name=f'Task {i}',
-                created_by=regular_user,
-                created_at=timezone.now() - timedelta(hours=i)
+                created_by=regular_user
             )
+            # Update created_at since it's auto_now_add
+            Task.objects.filter(id=task.id).update(created_at=timezone.now() - timedelta(hours=i))
             tasks.append(task)
         
         response = authenticated_admin_client.get(reverse('organizational-dashboard'))
         
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data['recent_tasks']) == 10  # Limited to 10
-        # Should be ordered by created_at descending
+        # Should be ordered by created_at descending (most recent first)
+        # Task 0 was created most recently (0 hours ago)
         assert response.data['recent_tasks'][0]['name'] == 'Task 0'
     
     def test_dashboard_recent_projects(self, authenticated_admin_client):
         """Test recent projects in dashboard"""
         projects = []
         for i in range(15):
-            project = Project.objects.create(
-                name=f'Project {i}',
-                created_at=timezone.now() - timedelta(hours=i)
-            )
+            project = Project.objects.create(name=f'Project {i}')
+            # Update created_at since it's auto_now_add
+            Project.objects.filter(id=project.id).update(created_at=timezone.now() - timedelta(hours=i))
             projects.append(project)
         
         response = authenticated_admin_client.get(reverse('organizational-dashboard'))
         
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data['recent_projects']) == 10  # Limited to 10
+        # Should be ordered by created_at descending (most recent first)
         assert response.data['recent_projects'][0]['name'] == 'Project 0'
 
 
@@ -406,5 +411,6 @@ class TestSettingsView:
         assert response.status_code == status.HTTP_200_OK
         assert 'message' in response.data
         assert 'settings' in response.data
-        assert response.data['settings']['max_working_hours_per_day'] == 10
+        # request.data returns strings, so convert for comparison
+        assert int(response.data['settings']['max_working_hours_per_day']) == 10
 

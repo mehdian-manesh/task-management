@@ -22,9 +22,11 @@ from .serializers import (
 class IsAdminUserOrReadOnly(permissions.BasePermission):
     """Permission class: Admins can do everything, regular users can only read"""
     def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user and request.user.is_staff
+        return request.user.is_staff
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
@@ -37,6 +39,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return ProjectSerializer
 
     def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return self.queryset.none()
         if self.request.user.is_staff:
             return self.queryset.all()
         # Regular users only see projects they're assigned to
@@ -112,10 +116,8 @@ class WorkingDayViewSet(viewsets.ModelViewSet):
         ).first()
         
         if open_working_day:
-            return Response(
-                {'detail': 'شما یک روز کاری باز دارید. ابتدا آن را check-out کنید.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'detail': 'شما یک روز کاری باز دارید. ابتدا آن را check-out کنید.'})
         
         serializer.save(user=self.request.user)
 
@@ -177,7 +179,6 @@ class ReportViewSet(viewsets.ModelViewSet):
         working_day_pk = self.kwargs.get('working_day_pk')
         
         if working_day_pk:
-            # Nested under working-days/<id>/reports/
             queryset = self.queryset.filter(working_day_id=working_day_pk)
         else:
             queryset = self.queryset.all()
@@ -187,6 +188,20 @@ class ReportViewSet(viewsets.ModelViewSet):
         
         # Regular users only see their own reports
         return queryset.filter(working_day__user=user)
+
+    def list(self, request, *args, **kwargs):
+        """Override list to check working_day access for nested routes"""
+        working_day_pk = self.kwargs.get('working_day_pk')
+        if working_day_pk:
+            try:
+                working_day = WorkingDay.objects.get(id=working_day_pk)
+                if not request.user.is_staff and working_day.user != request.user:
+                    from rest_framework.exceptions import NotFound
+                    raise NotFound('روز کاری یافت نشد.')
+            except WorkingDay.DoesNotExist:
+                from rest_framework.exceptions import NotFound
+                raise NotFound('روز کاری یافت نشد.')
+        return super().list(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         working_day_pk = self.kwargs.get('working_day_pk')
@@ -202,8 +217,14 @@ class ReportViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_404_NOT_FOUND
                 )
             
-            # Add working_day to request data
-            request.data['working_day'] = working_day.id
+            # Make a mutable copy of request.data and add working_day
+            data = request.data.copy()
+            data['working_day'] = working_day.id
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         
         return super().create(request, *args, **kwargs)
 

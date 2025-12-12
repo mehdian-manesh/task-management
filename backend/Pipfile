@@ -10,8 +10,6 @@ djangorestframework-simplejwt = "*"
 django-cors-headers = "*"
 drf-nested-routers = "*"
 pillow = "*"
-pytest-cov = "*"
-
 [dev-packages]
 drf-spectacular = "*"
 django-extensions = "*"

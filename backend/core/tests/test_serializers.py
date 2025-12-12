@@ -138,13 +138,10 @@ class TestWorkingDaySerializer:
     
     def test_working_day_serializer(self, user):
         """Test WorkingDaySerializer serialization"""
-        check_in = timezone.now()
-        check_out = check_in + timedelta(hours=8)
-        working_day = WorkingDay.objects.create(
-            user=user,
-            check_in=check_in,
-            check_out=check_out
-        )
+        working_day = WorkingDay.objects.create(user=user)
+        check_out = working_day.check_in + timedelta(hours=8)
+        working_day.check_out = check_out
+        working_day.save()
         
         serializer = WorkingDaySerializer(working_day)
         data = serializer.data
@@ -153,7 +150,8 @@ class TestWorkingDaySerializer:
         assert 'check_in' in data
         assert 'check_out' in data
         assert 'date' in data
-        assert data['date'] == check_in.date().isoformat()
+        # date should be ISO format string from the actual check_in
+        assert data['date'] == working_day.check_in.date().isoformat()
     
     def test_working_day_serializer_read_only_fields(self, user):
         """Test that user and check_in are read-only"""
@@ -242,7 +240,11 @@ class TestReportSerializer:
             'result': ReportResultChoices.SUCCESS.value
         }
         serializer = ReportSerializer(data=data)
-        assert not serializer.is_valid()
+        assert serializer.is_valid()  # Validation passes
+        # But create() should raise ValidationError
+        from rest_framework.exceptions import ValidationError
+        with pytest.raises(ValidationError):
+            serializer.save()
     
     def test_report_serializer_update_task_status(self, user):
         """Test that report update changes task status"""
