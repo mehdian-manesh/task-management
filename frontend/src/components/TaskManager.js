@@ -30,6 +30,7 @@ import { toPersianNumbers } from '../utils/numberUtils';
 import TableControls from './TableControls';
 import Pagination from './Pagination';
 import SortableTableHeader from './SortableTableHeader';
+import PaginatedSelect from './PaginatedSelect';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -44,7 +45,6 @@ const STATUS_CHOICES = [
 const TaskManager = () => {
   const { user } = useAuth();
   const [tasks, setTasks] = useState([]);
-  const [projects, setProjects] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [message, setMessage] = useState(null);
@@ -74,10 +74,6 @@ const TaskManager = () => {
     phase: 0,
     status: 'backlog',
   });
-
-  useEffect(() => {
-    loadProjects();
-  }, []);
 
   useEffect(() => {
     loadTasks();
@@ -131,16 +127,6 @@ const TaskManager = () => {
     }
   };
 
-  const loadProjects = async () => {
-    try {
-      const response = await projectService.getAll();
-      // Handle paginated response - for dropdown we want all projects
-      const projectsData = response.data.results || response.data;
-      setProjects(Array.isArray(projectsData) ? projectsData : []);
-    } catch (error) {
-      console.error('Error loading projects:', error);
-    }
-  };
 
   const handleOpenDialog = (task = null) => {
     if (task) {
@@ -291,7 +277,7 @@ const TaskManager = () => {
             key: 'project',
             label: 'پروژه',
             value: filters.project,
-            options: Array.isArray(projects) ? projects.map(p => ({ value: p.id, label: p.name })) : [],
+            options: [], // Will be loaded dynamically via PaginatedSelect in filter modal if needed
           },
           {
             key: 'is_draft',
@@ -368,7 +354,7 @@ const TaskManager = () => {
                   </Box>
                 </TableCell>
                 <TableCell align="right">
-                  {Array.isArray(projects) ? (projects.find(p => p.id === task.project_id)?.name || '-') : '-'}
+                  {task.project?.name || '-'}
                 </TableCell>
                 <TableCell align="right">
                   <Chip
@@ -429,22 +415,18 @@ const TaskManager = () => {
             margin="normal"
             dir="rtl"
           />
-          <TextField
-            select
-            fullWidth
-            label="پروژه"
+          <PaginatedSelect
+            fetchFunction={projectService.getAll}
             value={formData.project_id}
             onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+            label="پروژه"
+            emptyOptionLabel="بدون پروژه"
+            emptyOptionValue=""
+            getOptionValue={(opt) => opt.id}
+            getOptionLabel={(opt) => opt.name}
             margin="normal"
-            dir="rtl"
-          >
-            <MenuItem value="">بدون پروژه</MenuItem>
-            {Array.isArray(projects) && projects.map((project) => (
-              <MenuItem key={project.id} value={project.id}>
-                {project.name}
-              </MenuItem>
-            ))}
-          </TextField>
+            fullWidth
+          />
           <TextField
             select
             fullWidth

@@ -26,6 +26,7 @@ import { workingDayService, reportService, taskService } from '../api/services';
 import { formatToJalaliWithTime, REPORT_RESULT_LABELS } from '../utils/dateUtils';
 import TableControls from './TableControls';
 import Pagination from './Pagination';
+import PaginatedSelect from './PaginatedSelect';
 
 const RESULT_CHOICES = Object.entries(REPORT_RESULT_LABELS).map(([value, label]) => ({
   value,
@@ -35,7 +36,6 @@ const RESULT_CHOICES = Object.entries(REPORT_RESULT_LABELS).map(([value, label])
 const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   const [workingDay, setWorkingDay] = useState(todayWorkingDay);
   const [reports, setReports] = useState([]);
-  const [tasks, setTasks] = useState([]);
   const [openReportDialog, setOpenReportDialog] = useState(false);
   const [newReport, setNewReport] = useState({
     task_id: '',
@@ -100,20 +100,6 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
     }
   }, [todayWorkingDay, loadReports, reportsPage, reportsFilters, reportsOrdering]);
 
-  useEffect(() => {
-    loadTasks();
-  }, []);
-
-  const loadTasks = async () => {
-    try {
-      const response = await taskService.getAll();
-      // Handle paginated response
-      const tasksData = response.data.results || response.data;
-      setTasks(Array.isArray(tasksData) ? tasksData : []);
-    } catch (error) {
-      console.error('Error loading tasks:', error);
-    }
-  };
 
   const handleCheckIn = async () => {
     try {
@@ -197,7 +183,6 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       setOpenReportDialog(false);
       setNewReport({ task_id: '', task_name: '', result: 'ongoing', comment: '' });
       loadReports(workingDay.id);
-      loadTasks();
     } catch (error) {
       const errorMessage = error.response?.data?.detail || 
                           error.response?.data?.task_id?.[0] ||
@@ -401,22 +386,18 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       <Dialog open={openReportDialog} onClose={() => setOpenReportDialog(false)} maxWidth="sm" fullWidth>
         <DialogTitle>افزودن گزارش کاری</DialogTitle>
         <DialogContent>
-          <TextField
-            select
-            fullWidth
-            label="انتخاب وظیفه"
+          <PaginatedSelect
+            fetchFunction={taskService.getAll}
             value={newReport.task_id}
             onChange={(e) => setNewReport({ ...newReport, task_id: e.target.value })}
+            label="انتخاب وظیفه"
+            emptyOptionLabel="وظیفه جدید"
+            emptyOptionValue=""
+            getOptionValue={(opt) => opt.id}
+            getOptionLabel={(opt) => opt.name}
             margin="normal"
-            dir="rtl"
-          >
-            <MenuItem value="">وظیفه جدید</MenuItem>
-            {tasks.map((task) => (
-              <MenuItem key={task.id} value={task.id}>
-                {task.name}
-              </MenuItem>
-            ))}
-          </TextField>
+            fullWidth
+          />
 
           {!newReport.task_id && (
             <TextField
