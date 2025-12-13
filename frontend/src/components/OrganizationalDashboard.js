@@ -11,10 +11,16 @@ import {
   TableHead,
   TableRow,
   Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  IconButton,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { adminService } from '../api/services';
 import { toPersianNumbers } from '../utils/numberUtils';
 import { useTheme } from '@mui/material';
+import moment from 'moment-jalaali';
 
 const OrganizationalDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
@@ -472,6 +478,263 @@ const OrganizationalDashboard = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+          </Paper>
+        </Grid>
+
+        <Grid size={12}>
+          <Paper
+            sx={{
+              p: 3,
+              borderRadius: '6px !important',
+              background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+              border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.12)',
+              boxShadow: isDark 
+                ? '0 8px 32px 0 rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
+                : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '1px',
+                background: isDark
+                  ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)'
+                  : 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                zIndex: 1,
+              },
+            }}
+          >
+            <Typography 
+              variant="h6" 
+              sx={{ 
+                mb: 3, 
+                fontWeight: 600, 
+                color: isDark ? '#ffffff' : 'rgba(0, 0, 0, 0.87)',
+                fontSize: '1.125rem',
+              }}
+            >
+              وظایف در حال انجام کارکنان
+            </Typography>
+            
+            {dashboard.employee_tasks && dashboard.employee_tasks.length > 0 ? (
+              <Box>
+                {dashboard.employee_tasks.map((employee) => (
+                  <Accordion
+                    key={employee.user_id}
+                    sx={{
+                      mb: 2,
+                      background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                      border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
+                      borderRadius: '6px !important',
+                      boxShadow: 'none',
+                      '&:before': {
+                        display: 'none',
+                      },
+                      '&.Mui-expanded': {
+                        margin: '0 0 16px 0',
+                      },
+                    }}
+                  >
+                    <AccordionSummary
+                      expandIcon={
+                        <ExpandMoreIcon 
+                          sx={{ 
+                            color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.54)',
+                          }} 
+                        />
+                      }
+                      sx={{
+                        '& .MuiAccordionSummary-content': {
+                          alignItems: 'center',
+                          gap: 2,
+                        },
+                      }}
+                    >
+                      <Typography 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                          fontSize: '0.9375rem',
+                        }}
+                      >
+                        {employee.full_name}
+                      </Typography>
+                      <Chip 
+                        label={toPersianNumbers(employee.task_count)} 
+                        size="small" 
+                        sx={{ 
+                          background: '#6366f1',
+                          color: '#ffffff',
+                          height: 24,
+                          fontWeight: 600,
+                          '& .MuiChip-label': {
+                            px: 1.5,
+                            fontSize: '0.8125rem',
+                          },
+                        }} 
+                      />
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ pt: 0 }}>
+                      <TableContainer>
+                        <Table size="small">
+                          <TableHead>
+                            <TableRow>
+                              <TableCell 
+                                align="right" 
+                                sx={{ 
+                                  fontWeight: 600, 
+                                  color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                                  borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
+                                  fontSize: '0.875rem',
+                                }}
+                              >
+                                وظیفه
+                              </TableCell>
+                              <TableCell 
+                                align="right" 
+                                sx={{ 
+                                  fontWeight: 600, 
+                                  color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                                  borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
+                                  fontSize: '0.875rem',
+                                }}
+                              >
+                                پروژه
+                              </TableCell>
+                              <TableCell 
+                                align="right" 
+                                sx={{ 
+                                  fontWeight: 600, 
+                                  color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                                  borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
+                                  fontSize: '0.875rem',
+                                }}
+                              >
+                                وضعیت
+                              </TableCell>
+                              <TableCell 
+                                align="right" 
+                                sx={{ 
+                                  fontWeight: 600, 
+                                  color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                                  borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
+                                  fontSize: '0.875rem',
+                                }}
+                              >
+                                موعد
+                              </TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {employee.tasks.map((task) => {
+                              const statusLabels = {
+                                'backlog': 'لیست انتظار',
+                                'todo': 'باید انجام شود',
+                                'doing': 'در حال انجام',
+                                'test': 'در حال تست',
+                                'postpone': 'معوق شده',
+                                'done': 'انجام شده',
+                                'archive': 'بایگانی',
+                              };
+                              
+                              const statusColors = {
+                                'backlog': '#9e9e9e',
+                                'todo': '#2196f3',
+                                'doing': '#ff9800',
+                                'test': '#9c27b0',
+                                'postpone': '#f44336',
+                                'done': '#4caf50',
+                                'archive': '#607d8b',
+                              };
+                              
+                              return (
+                                <TableRow
+                                  key={task.id}
+                                  sx={{
+                                    '&:hover': {
+                                      backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                                    },
+                                    '& td': {
+                                      borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)',
+                                      color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(0, 0, 0, 0.87)',
+                                      fontSize: '0.9375rem',
+                                    },
+                                  }}
+                                >
+                                  <TableCell align="right">
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      {task.color && (
+                                        <Box
+                                          sx={{
+                                            width: 8,
+                                            height: 8,
+                                            borderRadius: '50%',
+                                            backgroundColor: task.color,
+                                          }}
+                                        />
+                                      )}
+                                      {task.name}
+                                      {task.is_draft && (
+                                        <Chip 
+                                          label="پیش‌نویس" 
+                                          size="small" 
+                                          color="warning"
+                                          sx={{ height: 20, fontSize: '0.75rem' }}
+                                        />
+                                      )}
+                                    </Box>
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    {task.project?.name || '-'}
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    <Chip
+                                      label={statusLabels[task.status] || task.status}
+                                      size="small"
+                                      sx={{
+                                        backgroundColor: statusColors[task.status] || '#9e9e9e',
+                                        color: '#ffffff',
+                                        height: 24,
+                                        fontSize: '0.8125rem',
+                                        fontWeight: 500,
+                                      }}
+                                    />
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    {task.deadline ? (
+                                      <Typography 
+                                        variant="body2" 
+                                        color="error"
+                                        sx={{ fontSize: '0.875rem' }}
+                                      >
+                                        {moment(task.deadline).format('jYYYY/jMM/jDD')}
+                                      </Typography>
+                                    ) : (
+                                      '-'
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
+              </Box>
+            ) : (
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ textAlign: 'center', py: 3 }}
+              >
+                هیچ وظیفه در حال انجام برای کارکنان یافت نشد
+              </Typography>
+            )}
           </Paper>
         </Grid>
       </Grid>

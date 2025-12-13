@@ -451,6 +451,32 @@ def organizational_dashboard_view(request):
     recent_tasks = Task.objects.order_by('-created_at')[:10]
     recent_projects = Project.objects.order_by('-created_at')[:10]
     
+    # Employee "doing" tasks - only tasks with status "doing" for each employee
+    from .models import StatusChoices
+    active_users = User.objects.filter(is_active=True)
+    employee_tasks = []
+    
+    for user in active_users:
+        # Get only "doing" tasks
+        doing_tasks = Task.objects.filter(
+            assignees=user,
+            status=StatusChoices.DOING.value
+        ).order_by('-updated_at')
+        
+        if doing_tasks.exists():
+            employee_tasks.append({
+                'user_id': user.id,
+                'username': user.username,
+                'first_name': user.first_name or '',
+                'last_name': user.last_name or '',
+                'full_name': f"{user.first_name or ''} {user.last_name or ''}".strip() or user.username,
+                'tasks': TaskDetailSerializer(doing_tasks, many=True).data,
+                'task_count': doing_tasks.count(),
+            })
+    
+    # Sort by task count (descending) then by username
+    employee_tasks.sort(key=lambda x: (-x['task_count'], x['username']))
+    
     return Response({
         'user_activity': {
             'active_users_this_week': active_users_this_week,
@@ -468,6 +494,7 @@ def organizational_dashboard_view(request):
             {'user': item['working_day__user__username'], 'reports': item['report_count']}
             for item in user_productivity
         ],
+        'employee_tasks': employee_tasks,
         'recent_tasks': TaskSerializer(recent_tasks, many=True).data,
         'recent_projects': ProjectSerializer(recent_projects, many=True).data,
     })
