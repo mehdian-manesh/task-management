@@ -1,5 +1,5 @@
 [] archive column in the Kanaban must be removed
-[] current tasks of each employee in the organizational dashboard 
+[] show current tasks of each employee in the organizational dashboard (seperate section) 
 [] statistics in the normal user dashboard
 [] meetings
 [] weekly and monthly reports (web/excel)

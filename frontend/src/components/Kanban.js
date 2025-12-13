@@ -28,7 +28,6 @@ const COLUMNS = [
   { id: 'test', title: 'در حال تست', color: '#9c27b0' },
   { id: 'done', title: 'انجام شده', color: '#4caf50' },
   { id: 'postpone', title: 'معوق شده', color: '#f44336' },
-  { id: 'archive', title: 'بایگانی', color: '#607d8b' },
 ];
 
 const Kanban = () => {
