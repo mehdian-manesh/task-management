@@ -449,7 +449,9 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
             '& .MuiDrawer-paper': {
               width: drawerWidth,
               boxSizing: 'border-box',
-              background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+              background: isDark ? '#0f172a' : '#ffffff',
+              backgroundImage: 'none',
+              '--Paper-overlay': 'none',
               borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
               overflowX: 'hidden',
               boxShadow: isDark 
@@ -483,7 +485,9 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
                 boxSizing: 'border-box',
                 borderLeft: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
                 borderRight: 'none',
-                background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
+                background: isDark ? '#0f172a' : '#ffffff',
+                backgroundImage: 'none',
+                '--Paper-overlay': 'none',
                 position: 'relative',
                 height: '100%',
                 right: 'auto !important',

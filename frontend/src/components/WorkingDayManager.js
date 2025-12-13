@@ -23,7 +23,7 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 import AddIcon from '@mui/icons-material/Add';
 import { workingDayService, reportService, taskService } from '../api/services';
-import { formatToJalaliWithTime, REPORT_RESULTS, REPORT_RESULT_LABELS } from '../utils/dateUtils';
+import { formatToJalaliWithTime, REPORT_RESULT_LABELS } from '../utils/dateUtils';
 
 const RESULT_CHOICES = Object.entries(REPORT_RESULT_LABELS).map(([value, label]) => ({
   value,
@@ -121,41 +121,48 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       setMessage({ type: 'error', text: 'روز کاری یافت نشد' });
       return;
     }
+    
+    // Validate that either task_id or task_name is provided
+    const taskId = newReport.task_id ? (typeof newReport.task_id === 'string' ? newReport.task_id.trim() : String(newReport.task_id)) : '';
+    const taskName = newReport.task_name ? newReport.task_name.trim() : '';
+    
+    if (!taskId && !taskName) {
+      setMessage({ type: 'error', text: 'لطفاً یک وظیفه انتخاب کنید یا عنوان وظیفه جدید را وارد کنید' });
+      return;
+    }
+    
     try {
-      let taskId = newReport.task_id;
-      
-      // Create a draft task if no task is selected
-      if (!taskId && newReport.task_name) {
-        const taskResponse = await taskService.create({
-          name: newReport.task_name,
-          status: 'todo',
-          is_draft: true,
-        });
-        taskId = taskResponse.data.id;
-      }
-      
+      // Prepare report data - only send non-empty values
       const reportData = {
-        ...newReport,
-        task_id: taskId,
+        result: newReport.result || 'ongoing',
+        comment: newReport.comment || '',
       };
       
-      const response = await reportService.create(workingDay.id, reportData);
-      
-      // Update task status based on report result
-      if (response.data.result === REPORT_RESULTS.SUCCESS) {
-        await taskService.update(taskId, { status: 'done' });
-      } else if (response.data.result === REPORT_RESULTS.POSTPONED) {
-        await taskService.update(taskId, { status: 'postpone' });
-      } else if (response.data.result === REPORT_RESULTS.CANCELLED) {
-        await taskService.update(taskId, { status: 'archive' });
+      // Add task_id or task_name (not both, and only if not empty)
+      if (taskId) {
+        reportData.task_id = parseInt(taskId, 10);
+        if (isNaN(reportData.task_id)) {
+          setMessage({ type: 'error', text: 'شناسه وظیفه نامعتبر است' });
+          return;
+        }
+      } else if (taskName) {
+        reportData.task_name = taskName;
       }
+      
+      await reportService.create(workingDay.id, reportData);
+      
       setMessage({ type: 'success', text: 'گزارش با موفقیت ثبت شد' });
       setOpenReportDialog(false);
       setNewReport({ task_id: '', task_name: '', result: 'ongoing', comment: '' });
       loadReports(workingDay.id);
       loadTasks();
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در ثبت گزارش' });
+      const errorMessage = error.response?.data?.detail || 
+                          error.response?.data?.task_id?.[0] ||
+                          error.response?.data?.task_name?.[0] ||
+                          error.response?.data?.non_field_errors?.[0] ||
+                          'خطا در ثبت گزارش';
+      setMessage({ type: 'error', text: errorMessage });
     }
   };
 

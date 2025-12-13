@@ -348,9 +348,31 @@ export const createAppTheme = (mode = 'light') => createTheme(
       MuiDrawer: {
         styleOverrides: {
           paper: {
+            background: mode === 'dark'
+              ? '#0f172a'
+              : '#ffffff',
+            backgroundImage: 'none !important',
+            '--Paper-overlay': 'none !important',
+            '&::before': {
+              display: 'none',
+            },
+            '&::after': {
+              display: 'none',
+            },
             '& .MuiChip-label': {
               fontWeight: 600,
             },
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            background: mode === 'dark'
+              ? 'rgba(15, 23, 42, 1)'
+              : 'rgba(255, 255, 255, 1)',
+            backgroundImage: 'none',
+            '--Paper-overlay': 'none',
           },
         },
       },

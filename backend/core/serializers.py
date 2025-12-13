@@ -220,7 +220,7 @@ class WorkingDaySerializer(serializers.ModelSerializer):
 
 class ReportSerializer(serializers.ModelSerializer):
     task_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
-    task_name = serializers.CharField(write_only=True, required=False, allow_null=True)
+    task_name = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
     
     class Meta:
         model = Report
@@ -228,29 +228,56 @@ class ReportSerializer(serializers.ModelSerializer):
                   'comment', 'start_time', 'end_time']
         read_only_fields = ['task']
     
+    def validate_task_id(self, value):
+        """Convert empty string to None"""
+        if value == '':
+            return None
+        return value
+    
+    def validate_task_name(self, value):
+        """Convert empty string to None and strip whitespace"""
+        if value == '' or (value and not value.strip()):
+            return None
+        return value.strip() if value else None
+    
     def create(self, validated_data):
         task_id = validated_data.pop('task_id', None)
         task_name = validated_data.pop('task_name', None)
         working_day = validated_data.get('working_day')
+        
+        # Handle empty strings as None
+        if task_id == '' or task_id is None:
+            task_id = None
+        if task_name == '' or (task_name and not task_name.strip()):
+            task_name = None
         
         # Auto-create draft task if task doesn't exist
         if task_id:
             try:
                 task = Task.objects.get(id=task_id)
             except Task.DoesNotExist:
-                task = Task.objects.create(
-                    name=task_name or "Draft Task",
-                    is_draft=True,
-                    created_by=working_day.user
-                )
+                # If task_id doesn't exist and task_name is provided, create new task
+                if task_name:
+                    task = Task.objects.create(
+                        name=task_name.strip(),
+                        is_draft=True,
+                        created_by=working_day.user
+                    )
+                else:
+                    raise serializers.ValidationError({
+                        'task_id': ['وظیفه با این شناسه یافت نشد.'],
+                        'task_name': ['لطفاً عنوان وظیفه جدید را وارد کنید.']
+                    })
         elif task_name:
             task = Task.objects.create(
-                name=task_name,
+                name=task_name.strip(),
                 is_draft=True,
                 created_by=working_day.user
             )
         else:
-            raise serializers.ValidationError("Either task_id or task_name must be provided")
+            raise serializers.ValidationError({
+                'non_field_errors': ['لطفاً یک وظیفه انتخاب کنید یا عنوان وظیفه جدید را وارد کنید.']
+            })
         
         validated_data['task'] = task
         result = validated_data.get('result', ReportResultChoices.ONGOING.value)

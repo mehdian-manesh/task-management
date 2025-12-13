@@ -128,6 +128,8 @@ body.dark-mode *::-webkit-scrollbar-thumb:hover {
   right: 0 !important;
   left: auto !important;
   transform: none !important;
+  --Paper-overlay: none !important;
+  background-image: none !important;
 }
 
 /* Fix react-beautiful-dnd RTL positioning issue */
