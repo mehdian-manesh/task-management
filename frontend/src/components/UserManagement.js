@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -24,11 +24,28 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { adminService } from '../api/services';
+import TableControls from './TableControls';
+import Pagination from './Pagination';
+import SortableTableHeader from './SortableTableHeader';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  // Filter and sort state
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({
+    is_staff: '',
+    is_active: '',
+  });
+  const [ordering, setOrdering] = useState('-date_joined');
+  
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -41,12 +58,47 @@ const UserManagement = () => {
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [page, search, filters, ordering]);
+
+  const buildParams = useCallback(() => {
+    const params = {
+      page,
+      page_size: pageSize,
+    };
+    
+    if (search) {
+      params.search = search;
+    }
+    
+    if (filters.is_staff !== '') {
+      params.is_staff = filters.is_staff === 'true';
+    }
+    
+    if (filters.is_active !== '') {
+      params.is_active = filters.is_active === 'true';
+    }
+    
+    if (ordering) {
+      params.ordering = ordering;
+    }
+    
+    return params;
+  }, [page, pageSize, search, filters, ordering]);
 
   const loadUsers = async () => {
     try {
-      const response = await adminService.getAllUsers();
-      setUsers(response.data);
+      const params = buildParams();
+      const response = await adminService.getAllUsers(params);
+      
+      // Handle paginated response
+      if (response.data.results) {
+        setUsers(response.data.results);
+        setTotalCount(response.data.count);
+      } else {
+        // Fallback for non-paginated response
+        setUsers(response.data);
+        setTotalCount(response.data.length);
+      }
     } catch (error) {
       console.error('Error loading users:', error);
     }
@@ -115,6 +167,41 @@ const UserManagement = () => {
     }
   };
 
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters({ ...filters, [key]: value });
+    setPage(1);
+  };
+
+  const handleSortChange = (sortKey) => {
+    if (sortKey) {
+      const currentKey = ordering.startsWith('-') ? ordering.substring(1) : ordering;
+      if (currentKey === sortKey) {
+        setOrdering(ordering.startsWith('-') ? sortKey : `-${sortKey}`);
+      } else {
+        setOrdering(sortKey);
+      }
+    } else {
+      setOrdering('-date_joined');
+    }
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setFilters({ is_staff: '', is_active: '' });
+    setOrdering('-date_joined');
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -128,14 +215,67 @@ const UserManagement = () => {
         </Button>
       </Box>
 
+      <TableControls
+        searchValue={search}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="جستجو در نام کاربری، ایمیل، نام و نام خانوادگی..."
+        filters={[
+          {
+            key: 'is_staff',
+            label: 'نقش',
+            value: filters.is_staff,
+            options: [
+              { value: 'true', label: 'مدیر' },
+              { value: 'false', label: 'کاربر عادی' },
+            ],
+          },
+          {
+            key: 'is_active',
+            label: 'وضعیت',
+            value: filters.is_active,
+            options: [
+              { value: 'true', label: 'فعال' },
+              { value: 'false', label: 'غیرفعال' },
+            ],
+          },
+        ]}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        filterModalTitle="فیلتر کاربران"
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell align="right">نام کاربری</TableCell>
-              <TableCell align="right">ایمیل</TableCell>
-              <TableCell align="right">نام</TableCell>
-              <TableCell align="right">نام خانوادگی</TableCell>
+              <SortableTableHeader
+                sortKey="username"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                نام کاربری
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="email"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                ایمیل
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="first_name"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                نام
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="last_name"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                نام خانوادگی
+              </SortableTableHeader>
               <TableCell align="right">نقش</TableCell>
               <TableCell align="right">وضعیت</TableCell>
               <TableCell align="right">عملیات</TableCell>
@@ -175,6 +315,13 @@ const UserManagement = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Pagination
+        count={totalCount}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>

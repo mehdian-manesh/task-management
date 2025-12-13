@@ -103,7 +103,11 @@ const Dashboard = () => {
   const loadTodayWorkingDay = async () => {
     try {
       const response = await workingDayService.getAll();
-      const today = response.data.find(wd => !wd.check_out && !wd.is_on_leave);
+      // Handle paginated response
+      const workingDays = response.data.results || response.data;
+      const today = Array.isArray(workingDays) 
+        ? workingDays.find(wd => !wd.check_out && !wd.is_on_leave)
+        : null;
       setTodayWorkingDay(today);
     } catch (error) {
       console.error('Error loading working day:', error);

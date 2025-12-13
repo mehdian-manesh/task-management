@@ -56,8 +56,10 @@ class TestTaskList:
         response = authenticated_regular_client.get(reverse('task-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['name'] == 'My Task'
+        # Handle paginated response
+        tasks = response.data.get('results', response.data)
+        assert len(tasks) == 1
+        assert tasks[0]['name'] == 'My Task'
     
     def test_list_tasks_as_user_assigned(self, authenticated_regular_client, regular_user):
         """Test user can see tasks they're assigned to"""
@@ -67,7 +69,9 @@ class TestTaskList:
         response = authenticated_regular_client.get(reverse('task-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        # Handle paginated response
+        tasks = response.data.get('results', response.data)
+        assert len(tasks) == 1
     
     def test_list_tasks_as_user_project_assigned(self, authenticated_regular_client, regular_user):
         """Test user can see tasks in projects they're assigned to"""
@@ -78,7 +82,9 @@ class TestTaskList:
         response = authenticated_regular_client.get(reverse('task-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        # Handle paginated response
+        tasks = response.data.get('results', response.data)
+        assert len(tasks) == 1
     
     def test_list_tasks_as_admin(self, authenticated_admin_client):
         """Test admin can see all tasks"""
@@ -88,7 +94,9 @@ class TestTaskList:
         response = authenticated_admin_client.get(reverse('task-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 2
+        # Handle paginated response
+        tasks = response.data.get('results', response.data)
+        assert len(tasks) == 2
 
 
 @pytest.mark.django_db

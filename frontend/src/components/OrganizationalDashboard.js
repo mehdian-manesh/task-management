@@ -19,6 +19,7 @@ import { useTheme } from '@mui/material';
 const OrganizationalDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -28,10 +29,42 @@ const OrganizationalDashboard = () => {
 
   const loadDashboard = async () => {
     try {
+      setError(null);
+      setLoading(true);
       const response = await adminService.getOrganizationalDashboard();
-      setDashboard(response.data);
+      if (response && response.data) {
+        setDashboard(response.data);
+      } else {
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
       console.error('Error loading dashboard:', error);
+      let errorMessage = 'خطا در بارگذاری داشبورد';
+      
+      // Handle specific error cases
+      if (error.response) {
+        const status = error.response.status;
+        if (status === 502 || status === 503) {
+          errorMessage = 'سرور در دسترس نیست. لطفاً اتصال خود را بررسی کنید.';
+        } else if (status === 401 || status === 403) {
+          errorMessage = 'شما دسترسی لازم برای مشاهده این صفحه را ندارید.';
+        } else if (status === 404) {
+          errorMessage = 'صفحه مورد نظر یافت نشد.';
+        } else if (status >= 500) {
+          errorMessage = 'خطای سرور. لطفاً بعداً دوباره تلاش کنید.';
+        } else {
+          errorMessage = error.response.data?.detail || 
+                        error.response.data?.message ||
+                        `خطا در بارگذاری (کد: ${status})`;
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        errorMessage = 'ارتباط با سرور برقرار نشد. لطفاً اتصال اینترنت خود را بررسی کنید.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -41,8 +74,33 @@ const OrganizationalDashboard = () => {
     return <Typography>در حال بارگذاری...</Typography>;
   }
 
+  if (error) {
+    return (
+      <Box>
+        <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
+          داشبورد سازمانی
+        </Typography>
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          لطفاً صفحه را رفرش کنید یا بعداً دوباره تلاش کنید.
+        </Typography>
+      </Box>
+    );
+  }
+
   if (!dashboard) {
-    return <Typography>خطا در بارگذاری داشبورد</Typography>;
+    return (
+      <Box>
+        <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
+          داشبورد سازمانی
+        </Typography>
+        <Typography color="error">
+          خطا در بارگذاری داشبورد
+        </Typography>
+      </Box>
+    );
   }
 
   return (

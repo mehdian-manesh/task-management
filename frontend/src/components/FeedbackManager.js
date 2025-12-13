@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -21,6 +21,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { feedbackService } from '../api/services';
 import moment from 'moment-jalaali';
+import TableControls from './TableControls';
+import Pagination from './Pagination';
 
 const FEEDBACK_TYPES = [
   { value: '', label: 'نامشخص' },
@@ -34,6 +36,19 @@ const FeedbackManager = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingFeedback, setEditingFeedback] = useState(null);
   const [message, setMessage] = useState(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  // Filter and sort state
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({
+    type: '',
+  });
+  const [ordering, setOrdering] = useState('-created_at');
+  
   const [formData, setFormData] = useState({
     description: '',
     type: '',
@@ -41,12 +56,43 @@ const FeedbackManager = () => {
 
   useEffect(() => {
     loadFeedbacks();
-  }, []);
+  }, [page, search, filters, ordering]);
+
+  const buildParams = useCallback(() => {
+    const params = {
+      page,
+      page_size: pageSize,
+    };
+    
+    if (search) {
+      params.search = search;
+    }
+    
+    if (filters.type) {
+      params.type = filters.type;
+    }
+    
+    if (ordering) {
+      params.ordering = ordering;
+    }
+    
+    return params;
+  }, [page, pageSize, search, filters, ordering]);
 
   const loadFeedbacks = async () => {
     try {
-      const response = await feedbackService.getAll();
-      setFeedbacks(response.data);
+      const params = buildParams();
+      const response = await feedbackService.getAll(params);
+      
+      // Handle paginated response
+      if (response.data.results) {
+        setFeedbacks(response.data.results);
+        setTotalCount(response.data.count);
+      } else {
+        // Fallback for non-paginated response
+        setFeedbacks(response.data);
+        setTotalCount(response.data.length);
+      }
     } catch (error) {
       setMessage({ type: 'error', text: 'خطا در بارگذاری بازخوردها' });
     }
@@ -102,6 +148,41 @@ const FeedbackManager = () => {
     }
   };
 
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters({ ...filters, [key]: value });
+    setPage(1);
+  };
+
+  const handleSortChange = (sortKey) => {
+    if (sortKey) {
+      const currentKey = ordering.startsWith('-') ? ordering.substring(1) : ordering;
+      if (currentKey === sortKey) {
+        setOrdering(ordering.startsWith('-') ? sortKey : `-${sortKey}`);
+      } else {
+        setOrdering(sortKey);
+      }
+    } else {
+      setOrdering('-created_at');
+    }
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setFilters({ type: '' });
+    setOrdering('-created_at');
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
   const getTypeColor = (type) => {
     const colors = {
       criticism: 'error',
@@ -129,6 +210,23 @@ const FeedbackManager = () => {
           {message.text}
         </Alert>
       )}
+
+      <TableControls
+        searchValue={search}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="جستجو در توضیحات..."
+        filters={[
+          {
+            key: 'type',
+            label: 'نوع',
+            value: filters.type,
+            options: FEEDBACK_TYPES.filter(f => f.value !== ''),
+          },
+        ]}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        filterModalTitle="فیلتر بازخوردها"
+      />
 
       <Grid container spacing={2}>
         {feedbacks.map((feedback) => (
@@ -173,6 +271,13 @@ const FeedbackManager = () => {
           </Grid>
         )}
       </Grid>
+
+      <Pagination
+        count={totalCount}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>{editingFeedback ? 'ویرایش بازخورد' : 'افزودن بازخورد جدید'}</DialogTitle>

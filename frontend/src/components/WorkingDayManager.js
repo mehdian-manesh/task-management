@@ -24,6 +24,8 @@ import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 import AddIcon from '@mui/icons-material/Add';
 import { workingDayService, reportService, taskService } from '../api/services';
 import { formatToJalaliWithTime, REPORT_RESULT_LABELS } from '../utils/dateUtils';
+import TableControls from './TableControls';
+import Pagination from './Pagination';
 
 const RESULT_CHOICES = Object.entries(REPORT_RESULT_LABELS).map(([value, label]) => ({
   value,
@@ -43,22 +45,60 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   });
   const [message, setMessage] = useState(null);
 
+  // Pagination state for reports
+  const [reportsPage, setReportsPage] = useState(1);
+  const [reportsPageSize] = useState(20);
+  const [reportsTotalCount, setReportsTotalCount] = useState(0);
+  
+  // Filter and sort state for reports
+  const [reportsSearch, setReportsSearch] = useState('');
+  const [reportsFilters, setReportsFilters] = useState({
+    result: '',
+  });
+  const [reportsOrdering, setReportsOrdering] = useState('-start_time');
+
+  const buildReportsParams = useCallback(() => {
+    const params = {
+      page: reportsPage,
+      page_size: reportsPageSize,
+    };
+    
+    if (reportsFilters.result) {
+      params.result = reportsFilters.result;
+    }
+    
+    if (reportsOrdering) {
+      params.ordering = reportsOrdering;
+    }
+    
+    return params;
+  }, [reportsPage, reportsPageSize, reportsFilters, reportsOrdering]);
 
   const loadReports = useCallback(async (workingDayId) => {
     try {
-      const response = await reportService.getByWorkingDay(workingDayId);
-      setReports(response.data);
+      const params = buildReportsParams();
+      const response = await reportService.getByWorkingDay(workingDayId, params);
+      
+      // Handle paginated response
+      if (response.data.results) {
+        setReports(response.data.results);
+        setReportsTotalCount(response.data.count);
+      } else {
+        // Fallback for non-paginated response
+        setReports(response.data);
+        setReportsTotalCount(response.data.length);
+      }
     } catch (error) {
       console.error('Error loading reports:', error);
     }
-  }, []);
+  }, [buildReportsParams]);
 
   useEffect(() => {
     setWorkingDay(todayWorkingDay);
     if (todayWorkingDay) {
       loadReports(todayWorkingDay.id);
     }
-  }, [todayWorkingDay, loadReports]);
+  }, [todayWorkingDay, loadReports, reportsPage, reportsFilters, reportsOrdering]);
 
   useEffect(() => {
     loadTasks();
@@ -67,7 +107,9 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   const loadTasks = async () => {
     try {
       const response = await taskService.getAll();
-      setTasks(response.data);
+      // Handle paginated response
+      const tasksData = response.data.results || response.data;
+      setTasks(Array.isArray(tasksData) ? tasksData : []);
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
@@ -166,6 +208,41 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
     }
   };
 
+  const handleReportsSearchChange = (value) => {
+    setReportsSearch(value);
+    setReportsPage(1);
+  };
+
+  const handleReportsFilterChange = (key, value) => {
+    setReportsFilters({ ...reportsFilters, [key]: value });
+    setReportsPage(1);
+  };
+
+  const handleReportsSortChange = (sortKey) => {
+    if (sortKey) {
+      const currentKey = reportsOrdering.startsWith('-') ? reportsOrdering.substring(1) : reportsOrdering;
+      if (currentKey === sortKey) {
+        setReportsOrdering(reportsOrdering.startsWith('-') ? sortKey : `-${sortKey}`);
+      } else {
+        setReportsOrdering(sortKey);
+      }
+    } else {
+      setReportsOrdering('-start_time');
+    }
+    setReportsPage(1);
+  };
+
+  const handleReportsClearFilters = () => {
+    setReportsSearch('');
+    setReportsFilters({ result: '' });
+    setReportsOrdering('-start_time');
+    setReportsPage(1);
+  };
+
+  const handleReportsPageChange = (newPage) => {
+    setReportsPage(newPage);
+  };
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
@@ -255,6 +332,25 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
                   )}
                 </Box>
 
+                {reports.length > 0 && (
+                  <TableControls
+                    searchValue={reportsSearch}
+                    onSearchChange={handleReportsSearchChange}
+                    searchPlaceholder="جستجو در گزارش‌ها..."
+                    filters={[
+                      {
+                        key: 'result',
+                        label: 'نتیجه',
+                        value: reportsFilters.result,
+                        options: RESULT_CHOICES,
+                      },
+                    ]}
+                    onFilterChange={handleReportsFilterChange}
+                    onClearFilters={handleReportsClearFilters}
+                    filterModalTitle="فیلتر گزارش‌ها"
+                  />
+                )}
+
                 {reports.length === 0 ? (
                   <Typography variant="body2" color="text.secondary">
                     هنوز گزارشی ثبت نشده است
@@ -285,6 +381,15 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
                       </React.Fragment>
                     ))}
                   </List>
+                )}
+
+                {reports.length > 0 && (
+                  <Pagination
+                    count={reportsTotalCount}
+                    page={reportsPage}
+                    pageSize={reportsPageSize}
+                    onPageChange={handleReportsPageChange}
+                  />
                 )}
               </CardContent>
             </Card>

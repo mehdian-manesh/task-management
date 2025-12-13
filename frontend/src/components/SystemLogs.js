@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -13,10 +13,24 @@ import {
 } from '@mui/material';
 import { adminService } from '../api/services';
 import moment from 'moment-jalaali';
+import TableControls from './TableControls';
+import Pagination from './Pagination';
+import SortableTableHeader from './SortableTableHeader';
 
 const SystemLogs = () => {
-  const [logs, setLogs] = useState([]);
+  const [allLogs, setAllLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  
+  // Filter and sort state
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({
+    type: '',
+  });
+  const [ordering, setOrdering] = useState('-timestamp');
 
   useEffect(() => {
     loadLogs();
@@ -25,13 +39,66 @@ const SystemLogs = () => {
   const loadLogs = async () => {
     try {
       const response = await adminService.getSystemLogs();
-      setLogs(response.data.logs || []);
+      setAllLogs(response.data.logs || []);
     } catch (error) {
       console.error('Error loading logs:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Client-side filtering, sorting, and pagination
+  const filteredAndSortedLogs = useMemo(() => {
+    let result = [...allLogs];
+    
+    // Filter by type
+    if (filters.type) {
+      result = result.filter(log => log.type === filters.type);
+    }
+    
+    // Search in message and user
+    if (search) {
+      const searchLower = search.toLowerCase();
+      result = result.filter(log => 
+        (log.message && log.message.toLowerCase().includes(searchLower)) ||
+        (log.user && log.user.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Sort
+    if (ordering) {
+      const field = ordering.startsWith('-') ? ordering.substring(1) : ordering;
+      const direction = ordering.startsWith('-') ? -1 : 1;
+      
+      result.sort((a, b) => {
+        let aVal = a[field];
+        let bVal = b[field];
+        
+        if (field === 'timestamp') {
+          aVal = new Date(aVal).getTime();
+          bVal = new Date(bVal).getTime();
+        } else if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase();
+          bVal = bVal.toLowerCase();
+        }
+        
+        if (aVal < bVal) return -1 * direction;
+        if (aVal > bVal) return 1 * direction;
+        return 0;
+      });
+    }
+    
+    return result;
+  }, [allLogs, filters, search, ordering]);
+
+  // Paginate
+  const paginatedLogs = useMemo(() => {
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return filteredAndSortedLogs.slice(startIndex, endIndex);
+  }, [filteredAndSortedLogs, page, pageSize]);
+
+  const totalCount = filteredAndSortedLogs.length;
 
   const getLogTypeLabel = (type) => {
     const labels = {
@@ -51,6 +118,47 @@ const SystemLogs = () => {
     return colors[type] || 'default';
   };
 
+  const logTypes = [
+    { value: 'task_created', label: 'ایجاد وظیفه' },
+    { value: 'project_created', label: 'ایجاد پروژه' },
+    { value: 'check_in', label: 'ورود' },
+  ];
+
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters({ ...filters, [key]: value });
+    setPage(1);
+  };
+
+  const handleSortChange = (sortKey) => {
+    if (sortKey) {
+      const currentKey = ordering.startsWith('-') ? ordering.substring(1) : ordering;
+      if (currentKey === sortKey) {
+        setOrdering(ordering.startsWith('-') ? sortKey : `-${sortKey}`);
+      } else {
+        setOrdering(sortKey);
+      }
+    } else {
+      setOrdering('-timestamp');
+    }
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setFilters({ type: '' });
+    setOrdering('-timestamp');
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
   if (loading) {
     return <Typography>در حال بارگذاری...</Typography>;
   }
@@ -61,6 +169,23 @@ const SystemLogs = () => {
         لاگ‌های سیستم
       </Typography>
 
+      <TableControls
+        searchValue={search}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="جستجو در پیام و کاربر..."
+        filters={[
+          {
+            key: 'type',
+            label: 'نوع',
+            value: filters.type,
+            options: logTypes,
+          },
+        ]}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        filterModalTitle="فیلتر لاگ‌ها"
+      />
+
       <TableContainer
         component={Paper}
         sx={{
@@ -70,21 +195,33 @@ const SystemLogs = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell align="right">نوع</TableCell>
+              <SortableTableHeader
+                sortKey="type"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                نوع
+              </SortableTableHeader>
               <TableCell align="right">پیام</TableCell>
               <TableCell align="right">کاربر</TableCell>
-              <TableCell align="right">زمان</TableCell>
+              <SortableTableHeader
+                sortKey="timestamp"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                زمان
+              </SortableTableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
-            {logs.length === 0 ? (
+            {paginatedLogs.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} align="center">
                   <Typography color="textSecondary">لاگی یافت نشد</Typography>
                 </TableCell>
               </TableRow>
             ) : (
-              logs.map((log, index) => (
+              paginatedLogs.map((log, index) => (
                 <TableRow key={index}>
                   <TableCell align="right">
                     <Chip
@@ -104,6 +241,13 @@ const SystemLogs = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Pagination
+        count={totalCount}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
     </Box>
   );
 };

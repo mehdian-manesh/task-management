@@ -59,8 +59,10 @@ class TestProjectList:
         response = authenticated_regular_client.get(reverse('project-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['name'] == 'Assigned Project'
+        # Handle paginated response
+        projects = response.data.get('results', response.data)
+        assert len(projects) == 1
+        assert projects[0]['name'] == 'Assigned Project'
     
     def test_list_projects_as_admin(self, authenticated_admin_client, regular_user):
         """Test admin can list all projects"""
@@ -71,13 +73,17 @@ class TestProjectList:
         response = authenticated_admin_client.get(reverse('project-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 2
+        # Handle paginated response
+        projects = response.data.get('results', response.data)
+        assert len(projects) == 2
     
     def test_list_projects_empty(self, authenticated_regular_client):
         """Test listing projects when none exist"""
         response = authenticated_regular_client.get(reverse('project-list'))
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 0
+        # Handle paginated response
+        projects = response.data.get('results', response.data)
+        assert len(projects) == 0
 
 
 @pytest.mark.django_db

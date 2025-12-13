@@ -229,7 +229,9 @@ class TestUserViewSet:
         response = authenticated_admin_client.get(reverse('user-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) >= 2
+        # Handle paginated response
+        users = response.data.get('results', response.data)
+        assert len(users) >= 2
     
     def test_create_user_as_admin(self, authenticated_admin_client):
         """Test admin can create users"""

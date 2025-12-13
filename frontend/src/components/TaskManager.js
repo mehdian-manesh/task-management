@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Box,
@@ -27,6 +27,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { taskService, projectService } from '../api/services';
 import { formatToJalali, jalaliToGregorian } from '../utils/dateUtils';
 import { toPersianNumbers } from '../utils/numberUtils';
+import TableControls from './TableControls';
+import Pagination from './Pagination';
+import SortableTableHeader from './SortableTableHeader';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -45,6 +48,21 @@ const TaskManager = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [message, setMessage] = useState(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  // Filter and sort state
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({
+    status: '',
+    project: '',
+    is_draft: '',
+  });
+  const [ordering, setOrdering] = useState('-created_at');
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -58,14 +76,56 @@ const TaskManager = () => {
   });
 
   useEffect(() => {
-    loadTasks();
     loadProjects();
   }, []);
 
+  useEffect(() => {
+    loadTasks();
+  }, [page, search, filters, ordering]);
+
+  const buildParams = useCallback(() => {
+    const params = {
+      page,
+      page_size: pageSize,
+    };
+    
+    if (search) {
+      params.search = search;
+    }
+    
+    if (filters.status) {
+      params.status = filters.status;
+    }
+    
+    if (filters.project) {
+      params.project = filters.project;
+    }
+    
+    if (filters.is_draft !== '') {
+      params.is_draft = filters.is_draft === 'true';
+    }
+    
+    if (ordering) {
+      params.ordering = ordering;
+    }
+    
+    return params;
+  }, [page, pageSize, search, filters, ordering]);
+
   const loadTasks = async () => {
     try {
-      const response = await taskService.getAll();
-      setTasks(response.data);
+      const params = buildParams();
+      const response = await taskService.getAll(params);
+      
+      // Handle paginated response
+      if (response.data.results) {
+        setTasks(response.data.results);
+        setTotalCount(response.data.count);
+      } else {
+        // Fallback for non-paginated response
+        setTasks(response.data);
+        setTotalCount(response.data.length);
+      }
     } catch (error) {
       setMessage({ type: 'error', text: 'خطا در بارگذاری وظایف' });
     }
@@ -74,7 +134,9 @@ const TaskManager = () => {
   const loadProjects = async () => {
     try {
       const response = await projectService.getAll();
-      setProjects(response.data);
+      // Handle paginated response - for dropdown we want all projects
+      const projectsData = response.data.results || response.data;
+      setProjects(Array.isArray(projectsData) ? projectsData : []);
     } catch (error) {
       console.error('Error loading projects:', error);
     }
@@ -144,6 +206,44 @@ const TaskManager = () => {
     }
   };
 
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1); // Reset to first page on search
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters({ ...filters, [key]: value });
+    setPage(1); // Reset to first page on filter change
+  };
+
+  const handleSortChange = (sortKey) => {
+    if (sortKey) {
+      // Toggle if same column, otherwise set new sort
+      const currentKey = ordering.startsWith('-') ? ordering.substring(1) : ordering;
+      if (currentKey === sortKey) {
+        // Toggle direction
+        setOrdering(ordering.startsWith('-') ? sortKey : `-${sortKey}`);
+      } else {
+        // New column, default to ascending
+        setOrdering(sortKey);
+      }
+    } else {
+      setOrdering('-created_at');
+    }
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setFilters({ status: '', project: '', is_draft: '' });
+    setOrdering('-created_at');
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       postpone: 'warning',
@@ -176,15 +276,77 @@ const TaskManager = () => {
         </Alert>
       )}
 
+      <TableControls
+        searchValue={search}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="جستجو در نام و توضیحات..."
+        filters={[
+          {
+            key: 'status',
+            label: 'وضعیت',
+            value: filters.status,
+            options: STATUS_CHOICES,
+          },
+          {
+            key: 'project',
+            label: 'پروژه',
+            value: filters.project,
+            options: Array.isArray(projects) ? projects.map(p => ({ value: p.id, label: p.name })) : [],
+          },
+          {
+            key: 'is_draft',
+            label: 'پیش‌نویس',
+            value: filters.is_draft,
+            options: [
+              { value: 'true', label: 'بله' },
+              { value: 'false', label: 'خیر' },
+            ],
+          },
+        ]}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        filterModalTitle="فیلتر وظایف"
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell align="right">نام</TableCell>
-              <TableCell align="right">پروژه</TableCell>
-              <TableCell align="right">وضعیت</TableCell>
-              <TableCell align="right">فاز</TableCell>
-              <TableCell align="right">موعد</TableCell>
+              <SortableTableHeader
+                sortKey="name"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                نام
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="project"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                پروژه
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="status"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                وضعیت
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="phase"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                فاز
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="deadline"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                موعد
+              </SortableTableHeader>
               <TableCell align="right">پیش‌نویس</TableCell>
               <TableCell align="right">عملیات</TableCell>
             </TableRow>
@@ -206,7 +368,7 @@ const TaskManager = () => {
                   </Box>
                 </TableCell>
                 <TableCell align="right">
-                  {projects.find(p => p.id === task.project_id)?.name || '-'}
+                  {Array.isArray(projects) ? (projects.find(p => p.id === task.project_id)?.name || '-') : '-'}
                 </TableCell>
                 <TableCell align="right">
                   <Chip
@@ -237,6 +399,13 @@ const TaskManager = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Pagination
+        count={totalCount}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editingTask ? 'ویرایش وظیفه' : 'افزودن وظیفه جدید'}</DialogTitle>
@@ -270,7 +439,7 @@ const TaskManager = () => {
             dir="rtl"
           >
             <MenuItem value="">بدون پروژه</MenuItem>
-            {projects.map((project) => (
+            {Array.isArray(projects) && projects.map((project) => (
               <MenuItem key={project.id} value={project.id}>
                 {project.name}
               </MenuItem>

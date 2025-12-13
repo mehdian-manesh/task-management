@@ -301,7 +301,9 @@ class TestQuerySetFiltering:
         response = authenticated_regular_client.get(reverse('project-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        project_names = [p['name'] for p in response.data]
+        # Handle paginated response
+        projects = response.data.get('results', response.data)
+        project_names = [p['name'] for p in projects]
         assert 'Assigned Project' in project_names
         assert 'Unassigned Project' not in project_names
     
@@ -325,7 +327,9 @@ class TestQuerySetFiltering:
         response = authenticated_regular_client.get(reverse('task-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        task_names = [t['name'] for t in response.data]
+        # Handle paginated response
+        tasks = response.data.get('results', response.data)
+        task_names = [t['name'] for t in tasks]
         assert 'Created Task' in task_names
         assert 'Assigned Task' in task_names
         assert 'Project Task' in task_names
@@ -340,7 +344,9 @@ class TestQuerySetFiltering:
         response = authenticated_admin_client.get(reverse('project-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 2
+        # Handle paginated response
+        projects = response.data.get('results', response.data)
+        assert len(projects) == 2
     
     def test_regular_user_sees_only_own_working_days(self, authenticated_regular_client, regular_user):
         """Test regular user only sees their own working days"""
@@ -351,8 +357,10 @@ class TestQuerySetFiltering:
         response = authenticated_regular_client.get(reverse('working-day-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['user'] == regular_user.id
+        # Handle paginated response
+        working_days = response.data.get('results', response.data)
+        assert len(working_days) == 1
+        assert working_days[0]['user'] == regular_user.id
     
     def test_regular_user_sees_only_own_reports(self, authenticated_regular_client, regular_user):
         """Test regular user only sees their own reports"""
@@ -370,4 +378,6 @@ class TestQuerySetFiltering:
         )
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
+        # Handle paginated response
+        reports = response.data.get('results', response.data)
+        assert len(reports) == 1

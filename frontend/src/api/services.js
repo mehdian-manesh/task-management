@@ -20,7 +20,7 @@ export const authService = {
 
 // Project Services
 export const projectService = {
-  getAll: () => axiosInstance.get('/projects/'),
+  getAll: (params = {}) => axiosInstance.get('/projects/', { params }),
   getById: (id) => axiosInstance.get(`/projects/${id}/`),
   create: (data) => axiosInstance.post('/projects/', data),
   update: (id, data) => axiosInstance.patch(`/projects/${id}/`, data),
@@ -29,7 +29,7 @@ export const projectService = {
 
 // Task Services
 export const taskService = {
-  getAll: () => axiosInstance.get('/tasks/'),
+  getAll: (params = {}) => axiosInstance.get('/tasks/', { params }),
   getById: (id) => axiosInstance.get(`/tasks/${id}/`),
   create: (data) => axiosInstance.post('/tasks/', data),
   update: (id, data) => axiosInstance.patch(`/tasks/${id}/`, data),
@@ -38,7 +38,7 @@ export const taskService = {
 
 // Working Day Services
 export const workingDayService = {
-  getAll: () => axiosInstance.get('/working-days/'),
+  getAll: (params = {}) => axiosInstance.get('/working-days/', { params }),
   checkIn: () => axiosInstance.post('/working-days/', {}),
   checkOut: (id) => axiosInstance.post(`/working-days/${id}/check_out/`),
   leave: (id) => axiosInstance.post(`/working-days/${id}/leave/`),
@@ -46,8 +46,8 @@ export const workingDayService = {
 
 // Report Services
 export const reportService = {
-  getByWorkingDay: (workingDayId) => 
-    axiosInstance.get(`/working-days/${workingDayId}/reports/`),
+  getByWorkingDay: (workingDayId, params = {}) => 
+    axiosInstance.get(`/working-days/${workingDayId}/reports/`, { params }),
   create: (workingDayId, data) => 
     axiosInstance.post(`/working-days/${workingDayId}/reports/`, data),
   update: (workingDayId, reportId, data) => 
@@ -58,7 +58,7 @@ export const reportService = {
 
 // Feedback Services
 export const feedbackService = {
-  getAll: () => axiosInstance.get('/feedbacks/'),
+  getAll: (params = {}) => axiosInstance.get('/feedbacks/', { params }),
   create: (data) => axiosInstance.post('/feedbacks/', data),
   update: (id, data) => axiosInstance.patch(`/feedbacks/${id}/`, data),
   delete: (id) => axiosInstance.delete(`/feedbacks/${id}/`),
@@ -67,7 +67,7 @@ export const feedbackService = {
 // Admin Services
 export const adminService = {
   // User Management
-  getAllUsers: () => axiosInstance.get('/users/'),
+  getAllUsers: (params = {}) => axiosInstance.get('/users/', { params }),
   getUserById: (id) => axiosInstance.get(`/users/${id}/`),
   createUser: (data) => axiosInstance.post('/users/', data),
   updateUser: (id, data) => axiosInstance.patch(`/users/${id}/`, data),

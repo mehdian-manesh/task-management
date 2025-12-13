@@ -17,6 +17,7 @@ from .serializers import (
     FeedbackSerializer,
     UserSerializer, UserCreateSerializer, UserUpdateSerializer
 )
+from .filters import ProjectFilter, TaskFilter, WorkingDayFilter, ReportFilter, FeedbackFilter, UserFilter
 
 
 class IsAdminUserOrReadOnly(permissions.BasePermission):
@@ -33,6 +34,10 @@ class IsAdminUserOrReadOnly(permissions.BasePermission):
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.all()
     permission_classes = [IsAdminUserOrReadOnly]
+    filterset_class = ProjectFilter
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'status', 'start_date', 'deadline', 'created_at', 'updated_at']
+    ordering = ['-created_at']
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -40,10 +45,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return ProjectSerializer
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return self.queryset.all()
-        # Regular users only see projects they're assigned to
-        return self.queryset.filter(assignees=self.request.user)
+        queryset = self.queryset.all()
+        if not self.request.user.is_staff:
+            # Regular users only see projects they're assigned to
+            queryset = queryset.filter(assignees=self.request.user)
+        return queryset
 
     def create(self, request, *args, **kwargs):
         if not request.user.is_staff:
@@ -57,6 +63,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+    filterset_class = TaskFilter
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'status', 'phase', 'deadline', 'created_at', 'updated_at']
+    ordering = ['-created_at']
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -65,19 +75,19 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_staff:
-            return self.queryset.all()
-        
-        # Regular users see:
-        # 1. Tasks they created (including drafts)
-        # 2. Tasks they're assigned to
-        # 3. Tasks in projects they're assigned to
-        from django.db.models import Q
-        return self.queryset.filter(
-            Q(created_by=user) |
-            Q(assignees=user) |
-            Q(project__assignees=user)
-        ).distinct()
+        queryset = self.queryset.all()
+        if not user.is_staff:
+            # Regular users see:
+            # 1. Tasks they created (including drafts)
+            # 2. Tasks they're assigned to
+            # 3. Tasks in projects they're assigned to
+            from django.db.models import Q
+            queryset = queryset.filter(
+                Q(created_by=user) |
+                Q(assignees=user) |
+                Q(project__assignees=user)
+            ).distinct()
+        return queryset
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -100,11 +110,15 @@ class WorkingDayViewSet(viewsets.ModelViewSet):
     queryset = WorkingDay.objects.all()
     serializer_class = WorkingDaySerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_class = WorkingDayFilter
+    ordering_fields = ['check_in', 'check_out', 'is_on_leave']
+    ordering = ['-check_in']
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return self.queryset.all()
-        return self.queryset.filter(user=self.request.user)
+        queryset = self.queryset.all()
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(user=self.request.user)
+        return queryset
 
     def create(self, request, *args, **kwargs):
         # Check if user already has an open working day
@@ -172,6 +186,9 @@ class WorkingDayViewSet(viewsets.ModelViewSet):
 class ReportViewSet(viewsets.ModelViewSet):
     queryset = Report.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+    filterset_class = ReportFilter
+    ordering_fields = ['result', 'start_time', 'end_time']
+    ordering = ['-start_time']
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -188,11 +205,11 @@ class ReportViewSet(viewsets.ModelViewSet):
         else:
             queryset = self.queryset.all()
         
-        if user.is_staff:
-            return queryset
+        if not user.is_staff:
+            # Regular users only see their own reports
+            queryset = queryset.filter(working_day__user=user)
         
-        # Regular users only see their own reports
-        return queryset.filter(working_day__user=user)
+        return queryset
 
     def list(self, request, *args, **kwargs):
         """Override list to check working_day access for nested routes"""
@@ -250,12 +267,17 @@ class FeedbackViewSet(viewsets.ModelViewSet):
     queryset = Feedback.objects.all()
     serializer_class = FeedbackSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_class = FeedbackFilter
+    search_fields = ['description']
+    ordering_fields = ['type', 'created_at', 'updated_at']
+    ordering = ['-created_at']
 
     def get_queryset(self):
-        if self.request.user.is_staff:
-            return self.queryset.all()
-        # Regular users only see their own feedback
-        return self.queryset.filter(user=self.request.user)
+        queryset = self.queryset.all()
+        if not self.request.user.is_staff:
+            # Regular users only see their own feedback
+            queryset = queryset.filter(user=self.request.user)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -295,6 +317,10 @@ class UserViewSet(viewsets.ModelViewSet):
     """User management - Admin only"""
     queryset = User.objects.all()
     permission_classes = [permissions.IsAdminUser]
+    filterset_class = UserFilter
+    search_fields = ['username', 'email', 'first_name', 'last_name']
+    ordering_fields = ['username', 'email', 'first_name', 'last_name', 'date_joined', 'last_login']
+    ordering = ['-date_joined']
 
     def get_serializer_class(self):
         if self.action == 'create':
@@ -331,8 +357,13 @@ def statistics_view(request):
     
     # Working day statistics
     total_working_days = WorkingDay.objects.count()
+    # Use date range instead of check_in__date for better timezone handling
+    from datetime import datetime as dt
+    today_start = timezone.make_aware(dt.combine(today, dt.min.time()))
+    today_end = timezone.make_aware(dt.combine(today, dt.max.time())) + timedelta(days=1)
     today_check_ins = WorkingDay.objects.filter(
-        check_in__date=today,
+        check_in__gte=today_start,
+        check_in__lt=today_end,
         check_out__isnull=True,
         is_on_leave=False
     ).count()

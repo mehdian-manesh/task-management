@@ -142,3 +142,45 @@ body > [data-rbd-drag-handle-draggable-id],
 body > [data-rbd-draggable-id] {
   direction: ltr !important;
 }
+
+/* Remove transparency from Select boxes and their options */
+.MuiSelect-outlined {
+  background: var(--mui-palette-background-paper, rgba(255, 255, 255, 1)) !important;
+  background-image: none !important;
+}
+
+body.dark-mode .MuiSelect-outlined {
+  background: rgba(15, 23, 42, 1) !important;
+  background-image: none !important;
+}
+
+.MuiMenu-paper {
+  background: var(--mui-palette-background-paper, rgba(255, 255, 255, 1)) !important;
+  background-image: none !important;
+  --Paper-overlay: none !important;
+}
+
+body.dark-mode .MuiMenu-paper {
+  background: rgba(15, 23, 42, 1) !important;
+  background-image: none !important;
+}
+
+.MuiMenu-list {
+  background: transparent !important;
+}
+
+.MuiMenuItem-root {
+  background: transparent !important;
+}
+
+body.dark-mode .MuiMenuItem-root {
+  background: transparent !important;
+}
+
+.MuiMenuItem-root:hover {
+  background: rgba(241, 245, 249, 1) !important;
+}
+
+body.dark-mode .MuiMenuItem-root:hover {
+  background: rgba(30, 41, 59, 1) !important;
+}

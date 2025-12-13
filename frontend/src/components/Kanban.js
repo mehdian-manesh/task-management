@@ -64,7 +64,9 @@ const Kanban = () => {
   const loadTasks = async () => {
     try {
       const response = await taskService.getAll();
-      setTasks(response.data);
+      // Handle paginated response - for Kanban we want all tasks, so get all pages if needed
+      const tasksData = response.data.results || response.data;
+      setTasks(Array.isArray(tasksData) ? tasksData : []);
     } catch (error) {
       console.error('Error loading tasks:', error);
     }
@@ -73,7 +75,9 @@ const Kanban = () => {
   const loadProjects = async () => {
     try {
       const response = await projectService.getAll();
-      setProjects(response.data);
+      // Handle paginated response
+      const projectsData = response.data.results || response.data;
+      setProjects(Array.isArray(projectsData) ? projectsData : []);
     } catch (error) {
       console.error('Error loading projects:', error);
     }

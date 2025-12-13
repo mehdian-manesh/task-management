@@ -376,6 +376,95 @@ export const createAppTheme = (mode = 'light') => createTheme(
           },
         },
       },
+      MuiSelect: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.15)'
+                : 'rgba(255, 255, 255, 0.3)',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: mode === 'dark'
+                ? 'rgba(255, 255, 255, 0.25)'
+                : 'rgba(255, 255, 255, 0.4)',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: mode === 'dark'
+                ? 'rgba(99, 102, 241, 0.5)'
+                : 'rgba(37, 99, 235, 0.5)',
+            },
+          },
+          outlined: {
+            background: mode === 'dark'
+              ? 'rgba(15, 23, 42, 1)'
+              : 'rgba(255, 255, 255, 1)',
+            '&:hover': {
+              background: mode === 'dark'
+                ? 'rgba(15, 23, 42, 1)'
+                : 'rgba(255, 255, 255, 1)',
+            },
+            '&.Mui-focused': {
+              background: mode === 'dark'
+                ? 'rgba(15, 23, 42, 1)'
+                : 'rgba(255, 255, 255, 1)',
+            },
+          },
+        },
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            background: mode === 'dark'
+              ? 'rgba(15, 23, 42, 1)'
+              : 'rgba(255, 255, 255, 1)',
+            backgroundImage: 'none',
+            '--Paper-overlay': 'none',
+            border: mode === 'dark'
+              ? '1px solid rgba(255, 255, 255, 0.15)'
+              : '1px solid rgba(0, 0, 0, 0.12)',
+            boxShadow: mode === 'dark'
+              ? '0 8px 32px 0 rgba(0, 0, 0, 0.6)'
+              : '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+            '&::before': {
+              display: 'none',
+            },
+            '&::after': {
+              display: 'none',
+            },
+          },
+          list: {
+            background: mode === 'dark'
+              ? 'rgba(15, 23, 42, 1)'
+              : 'rgba(255, 255, 255, 1)',
+            padding: '4px 0',
+          },
+        },
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            background: mode === 'dark'
+              ? 'rgba(15, 23, 42, 1)'
+              : 'rgba(255, 255, 255, 1)',
+            '&:hover': {
+              background: mode === 'dark'
+                ? 'rgba(30, 41, 59, 1)'
+                : 'rgba(241, 245, 249, 1)',
+            },
+            '&.Mui-selected': {
+              background: mode === 'dark'
+                ? 'rgba(37, 99, 235, 0.2)'
+                : 'rgba(37, 99, 235, 0.1)',
+              '&:hover': {
+                background: mode === 'dark'
+                  ? 'rgba(37, 99, 235, 0.3)'
+                  : 'rgba(37, 99, 235, 0.15)',
+              },
+            },
+          },
+        },
+      },
     },
   },
   faIR

@@ -71,7 +71,9 @@ class TestReportList:
         )
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 2
+        # Handle paginated response
+        reports = response.data.get('results', response.data)
+        assert len(reports) == 2
     
     def test_list_other_user_reports(self, authenticated_regular_client, regular_user):
         """Test user cannot list reports for another user's working day"""

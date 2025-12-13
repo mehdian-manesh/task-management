@@ -101,16 +101,34 @@ class TestStatisticsView:
     
     def test_statistics_working_days_count(self, authenticated_admin_client, regular_user):
         """Test working day statistics"""
-        today = timezone.now().date()
-        WorkingDay.objects.create(user=regular_user, check_in=timezone.now())
-        WorkingDay.objects.create(
+        # Create a working day that should match today_check_ins criteria:
+        # - check_in date is today (auto-set by auto_now_add=True)
+        # - check_out is None (not checked out)
+        # - is_on_leave is False
+        working_day_today = WorkingDay.objects.create(
             user=regular_user,
-            check_in=timezone.now() - timedelta(days=1),
-            check_out=timezone.now() - timedelta(days=1) + timedelta(hours=8)
+            check_out=None,
+            is_on_leave=False
         )
-        WorkingDay.objects.create(
+        # Verify it was created today
+        assert working_day_today.check_in.date() == timezone.now().date()
+        
+        # Create a working day from yesterday (should not match)
+        # We need to manually set check_in since auto_now_add will set it to now
+        yesterday = timezone.now() - timedelta(days=1)
+        working_day_yesterday = WorkingDay.objects.create(
             user=regular_user,
-            check_in=timezone.now(),
+            check_out=yesterday + timedelta(hours=8),
+            is_on_leave=False
+        )
+        # Manually update check_in to yesterday (since auto_now_add prevents setting during create)
+        WorkingDay.objects.filter(id=working_day_yesterday.id).update(check_in=yesterday)
+        working_day_yesterday.refresh_from_db()
+        
+        # Create a working day on leave (should not match)
+        working_day_leave = WorkingDay.objects.create(
+            user=regular_user,
+            check_out=None,
             is_on_leave=True
         )
         
@@ -119,7 +137,8 @@ class TestStatisticsView:
         assert response.status_code == status.HTTP_200_OK
         assert response.data['working_days']['total'] == 3
         # Today check-ins without checkout and not on leave
-        assert response.data['working_days']['today_check_ins'] >= 1
+        # Should be exactly 1 (the first working_day_today)
+        assert response.data['working_days']['today_check_ins'] == 1
     
     def test_statistics_reports_count(self, authenticated_admin_client, regular_user):
         """Test report statistics"""

@@ -58,8 +58,10 @@ class TestFeedbackList:
         response = authenticated_regular_client.get(reverse('feedback-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['description'] == 'My feedback'
+        # Handle paginated response
+        feedbacks = response.data.get('results', response.data)
+        assert len(feedbacks) == 1
+        assert feedbacks[0]['description'] == 'My feedback'
     
     def test_list_all_feedbacks_as_admin(self, authenticated_admin_client, regular_user):
         """Test admin can list all feedbacks"""
@@ -70,7 +72,9 @@ class TestFeedbackList:
         response = authenticated_admin_client.get(reverse('feedback-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 2
+        # Handle paginated response
+        feedbacks = response.data.get('results', response.data)
+        assert len(feedbacks) == 2
 
 
 @pytest.mark.django_db

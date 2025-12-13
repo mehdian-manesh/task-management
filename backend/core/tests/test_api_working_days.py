@@ -59,8 +59,10 @@ class TestWorkingDayList:
         response = authenticated_regular_client.get(reverse('working-day-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 1
-        assert response.data[0]['user'] == regular_user.id
+        # Handle paginated response
+        working_days = response.data.get('results', response.data)
+        assert len(working_days) == 1
+        assert working_days[0]['user'] == regular_user.id
     
     def test_list_all_working_days_as_admin(self, authenticated_admin_client, regular_user):
         """Test admin can list all working days"""
@@ -71,7 +73,9 @@ class TestWorkingDayList:
         response = authenticated_admin_client.get(reverse('working-day-list'))
         
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 2
+        # Handle paginated response
+        working_days = response.data.get('results', response.data)
+        assert len(working_days) == 2
 
 
 @pytest.mark.django_db

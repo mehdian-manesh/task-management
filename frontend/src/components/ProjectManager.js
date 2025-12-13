@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -26,6 +26,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { projectService } from '../api/services';
 import moment from 'moment-jalaali';
 import { toPersianNumbers } from '../utils/numberUtils';
+import TableControls from './TableControls';
+import Pagination from './Pagination';
+import SortableTableHeader from './SortableTableHeader';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -42,6 +45,19 @@ const ProjectManager = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
   const [message, setMessage] = useState(null);
+  
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(20);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  // Filter and sort state
+  const [search, setSearch] = useState('');
+  const [filters, setFilters] = useState({
+    status: '',
+  });
+  const [ordering, setOrdering] = useState('-created_at');
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -54,12 +70,43 @@ const ProjectManager = () => {
 
   useEffect(() => {
     loadProjects();
-  }, []);
+  }, [page, search, filters, ordering]);
+
+  const buildParams = useCallback(() => {
+    const params = {
+      page,
+      page_size: pageSize,
+    };
+    
+    if (search) {
+      params.search = search;
+    }
+    
+    if (filters.status) {
+      params.status = filters.status;
+    }
+    
+    if (ordering) {
+      params.ordering = ordering;
+    }
+    
+    return params;
+  }, [page, pageSize, search, filters, ordering]);
 
   const loadProjects = async () => {
     try {
-      const response = await projectService.getAll();
-      setProjects(response.data);
+      const params = buildParams();
+      const response = await projectService.getAll(params);
+      
+      // Handle paginated response
+      if (response.data.results) {
+        setProjects(response.data.results);
+        setTotalCount(response.data.count);
+      } else {
+        // Fallback for non-paginated response
+        setProjects(response.data);
+        setTotalCount(response.data.length);
+      }
     } catch (error) {
       setMessage({ type: 'error', text: 'خطا در بارگذاری پروژه‌ها' });
     }
@@ -125,6 +172,41 @@ const ProjectManager = () => {
     }
   };
 
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  const handleFilterChange = (key, value) => {
+    setFilters({ ...filters, [key]: value });
+    setPage(1);
+  };
+
+  const handleSortChange = (sortKey) => {
+    if (sortKey) {
+      const currentKey = ordering.startsWith('-') ? ordering.substring(1) : ordering;
+      if (currentKey === sortKey) {
+        setOrdering(ordering.startsWith('-') ? sortKey : `-${sortKey}`);
+      } else {
+        setOrdering(sortKey);
+      }
+    } else {
+      setOrdering('-created_at');
+    }
+    setPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setFilters({ status: '' });
+    setOrdering('-created_at');
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       postpone: 'warning',
@@ -157,14 +239,55 @@ const ProjectManager = () => {
         </Alert>
       )}
 
+      <TableControls
+        searchValue={search}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="جستجو در نام و توضیحات..."
+        filters={[
+          {
+            key: 'status',
+            label: 'وضعیت',
+            value: filters.status,
+            options: STATUS_CHOICES,
+          },
+        ]}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+        filterModalTitle="فیلتر پروژه‌ها"
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell align="right">نام</TableCell>
-              <TableCell align="right">وضعیت</TableCell>
-              <TableCell align="right">تاریخ شروع</TableCell>
-              <TableCell align="right">موعد</TableCell>
+              <SortableTableHeader
+                sortKey="name"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                نام
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="status"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                وضعیت
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="start_date"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                تاریخ شروع
+              </SortableTableHeader>
+              <SortableTableHeader
+                sortKey="deadline"
+                currentSort={ordering}
+                onSort={handleSortChange}
+              >
+                موعد
+              </SortableTableHeader>
               <TableCell align="right">برآورد (نفر-ساعت)</TableCell>
               <TableCell align="right">عملیات</TableCell>
             </TableRow>
@@ -212,6 +335,13 @@ const ProjectManager = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Pagination
+        count={totalCount}
+        page={page}
+        pageSize={pageSize}
+        onPageChange={handlePageChange}
+      />
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>{editingProject ? 'ویرایش پروژه' : 'افزودن پروژه جدید'}</DialogTitle>
