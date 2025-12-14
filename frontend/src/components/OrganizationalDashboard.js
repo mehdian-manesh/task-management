@@ -21,6 +21,7 @@ import { adminService } from '../api/services';
 import { toPersianNumbers } from '../utils/numberUtils';
 import { useTheme } from '@mui/material';
 import moment from 'moment-jalaali';
+import DomainTree from './DomainTree';
 
 const OrganizationalDashboard = () => {
   const [dashboard, setDashboard] = useState(null);
@@ -736,6 +737,10 @@ const OrganizationalDashboard = () => {
               </Typography>
             )}
           </Paper>
+        </Grid>
+
+        <Grid size={12}>
+          <DomainTree />
         </Grid>
       </Grid>
     </Box>

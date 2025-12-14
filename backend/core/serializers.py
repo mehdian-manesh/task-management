@@ -2,15 +2,68 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.conf import settings
 
-from .models import Project, Task, WorkingDay, Report, Feedback, ReportResultChoices, StatusChoices
+from .models import Project, Task, WorkingDay, Report, Feedback, Domain, ReportResultChoices, StatusChoices
+
+
+class DomainSerializer(serializers.ModelSerializer):
+    """Serializer for Domain model"""
+    children_count = serializers.SerializerMethodField()
+    projects_count = serializers.SerializerMethodField()
+    tasks_count = serializers.SerializerMethodField()
+    users_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Domain
+        fields = ['id', 'name', 'path', 'parent', 'children_count', 'projects_count', 'tasks_count', 'users_count', 'created_at', 'updated_at']
+        read_only_fields = ['path', 'created_at', 'updated_at']
+    
+    def get_children_count(self, obj):
+        return obj.children.count()
+    
+    def get_projects_count(self, obj):
+        return obj.projects.count()
+    
+    def get_tasks_count(self, obj):
+        return obj.tasks.count()
+    
+    def get_users_count(self, obj):
+        return obj.users.count()
+
+
+class DomainTreeSerializer(serializers.ModelSerializer):
+    """Serializer for Domain tree structure with nested children"""
+    children = serializers.SerializerMethodField()
+    projects_count = serializers.SerializerMethodField()
+    tasks_count = serializers.SerializerMethodField()
+    users_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Domain
+        fields = ['id', 'name', 'path', 'parent', 'children', 'projects_count', 'tasks_count', 'users_count', 'created_at', 'updated_at']
+        read_only_fields = ['path', 'created_at', 'updated_at']
+    
+    def get_children(self, obj):
+        """Recursively serialize children"""
+        children = obj.children.all()
+        return DomainTreeSerializer(children, many=True, context=self.context).data
+    
+    def get_projects_count(self, obj):
+        return obj.projects.count()
+    
+    def get_tasks_count(self, obj):
+        return obj.tasks.count()
+    
+    def get_users_count(self, obj):
+        return obj.users.count()
 
 
 class UserSerializer(serializers.ModelSerializer):
     profile_picture = serializers.SerializerMethodField()
+    domain = serializers.SerializerMethodField()
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined', 'profile_picture']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'is_staff', 'is_active', 'date_joined', 'profile_picture', 'domain']
         read_only_fields = ['date_joined']
     
     def get_profile_picture(self, obj):
@@ -31,30 +84,61 @@ class UserSerializer(serializers.ModelSerializer):
             # Django's OneToOne reverse accessor raises AttributeError if related object doesn't exist
             pass
         return None
+    
+    def get_domain(self, obj):
+        """Return the domain ID if it exists"""
+        try:
+            profile = obj.profile
+            if profile.domain:
+                return profile.domain.id
+        except AttributeError:
+            pass
+        return None
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
+    domain_id = serializers.PrimaryKeyRelatedField(
+        source='profile.domain',
+        queryset=Domain.objects.all(),
+        required=False,
+        allow_null=True
+    )
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_staff', 'is_active']
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_staff', 'is_active', 'domain_id']
     
     def create(self, validated_data):
+        domain_id = validated_data.pop('domain_id', None)
         password = validated_data.pop('password')
         user = User.objects.create_user(**validated_data)
         user.set_password(password)
         user.save()
+        
+        # Set domain in user profile
+        from accounts.models import UserProfile
+        profile, created = UserProfile.objects.get_or_create(user=user)
+        if domain_id:
+            profile.domain = domain_id
+            profile.save()
+        
         return user
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     profile_picture = serializers.ImageField(write_only=True, required=False, allow_null=True)
+    domain_id = serializers.PrimaryKeyRelatedField(
+        source='profile.domain',
+        queryset=Domain.objects.all(),
+        required=False,
+        allow_null=True
+    )
     
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_staff', 'is_active', 'profile_picture']
+        fields = ['id', 'username', 'email', 'password', 'first_name', 'last_name', 'is_staff', 'is_active', 'profile_picture', 'domain_id']
         read_only_fields = ['is_staff', 'is_active']  # Regular users can't change these
     
     def validate_profile_picture(self, value):
@@ -74,6 +158,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
         profile_picture = validated_data.pop('profile_picture', None)
+        domain_id = validated_data.pop('domain_id', None)
         
         # Remove is_staff and is_active if present (only admins can change these)
         validated_data.pop('is_staff', None)
@@ -85,6 +170,18 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         if password:
             instance.set_password(password)
         instance.save()
+        
+        # Get or create user profile
+        from accounts.models import UserProfile
+        profile, created = UserProfile.objects.get_or_create(user=instance)
+        
+        # Handle domain update
+        if 'domain_id' in self.initial_data:
+            if domain_id is None:
+                profile.domain = None
+            else:
+                profile.domain = domain_id
+            profile.save()
         
         # Handle profile picture update
         if profile_picture is not None:
@@ -146,14 +243,20 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     assignees = serializers.PrimaryKeyRelatedField(
-        many=True, 
+        many=True,
         queryset=User.objects.all(),
         required=False
     )
-    
+    domain_id = serializers.PrimaryKeyRelatedField(
+        source='domain',
+        queryset=Domain.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = Project
-        fields = ['id', 'name', 'description', 'color', 'assignees', 'start_date', 
+        fields = ['id', 'name', 'description', 'color', 'domain_id', 'assignees', 'start_date',
                   'deadline', 'estimated_hours', 'status', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
 
@@ -169,27 +272,34 @@ class TaskSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True
     )
+    domain_id = serializers.PrimaryKeyRelatedField(
+        source='domain',
+        queryset=Domain.objects.all(),
+        required=False,
+        allow_null=True
+    )
     assignees = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.all(),
         required=False
     )
-    
+
     class Meta:
         model = Task
-        fields = ['id', 'name', 'description', 'color', 'project_id', 'assignees', 
-                  'created_by', 'start_date', 'deadline', 'estimated_hours', 'phase', 
+        fields = ['id', 'name', 'description', 'color', 'project_id', 'domain_id', 'assignees',
+                  'created_by', 'start_date', 'deadline', 'estimated_hours', 'phase',
                   'is_draft', 'status', 'created_at', 'updated_at']
         read_only_fields = ['created_by', 'created_at', 'updated_at']
 
 
 class TaskDetailSerializer(TaskSerializer):
     project = ProjectSerializer(read_only=True)
+    domain = DomainSerializer(read_only=True)
     assignees = UserSerializer(many=True, read_only=True)
     created_by = UserSerializer(read_only=True)
     
     class Meta(TaskSerializer.Meta):
-        fields = TaskSerializer.Meta.fields + ['project']
+        fields = TaskSerializer.Meta.fields + ['project', 'domain']
 
 
 class WorkingDaySerializer(serializers.ModelSerializer):

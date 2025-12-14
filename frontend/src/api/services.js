@@ -64,6 +64,16 @@ export const feedbackService = {
   delete: (id) => axiosInstance.delete(`/feedbacks/${id}/`),
 };
 
+// Domain Services
+export const domainService = {
+  getAll: (params = {}) => axiosInstance.get('/domains/', { params }),
+  getById: (id) => axiosInstance.get(`/domains/${id}/`),
+  getTree: () => axiosInstance.get('/domains/tree/'),
+  create: (data) => axiosInstance.post('/domains/', data),
+  update: (id, data) => axiosInstance.patch(`/domains/${id}/`, data),
+  delete: (id) => axiosInstance.delete(`/domains/${id}/`),
+};
+
 // Admin Services
 export const adminService = {
   // User Management

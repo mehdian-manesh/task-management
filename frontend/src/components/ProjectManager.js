@@ -23,12 +23,13 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { projectService } from '../api/services';
+import { projectService, domainService } from '../api/services';
 import moment from 'moment-jalaali';
 import { toPersianNumbers } from '../utils/numberUtils';
 import TableControls from './TableControls';
 import Pagination from './Pagination';
 import SortableTableHeader from './SortableTableHeader';
+import PaginatedSelect from './PaginatedSelect';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -62,6 +63,7 @@ const ProjectManager = () => {
     name: '',
     description: '',
     color: '#1976d2',
+    domain_id: '',
     start_date: '',
     deadline: '',
     estimated_hours: 0,
@@ -119,6 +121,7 @@ const ProjectManager = () => {
         name: project.name,
         description: project.description || '',
         color: project.color || '#1976d2',
+        domain_id: project.domain_id || '',
         start_date: project.start_date || '',
         deadline: project.deadline || '',
         estimated_hours: project.estimated_hours || 0,
@@ -130,6 +133,7 @@ const ProjectManager = () => {
         name: '',
         description: '',
         color: '#1976d2',
+        domain_id: '',
         start_date: '',
         deadline: '',
         estimated_hours: 0,
@@ -364,6 +368,18 @@ const ProjectManager = () => {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             margin="normal"
             dir="rtl"
+          />
+          <PaginatedSelect
+            fetchFunction={domainService.getAll}
+            value={formData.domain_id}
+            onChange={(e) => setFormData({ ...formData, domain_id: e.target.value })}
+            label="دامنه"
+            emptyOptionLabel="بدون دامنه"
+            emptyOptionValue=""
+            getOptionValue={(opt) => opt.id}
+            getOptionLabel={(opt) => opt.name}
+            margin="normal"
+            fullWidth
           />
           <TextField
             select

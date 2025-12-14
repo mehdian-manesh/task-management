@@ -50,8 +50,16 @@ class TestTaskList:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
     def test_list_tasks_as_user_created(self, authenticated_regular_client, regular_user):
-        """Test user can see tasks they created"""
-        task = Task.objects.create(name='My Task', created_by=regular_user)
+        """Test user can see tasks they created in their domain"""
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task = Task.objects.create(name='My Task', created_by=regular_user, domain=domain)
         
         response = authenticated_regular_client.get(reverse('task-list'))
         
@@ -62,8 +70,16 @@ class TestTaskList:
         assert tasks[0]['name'] == 'My Task'
     
     def test_list_tasks_as_user_assigned(self, authenticated_regular_client, regular_user):
-        """Test user can see tasks they're assigned to"""
-        task = Task.objects.create(name='Assigned Task')
+        """Test user can see tasks they're assigned to in their domain"""
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task = Task.objects.create(name='Assigned Task', domain=domain)
         task.assignees.set([regular_user])
         
         response = authenticated_regular_client.get(reverse('task-list'))
@@ -75,9 +91,17 @@ class TestTaskList:
     
     def test_list_tasks_as_user_project_assigned(self, authenticated_regular_client, regular_user):
         """Test user can see tasks in projects they're assigned to"""
-        project = Project.objects.create(name='My Project')
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        project = Project.objects.create(name='My Project', domain=domain)
         project.assignees.set([regular_user])
-        task = Task.objects.create(name='Project Task', project=project)
+        task = Task.objects.create(name='Project Task', project=project, domain=domain)
         
         response = authenticated_regular_client.get(reverse('task-list'))
         
@@ -167,7 +191,15 @@ class TestTaskRetrieve:
     
     def test_retrieve_own_task(self, authenticated_regular_client, regular_user):
         """Test user can retrieve task they created"""
-        task = Task.objects.create(name='My Task', created_by=regular_user)
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task = Task.objects.create(name='My Task', created_by=regular_user, domain=domain)
         response = authenticated_regular_client.get(reverse('task-detail', kwargs={'pk': task.id}))
         
         assert response.status_code == status.HTTP_200_OK
@@ -194,7 +226,15 @@ class TestTaskUpdate:
     
     def test_update_own_task(self, authenticated_regular_client, regular_user):
         """Test user can update task they created"""
-        task = Task.objects.create(name='My Task', created_by=regular_user)
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task = Task.objects.create(name='My Task', created_by=regular_user, domain=domain)
         data = {'name': 'Updated Task', 'status': StatusChoices.DOING.value}
         response = authenticated_regular_client.patch(reverse('task-detail', kwargs={'pk': task.id}), data)
         
@@ -205,7 +245,15 @@ class TestTaskUpdate:
     
     def test_update_assigned_task(self, authenticated_regular_client, regular_user):
         """Test user can update task they're assigned to"""
-        task = Task.objects.create(name='Assigned Task')
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task = Task.objects.create(name='Assigned Task', domain=domain)
         task.assignees.set([regular_user])
         data = {'status': StatusChoices.DOING.value}
         response = authenticated_regular_client.patch(reverse('task-detail', kwargs={'pk': task.id}), data)
@@ -227,7 +275,15 @@ class TestTaskDelete:
     
     def test_delete_own_task(self, authenticated_regular_client, regular_user):
         """Test user can delete task they created"""
-        task = Task.objects.create(name='My Task', created_by=regular_user)
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task = Task.objects.create(name='My Task', created_by=regular_user, domain=domain)
         task_id = task.id
         response = authenticated_regular_client.delete(reverse('task-detail', kwargs={'pk': task.id}))
         

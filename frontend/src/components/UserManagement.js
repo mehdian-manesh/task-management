@@ -23,10 +23,11 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
-import { adminService } from '../api/services';
+import { adminService, domainService } from '../api/services';
 import TableControls from './TableControls';
 import Pagination from './Pagination';
 import SortableTableHeader from './SortableTableHeader';
+import PaginatedSelect from './PaginatedSelect';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -46,6 +47,7 @@ const UserManagement = () => {
   });
   const [ordering, setOrdering] = useState('-date_joined');
   
+  const [domains, setDomains] = useState([]);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -54,11 +56,23 @@ const UserManagement = () => {
     last_name: '',
     is_staff: false,
     is_active: true,
+    domain_id: '',
   });
 
   useEffect(() => {
     loadUsers();
+    loadDomains();
   }, [page, search, filters, ordering]);
+
+  const loadDomains = async () => {
+    try {
+      const response = await domainService.getAll();
+      const domainsData = response.data.results || response.data;
+      setDomains(Array.isArray(domainsData) ? domainsData : []);
+    } catch (error) {
+      console.error('Error loading domains:', error);
+    }
+  };
 
   const buildParams = useCallback(() => {
     const params = {
@@ -115,6 +129,7 @@ const UserManagement = () => {
         last_name: user.last_name || '',
         is_staff: user.is_staff || false,
         is_active: user.is_active !== undefined ? user.is_active : true,
+        domain_id: user.domain || '',
       });
     } else {
       setSelectedUser(null);
@@ -126,6 +141,7 @@ const UserManagement = () => {
         last_name: '',
         is_staff: false,
         is_active: true,
+        domain_id: '',
       });
     }
     setOpenDialog(true);
@@ -143,9 +159,18 @@ const UserManagement = () => {
         if (!updateData.password) {
           delete updateData.password;
         }
+        // Convert empty string to null for domain_id
+        if (updateData.domain_id === '') {
+          updateData.domain_id = null;
+        }
         await adminService.updateUser(selectedUser.id, updateData);
       } else {
-        await adminService.createUser(formData);
+        const createData = { ...formData };
+        // Convert empty string to null for domain_id
+        if (createData.domain_id === '') {
+          createData.domain_id = null;
+        }
+        await adminService.createUser(createData);
       }
       handleCloseDialog();
       loadUsers();
@@ -276,6 +301,7 @@ const UserManagement = () => {
               >
                 نام خانوادگی
               </SortableTableHeader>
+              <TableCell align="right">دامنه</TableCell>
               <TableCell align="right">نقش</TableCell>
               <TableCell align="right">وضعیت</TableCell>
               <TableCell align="right">عملیات</TableCell>
@@ -288,6 +314,11 @@ const UserManagement = () => {
                 <TableCell align="right">{user.email || '-'}</TableCell>
                 <TableCell align="right">{user.first_name || '-'}</TableCell>
                 <TableCell align="right">{user.last_name || '-'}</TableCell>
+                <TableCell align="right">
+                  {user.domain ? (
+                    domains.find(d => d.id === user.domain)?.name || '-'
+                  ) : '-'}
+                </TableCell>
                 <TableCell align="right">
                   {user.is_staff ? (
                     <Chip label="مدیر" color="primary" size="small" />
@@ -380,6 +411,18 @@ const UserManagement = () => {
                 />
               }
               label="فعال"
+            />
+            <PaginatedSelect
+              fetchFunction={domainService.getAll}
+              value={formData.domain_id}
+              onChange={(e) => setFormData({ ...formData, domain_id: e.target.value })}
+              label="دامنه"
+              emptyOptionLabel="بدون دامنه"
+              emptyOptionValue=""
+              getOptionValue={(opt) => opt.id}
+              getOptionLabel={(opt) => opt.name}
+              margin="normal"
+              fullWidth
             />
           </Box>
         </DialogContent>

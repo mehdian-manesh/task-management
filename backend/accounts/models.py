@@ -18,7 +18,7 @@ def profile_picture_upload_path(instance, filename):
 
 
 class UserProfile(models.Model):
-    """Extended user profile with profile picture"""
+    """Extended user profile with profile picture and domain"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.ImageField(
         upload_to=profile_picture_upload_path,
@@ -26,6 +26,7 @@ class UserProfile(models.Model):
         blank=True,
         max_length=255
     )
+    domain = models.ForeignKey('core.Domain', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     
     def __str__(self):
         return f"{self.user.username}'s Profile"

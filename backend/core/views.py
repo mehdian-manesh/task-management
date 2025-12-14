@@ -8,15 +8,17 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Project, Task, WorkingDay, Report, Feedback
+from .models import Project, Task, WorkingDay, Report, Feedback, Domain
 from .serializers import (
     ProjectSerializer, ProjectDetailSerializer,
     TaskSerializer, TaskDetailSerializer,
     WorkingDaySerializer,
     ReportSerializer, ReportDetailSerializer,
     FeedbackSerializer,
-    UserSerializer, UserCreateSerializer, UserUpdateSerializer
+    UserSerializer, UserCreateSerializer, UserUpdateSerializer,
+    DomainSerializer, DomainTreeSerializer
 )
+from .domain_utils import filter_by_domain, user_can_access_domain, user_can_access_entity
 from .filters import ProjectFilter, TaskFilter, WorkingDayFilter, ReportFilter, FeedbackFilter, UserFilter
 
 
@@ -49,6 +51,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if not self.request.user.is_staff:
             # Regular users only see projects they're assigned to
             queryset = queryset.filter(assignees=self.request.user)
+        # Apply domain filtering
+        queryset = filter_by_domain(queryset, self.request.user, 'domain')
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -58,6 +62,18 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         return super().create(request, *args, **kwargs)
+    
+    def perform_create(self, serializer):
+        """Auto-assign domain from user if not provided"""
+        from .domain_utils import get_user_domain
+        project = serializer.save()
+        # If no domain specified, use user's domain
+        if not project.domain:
+            user_domain = get_user_domain(self.request.user)
+            if user_domain:
+                project.domain = user_domain
+                project.save(update_fields=['domain'])
+        return project
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -87,13 +103,16 @@ class TaskViewSet(viewsets.ModelViewSet):
                 Q(assignees=user) |
                 Q(project__assignees=user)
             ).distinct()
+        # Apply domain filtering
+        queryset = filter_by_domain(queryset, user, 'domain')
         return queryset
 
     def perform_create(self, serializer):
+        from .domain_utils import get_user_domain
         user = self.request.user
         if user.is_staff:
             # Admins can create approved tasks
-            serializer.save(created_by=user)
+            task = serializer.save(created_by=user)
         else:
             # Regular users create draft tasks
             task = serializer.save(created_by=user, is_draft=True)
@@ -104,6 +123,14 @@ class TaskViewSet(viewsets.ModelViewSet):
             if task.project:
                 for assignee in task.project.assignees.all():
                     task.assignees.add(assignee)
+        
+        # Auto-assign domain if not set
+        # Task.save() will auto-assign from project, but if no project, use user's domain
+        if not task.domain:
+            user_domain = get_user_domain(user)
+            if user_domain:
+                task.domain = user_domain
+                task.save(update_fields=['domain'])
 
 
 class WorkingDayViewSet(viewsets.ModelViewSet):
@@ -313,6 +340,53 @@ def current_user_view(request):
 
 
 # Admin-only views
+class DomainViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing organizational structure domains"""
+    queryset = Domain.objects.all()
+    serializer_class = DomainSerializer
+    permission_classes = [permissions.IsAdminUser]
+    ordering = ['path']
+    
+    def get_serializer_class(self):
+        if self.action == 'tree':
+            return DomainTreeSerializer
+        return DomainSerializer
+    
+    @action(detail=False, methods=['get'])
+    def tree(self, request):
+        """Get the full domain tree structure"""
+        root_domains = Domain.objects.filter(parent__isnull=True)
+        serializer = DomainTreeSerializer(root_domains, many=True, context={'request': request})
+        return Response(serializer.data)
+    
+    def perform_create(self, serializer):
+        """Create domain and auto-generate path"""
+        domain = serializer.save()
+        # Path is auto-generated in save() method
+        return domain
+    
+    def perform_update(self, serializer):
+        """Update domain - if parent changes, path will be updated"""
+        domain = serializer.save()
+        return domain
+    
+    def perform_destroy(self, instance):
+        """Handle domain deletion with protected foreign key checks"""
+        from django.db.models.deletion import ProtectedError
+        try:
+            instance.delete()
+        except ProtectedError as e:
+            from rest_framework.exceptions import ValidationError
+            protected_objects = []
+            for obj in e.protected_objects:
+                if hasattr(obj, '__class__'):
+                    protected_objects.append(f"{obj.__class__.__name__}: {obj}")
+            raise ValidationError(
+                f"نمی‌توان این دامنه را حذف کرد زیرا به {len(e.protected_objects)} مورد مرتبط است. "
+                f"لطفاً ابتدا موارد مرتبط را حذف یا تغییر دهید."
+            )
+
+
 class UserViewSet(viewsets.ModelViewSet):
     """User management - Admin only"""
     queryset = User.objects.all()
@@ -328,6 +402,12 @@ class UserViewSet(viewsets.ModelViewSet):
         elif self.action in ['update', 'partial_update']:
             return UserUpdateSerializer
         return UserSerializer
+    
+    def perform_update(self, serializer):
+        """Handle domain update in user profile"""
+        user = serializer.save()
+        # Domain is updated via UserProfile, handled in UserUpdateSerializer
+        return user
 
 
 @api_view(['GET'])

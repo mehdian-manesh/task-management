@@ -24,7 +24,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { taskService, projectService } from '../api/services';
+import { taskService, projectService, domainService } from '../api/services';
 import { formatToJalali, jalaliToGregorian } from '../utils/dateUtils';
 import { toPersianNumbers } from '../utils/numberUtils';
 import TableControls from './TableControls';
@@ -68,6 +68,7 @@ const TaskManager = () => {
     description: '',
     color: '#1976d2',
     project_id: '',
+    domain_id: '',
     start_date: '',
     deadline: '',
     estimated_hours: 0,
@@ -136,6 +137,7 @@ const TaskManager = () => {
         description: task.description || '',
         color: task.color || '#1976d2',
         project_id: task.project_id || '',
+        domain_id: task.domain_id || '',
         start_date: task.start_date || '',
         deadline: task.deadline || '',
         estimated_hours: task.estimated_hours || 0,
@@ -149,6 +151,7 @@ const TaskManager = () => {
         description: '',
         color: '#1976d2',
         project_id: '',
+        domain_id: '',
         start_date: '',
         deadline: '',
         estimated_hours: 0,
@@ -421,6 +424,18 @@ const TaskManager = () => {
             onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
             label="پروژه"
             emptyOptionLabel="بدون پروژه"
+            emptyOptionValue=""
+            getOptionValue={(opt) => opt.id}
+            getOptionLabel={(opt) => opt.name}
+            margin="normal"
+            fullWidth
+          />
+          <PaginatedSelect
+            fetchFunction={domainService.getAll}
+            value={formData.domain_id}
+            onChange={(e) => setFormData({ ...formData, domain_id: e.target.value })}
+            label="دامنه (اختیاری - در صورت عدم انتخاب از پروژه به ارث می‌برد)"
+            emptyOptionLabel="بدون دامنه"
             emptyOptionValue=""
             getOptionValue={(opt) => opt.id}
             getOptionLabel={(opt) => opt.name}

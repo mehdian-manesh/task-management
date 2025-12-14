@@ -11,9 +11,10 @@ from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from core.models import (
-    Project, Task, WorkingDay, Report, Feedback,
+    Project, Task, WorkingDay, Report, Feedback, Domain,
     StatusChoices, ReportResultChoices, FeedbackTypeChoices
 )
+from accounts.models import UserProfile
 
 
 @pytest.fixture
@@ -106,7 +107,12 @@ class TestTaskEdgeCases:
     
     def test_update_task_invalid_assignees(self, authenticated_regular_client, regular_user):
         """Test updating task with invalid assignee IDs"""
-        task = Task.objects.create(name='Task', created_by=regular_user)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task = Task.objects.create(name='Task', created_by=regular_user, domain=domain)
         data = {'assignees': [99999]}
         response = authenticated_regular_client.patch(
             reverse('task-detail', kwargs={'pk': task.id}),
@@ -117,9 +123,14 @@ class TestTaskEdgeCases:
     
     def test_update_task_change_project(self, authenticated_regular_client, regular_user):
         """Test updating task to change project"""
-        project1 = Project.objects.create(name='Project 1')
-        project2 = Project.objects.create(name='Project 2')
-        task = Task.objects.create(name='Task', project=project1, created_by=regular_user)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        project1 = Project.objects.create(name='Project 1', domain=domain)
+        project2 = Project.objects.create(name='Project 2', domain=domain)
+        task = Task.objects.create(name='Task', project=project1, created_by=regular_user, domain=domain)
         
         data = {'project_id': project2.id}
         response = authenticated_regular_client.patch(
@@ -132,7 +143,12 @@ class TestTaskEdgeCases:
     
     def test_delete_task_with_reports(self, authenticated_regular_client, regular_user):
         """Test deleting task that has reports"""
-        task = Task.objects.create(name='Task', created_by=regular_user)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task = Task.objects.create(name='Task', created_by=regular_user, domain=domain)
         working_day = WorkingDay.objects.create(user=regular_user)
         report = Report.objects.create(working_day=working_day, task=task)
         

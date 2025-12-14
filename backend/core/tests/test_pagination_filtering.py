@@ -10,7 +10,8 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from core.models import Project, Task, WorkingDay, Report, Feedback, StatusChoices, ReportResultChoices, FeedbackTypeChoices
+from core.models import Project, Task, WorkingDay, Report, Feedback, Domain, StatusChoices, ReportResultChoices, FeedbackTypeChoices
+from accounts.models import UserProfile
 
 
 @pytest.fixture
@@ -48,11 +49,17 @@ class TestPagination:
     
     def test_projects_pagination(self, authenticated_regular_client, regular_user):
         """Test that projects list is paginated"""
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
         # Create 25 projects
         for i in range(25):
             project = Project.objects.create(
                 name=f'Project {i}',
-                status=StatusChoices.TODO.value
+                status=StatusChoices.TODO.value,
+                domain=domain
             )
             project.assignees.set([regular_user])
         
@@ -71,11 +78,17 @@ class TestPagination:
     
     def test_tasks_pagination(self, authenticated_regular_client, regular_user):
         """Test that tasks list is paginated"""
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
         # Create 30 tasks
         for i in range(30):
             Task.objects.create(
                 name=f'Task {i}',
-                created_by=regular_user
+                created_by=regular_user,
+                domain=domain
             )
         
         response = authenticated_regular_client.get('/api/tasks/?page=1')
@@ -86,8 +99,13 @@ class TestPagination:
     
     def test_custom_page_size(self, authenticated_regular_client, regular_user):
         """Test custom page size parameter"""
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
         for i in range(15):
-            Task.objects.create(name=f'Task {i}', created_by=regular_user)
+            Task.objects.create(name=f'Task {i}', created_by=regular_user, domain=domain)
         
         # Note: page_size might not be configurable via query param in DRF default pagination
         # This test verifies pagination works, actual page size depends on DRF settings
@@ -103,9 +121,14 @@ class TestFiltering:
     
     def test_project_filter_by_status(self, authenticated_regular_client, regular_user):
         """Test filtering projects by status"""
-        project1 = Project.objects.create(name='Todo Project', status=StatusChoices.TODO.value)
-        project2 = Project.objects.create(name='Done Project', status=StatusChoices.DONE.value)
-        project3 = Project.objects.create(name='Another Todo', status=StatusChoices.TODO.value)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        project1 = Project.objects.create(name='Todo Project', status=StatusChoices.TODO.value, domain=domain)
+        project2 = Project.objects.create(name='Done Project', status=StatusChoices.DONE.value, domain=domain)
+        project3 = Project.objects.create(name='Another Todo', status=StatusChoices.TODO.value, domain=domain)
         # Assign user to projects so they can see them
         project1.assignees.set([regular_user])
         project2.assignees.set([regular_user])
@@ -118,9 +141,14 @@ class TestFiltering:
     
     def test_task_filter_by_status(self, authenticated_regular_client, regular_user):
         """Test filtering tasks by status"""
-        Task.objects.create(name='Todo Task', status=StatusChoices.TODO.value, created_by=regular_user)
-        Task.objects.create(name='Done Task', status=StatusChoices.DONE.value, created_by=regular_user)
-        Task.objects.create(name='In Progress', status=StatusChoices.DOING.value, created_by=regular_user)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        Task.objects.create(name='Todo Task', status=StatusChoices.TODO.value, created_by=regular_user, domain=domain)
+        Task.objects.create(name='Done Task', status=StatusChoices.DONE.value, created_by=regular_user, domain=domain)
+        Task.objects.create(name='In Progress', status=StatusChoices.DOING.value, created_by=regular_user, domain=domain)
         
         response = authenticated_regular_client.get('/api/tasks/?status=done')
         assert response.status_code == status.HTTP_200_OK
@@ -129,9 +157,14 @@ class TestFiltering:
     
     def test_task_filter_by_is_draft(self, authenticated_regular_client, regular_user):
         """Test filtering tasks by is_draft"""
-        Task.objects.create(name='Draft Task', is_draft=True, created_by=regular_user)
-        Task.objects.create(name='Regular Task', is_draft=False, created_by=regular_user)
-        Task.objects.create(name='Another Draft', is_draft=True, created_by=regular_user)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        Task.objects.create(name='Draft Task', is_draft=True, created_by=regular_user, domain=domain)
+        Task.objects.create(name='Regular Task', is_draft=False, created_by=regular_user, domain=domain)
+        Task.objects.create(name='Another Draft', is_draft=True, created_by=regular_user, domain=domain)
         
         response = authenticated_regular_client.get('/api/tasks/?is_draft=true')
         assert response.status_code == status.HTTP_200_OK
@@ -140,11 +173,16 @@ class TestFiltering:
     
     def test_task_filter_by_project(self, authenticated_regular_client, regular_user):
         """Test filtering tasks by project"""
-        project1 = Project.objects.create(name='Project 1')
-        project2 = Project.objects.create(name='Project 2')
-        Task.objects.create(name='Task 1', project=project1, created_by=regular_user)
-        Task.objects.create(name='Task 2', project=project1, created_by=regular_user)
-        Task.objects.create(name='Task 3', project=project2, created_by=regular_user)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        project1 = Project.objects.create(name='Project 1', domain=domain)
+        project2 = Project.objects.create(name='Project 2', domain=domain)
+        Task.objects.create(name='Task 1', project=project1, created_by=regular_user, domain=domain)
+        Task.objects.create(name='Task 2', project=project1, created_by=regular_user, domain=domain)
+        Task.objects.create(name='Task 3', project=project2, created_by=regular_user, domain=domain)
         
         response = authenticated_regular_client.get(f'/api/tasks/?project={project1.id}')
         assert response.status_code == status.HTTP_200_OK
@@ -202,9 +240,14 @@ class TestSearch:
     
     def test_project_search_by_name(self, authenticated_regular_client, regular_user):
         """Test searching projects by name"""
-        project1 = Project.objects.create(name='Web Development')
-        project2 = Project.objects.create(name='Mobile App')
-        project3 = Project.objects.create(name='Web Design')
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        project1 = Project.objects.create(name='Web Development', domain=domain)
+        project2 = Project.objects.create(name='Mobile App', domain=domain)
+        project3 = Project.objects.create(name='Web Design', domain=domain)
         # Assign user to projects so they can see them
         project1.assignees.set([regular_user])
         project2.assignees.set([regular_user])
@@ -217,9 +260,14 @@ class TestSearch:
     
     def test_task_search_by_name(self, authenticated_regular_client, regular_user):
         """Test searching tasks by name"""
-        Task.objects.create(name='Implement Login', created_by=regular_user)
-        Task.objects.create(name='Design Dashboard', created_by=regular_user)
-        Task.objects.create(name='Login Page Styling', created_by=regular_user)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        Task.objects.create(name='Implement Login', created_by=regular_user, domain=domain)
+        Task.objects.create(name='Design Dashboard', created_by=regular_user, domain=domain)
+        Task.objects.create(name='Login Page Styling', created_by=regular_user, domain=domain)
         
         response = authenticated_regular_client.get('/api/tasks/?search=Login')
         assert response.status_code == status.HTTP_200_OK
@@ -244,9 +292,17 @@ class TestSorting:
     
     def test_projects_sort_by_name_asc(self, authenticated_regular_client, regular_user):
         """Test sorting projects by name ascending"""
-        Project.objects.create(name='Zebra Project')
-        Project.objects.create(name='Alpha Project')
-        Project.objects.create(name='Beta Project')
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        Project.objects.create(name='Zebra Project', domain=domain)
+        Project.objects.create(name='Alpha Project', domain=domain)
+        Project.objects.create(name='Beta Project', domain=domain)
+        # Assign user to projects
+        for project in Project.objects.filter(domain=domain):
+            project.assignees.set([regular_user])
         
         response = authenticated_regular_client.get('/api/projects/?ordering=name')
         assert response.status_code == status.HTTP_200_OK
@@ -255,8 +311,16 @@ class TestSorting:
     
     def test_projects_sort_by_name_desc(self, authenticated_regular_client, regular_user):
         """Test sorting projects by name descending"""
-        Project.objects.create(name='Alpha Project')
-        Project.objects.create(name='Beta Project')
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        Project.objects.create(name='Alpha Project', domain=domain)
+        Project.objects.create(name='Beta Project', domain=domain)
+        # Assign user to projects
+        for project in Project.objects.filter(domain=domain):
+            project.assignees.set([regular_user])
         Project.objects.create(name='Zebra Project')
         
         response = authenticated_regular_client.get('/api/projects/?ordering=-name')
@@ -266,9 +330,14 @@ class TestSorting:
     
     def test_tasks_sort_by_created_at_desc(self, authenticated_regular_client, regular_user):
         """Test sorting tasks by created_at descending (default)"""
-        task1 = Task.objects.create(name='Task 1', created_by=regular_user)
-        task2 = Task.objects.create(name='Task 2', created_by=regular_user)
-        task3 = Task.objects.create(name='Task 3', created_by=regular_user)
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        task1 = Task.objects.create(name='Task 1', created_by=regular_user, domain=domain)
+        task2 = Task.objects.create(name='Task 2', created_by=regular_user, domain=domain)
+        task3 = Task.objects.create(name='Task 3', created_by=regular_user, domain=domain)
         
         response = authenticated_regular_client.get('/api/tasks/')
         assert response.status_code == status.HTTP_200_OK
@@ -280,10 +349,15 @@ class TestSorting:
     
     def test_tasks_sort_by_deadline(self, authenticated_regular_client, regular_user):
         """Test sorting tasks by deadline"""
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
         today = timezone.now().date()
-        task1 = Task.objects.create(name='Task 1', deadline=today + timedelta(days=3), created_by=regular_user)
-        task2 = Task.objects.create(name='Task 2', deadline=today + timedelta(days=1), created_by=regular_user)
-        task3 = Task.objects.create(name='Task 3', deadline=today + timedelta(days=2), created_by=regular_user)
+        task1 = Task.objects.create(name='Task 1', deadline=today + timedelta(days=3), created_by=regular_user, domain=domain)
+        task2 = Task.objects.create(name='Task 2', deadline=today + timedelta(days=1), created_by=regular_user, domain=domain)
+        task3 = Task.objects.create(name='Task 3', deadline=today + timedelta(days=2), created_by=regular_user, domain=domain)
         
         response = authenticated_regular_client.get('/api/tasks/?ordering=deadline')
         assert response.status_code == status.HTTP_200_OK
@@ -308,14 +382,20 @@ class TestCombinedFilteringSortingPagination:
     
     def test_filter_sort_paginate_tasks(self, authenticated_regular_client, regular_user):
         """Test combining filter, sort, and pagination"""
-        project = Project.objects.create(name='Test Project')
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        project = Project.objects.create(name='Test Project', domain=domain)
         # Create 25 tasks with different statuses
         for i in range(25):
             Task.objects.create(
                 name=f'Task {i}',
                 project=project,
                 status=StatusChoices.TODO.value if i % 2 == 0 else StatusChoices.DONE.value,
-                created_by=regular_user
+                created_by=regular_user,
+                domain=domain
             )
         
         # Filter by project, status, sort by name, paginate

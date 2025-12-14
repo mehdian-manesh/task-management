@@ -4,12 +4,13 @@ from rest_framework_nested import routers
 
 from .views import (
     ProjectViewSet, TaskViewSet, WorkingDayViewSet, ReportViewSet, FeedbackViewSet,
-    UserViewSet, statistics_view, organizational_dashboard_view, system_logs_view, settings_view,
+    UserViewSet, DomainViewSet, statistics_view, organizational_dashboard_view, system_logs_view, settings_view,
     current_user_view
 )
 
 # Main router
 router = DefaultRouter()
+router.register(r'domains', DomainViewSet, basename='domain')  # Admin only
 router.register(r'projects', ProjectViewSet, basename='project')
 router.register(r'tasks', TaskViewSet, basename='task')
 router.register(r'working-days', WorkingDayViewSet, basename='working-day')

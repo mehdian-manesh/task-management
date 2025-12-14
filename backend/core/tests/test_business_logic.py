@@ -293,10 +293,18 @@ class TestQuerySetFiltering:
     """Tests for queryset filtering logic"""
     
     def test_regular_user_sees_only_assigned_projects(self, authenticated_regular_client, regular_user):
-        """Test regular user only sees assigned projects"""
-        assigned_project = Project.objects.create(name='Assigned Project')
+        """Test regular user only sees assigned projects in their domain"""
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        assigned_project = Project.objects.create(name='Assigned Project', domain=domain)
         assigned_project.assignees.set([regular_user])
-        unassigned_project = Project.objects.create(name='Unassigned Project')
+        unassigned_project = Project.objects.create(name='Unassigned Project', domain=domain)
         
         response = authenticated_regular_client.get(reverse('project-list'))
         
@@ -308,21 +316,30 @@ class TestQuerySetFiltering:
         assert 'Unassigned Project' not in project_names
     
     def test_regular_user_sees_related_tasks(self, authenticated_regular_client, regular_user):
-        """Test regular user sees tasks they created, assigned to, or in assigned projects"""
+        """Test regular user sees tasks they created, assigned to, or in assigned projects in their domain"""
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
         # Task created by user
-        created_task = Task.objects.create(name='Created Task', created_by=regular_user)
+        created_task = Task.objects.create(name='Created Task', created_by=regular_user, domain=domain)
         
         # Task assigned to user
-        assigned_task = Task.objects.create(name='Assigned Task')
+        assigned_task = Task.objects.create(name='Assigned Task', domain=domain)
         assigned_task.assignees.set([regular_user])
         
         # Task in project assigned to user
-        project = Project.objects.create(name='Project')
+        project = Project.objects.create(name='Project', domain=domain)
         project.assignees.set([regular_user])
-        project_task = Task.objects.create(name='Project Task', project=project)
+        project_task = Task.objects.create(name='Project Task', project=project, domain=domain)
         
-        # Unrelated task
-        unrelated_task = Task.objects.create(name='Unrelated Task')
+        # Unrelated task in different domain
+        other_domain = Domain.objects.create(name='Other Domain')
+        unrelated_task = Task.objects.create(name='Unrelated Task', domain=other_domain)
         
         response = authenticated_regular_client.get(reverse('task-list'))
         

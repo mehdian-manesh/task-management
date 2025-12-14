@@ -50,19 +50,34 @@ class TestProjectList:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
     
     def test_list_projects_as_regular_user(self, authenticated_regular_client, regular_user):
-        """Test regular user can list only assigned projects"""
+        """Test regular user can list only assigned projects in their domain"""
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
         # Create projects
-        project1 = Project.objects.create(name='Assigned Project')
+        project1 = Project.objects.create(name='Assigned Project', domain=domain)
         project1.assignees.set([regular_user])
-        project2 = Project.objects.create(name='Unassigned Project')
+        project2 = Project.objects.create(name='Unassigned Project', domain=domain)
+        # Project in different domain - should not be visible
+        other_domain = Domain.objects.create(name='Other Domain')
+        project3 = Project.objects.create(name='Other Domain Project', domain=other_domain)
         
         response = authenticated_regular_client.get(reverse('project-list'))
         
         assert response.status_code == status.HTTP_200_OK
         # Handle paginated response
         projects = response.data.get('results', response.data)
-        assert len(projects) == 1
-        assert projects[0]['name'] == 'Assigned Project'
+        # User should see both projects in their domain (assigned or not, but in domain)
+        # But domain filtering happens after assignee filtering, so only assigned projects
+        project_names = [p['name'] for p in projects]
+        assert 'Assigned Project' in project_names
+        assert 'Unassigned Project' not in project_names  # Not assigned
+        assert 'Other Domain Project' not in project_names  # Different domain
     
     def test_list_projects_as_admin(self, authenticated_admin_client, regular_user):
         """Test admin can list all projects"""
@@ -157,7 +172,15 @@ class TestProjectRetrieve:
     
     def test_retrieve_assigned_project_as_user(self, authenticated_regular_client, regular_user):
         """Test regular user can retrieve assigned project"""
-        project = Project.objects.create(name='Assigned Project')
+        from accounts.models import UserProfile
+        from core.models import Domain
+        
+        # Create domain and assign to user
+        domain = Domain.objects.create(name='User Domain')
+        regular_user.profile.domain = domain
+        regular_user.profile.save()
+        
+        project = Project.objects.create(name='Assigned Project', domain=domain)
         project.assignees.set([regular_user])
         
         response = authenticated_regular_client.get(reverse('project-detail', kwargs={'pk': project.id}))
