@@ -233,7 +233,9 @@ const SystemLogs = () => {
                   <TableCell align="right">{log.message}</TableCell>
                   <TableCell align="right">{log.user}</TableCell>
                   <TableCell align="right">
-                    {moment(log.timestamp).format('jYYYY/jMM/jDD HH:mm')}
+                    <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+                      {moment(log.timestamp).format('jYYYY/jMM/jDD HH:mm')}
+                    </Box>
                   </TableCell>
                 </TableRow>
               ))

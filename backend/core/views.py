@@ -8,7 +8,8 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Project, Task, WorkingDay, Report, Feedback, Domain
+from .models import Project, Task, WorkingDay, Report, Feedback, Domain, Meeting
+from django.utils import timezone as tz
 from .serializers import (
     ProjectSerializer, ProjectDetailSerializer,
     TaskSerializer, TaskDetailSerializer,
@@ -16,7 +17,8 @@ from .serializers import (
     ReportSerializer, ReportDetailSerializer,
     FeedbackSerializer,
     UserSerializer, UserCreateSerializer, UserUpdateSerializer,
-    DomainSerializer, DomainTreeSerializer
+    DomainSerializer, DomainTreeSerializer,
+    MeetingSerializer, MeetingDetailSerializer
 )
 from .domain_utils import filter_by_domain, user_can_access_domain, user_can_access_entity
 from .filters import ProjectFilter, TaskFilter, WorkingDayFilter, ReportFilter, FeedbackFilter, UserFilter
@@ -637,6 +639,96 @@ def system_logs_view(request):
         'logs': logs[:100],  # Limit to 100 most recent
         'total': len(logs),
     })
+
+
+class MeetingViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing meetings - Admin only for create/update/delete, all users can view"""
+    queryset = Meeting.objects.all()
+    serializer_class = MeetingSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    ordering = ['datetime']  # Ascending for future meetings
+    
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return MeetingDetailSerializer
+        return MeetingSerializer
+    
+    def get_permissions(self):
+        """Only admins can create, update, or delete meetings"""
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAdminUser()]
+        return [permissions.IsAuthenticated()]
+    
+    def get_queryset(self):
+        """All authenticated users can view meetings"""
+        from django.utils.dateparse import parse_datetime
+        
+        queryset = Meeting.objects.all()
+        
+        # Optional filtering by date range
+        date_from = self.request.query_params.get('date_from', None)
+        date_to = self.request.query_params.get('date_to', None)
+        
+        if date_from:
+            parsed_date_from = parse_datetime(date_from)
+            if parsed_date_from:
+                # Make timezone-aware if naive
+                if tz.is_naive(parsed_date_from):
+                    parsed_date_from = tz.make_aware(parsed_date_from)
+                queryset = queryset.filter(datetime__gte=parsed_date_from)
+        if date_to:
+            parsed_date_to = parse_datetime(date_to)
+            if parsed_date_to:
+                # Make timezone-aware if naive
+                if tz.is_naive(parsed_date_to):
+                    parsed_date_to = tz.make_aware(parsed_date_to)
+                queryset = queryset.filter(datetime__lte=parsed_date_to)
+        
+        return queryset.select_related('created_by').prefetch_related('participants', 'external_participants')
+    
+    @action(detail=False, methods=['get'], url_path='next-meetings', url_name='next-meetings')
+    def next_meetings(self, request):
+        """
+        Get next 3 upcoming meetings (scheduled meetings, not logs).
+        This endpoint aggregates all meetings and their next occurrences.
+        """
+        from datetime import timedelta
+        try:
+            from dateutil.relativedelta import relativedelta
+        except ImportError:
+            # Fallback if dateutil is not available
+            def relativedelta(months=0, years=0):
+                days = (months * 30) + (years * 365)
+                return timedelta(days=days)
+        
+        now = tz.now()
+        all_meetings = Meeting.objects.all().select_related('created_by').prefetch_related('participants', 'external_participants')
+        
+        # Collect all next occurrences from all meetings
+        all_occurrences = []
+        
+        for meeting in all_meetings:
+            occurrences = meeting.get_next_occurrences(count=10)  # Get more to ensure we have enough
+            for occ_datetime in occurrences:
+                if occ_datetime > now:  # Only future occurrences
+                    all_occurrences.append({
+                        'meeting': meeting,
+                        'datetime': occ_datetime
+                    })
+        
+        # Sort by datetime and take first 3
+        all_occurrences.sort(key=lambda x: x['datetime'])
+        next_3 = all_occurrences[:3]
+        
+        # Serialize the results
+        serializer = self.get_serializer_class()
+        result = []
+        for item in next_3:
+            meeting_data = serializer(item['meeting'], context={'request': request}).data
+            meeting_data['occurrence_datetime'] = item['datetime'].isoformat()
+            result.append(meeting_data)
+        
+        return Response(result)
 
 
 @api_view(['GET', 'POST'])

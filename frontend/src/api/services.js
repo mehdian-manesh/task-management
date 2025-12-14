@@ -74,9 +74,28 @@ export const domainService = {
   delete: (id) => axiosInstance.delete(`/domains/${id}/`),
 };
 
+// Meeting Services
+export const meetingService = {
+  getAll: (params = {}) => axiosInstance.get('/meetings/', { params }),
+  getById: (id) => axiosInstance.get(`/meetings/${id}/`),
+  create: (data) => axiosInstance.post('/meetings/', data),
+  update: (id, data) => axiosInstance.patch(`/meetings/${id}/`, data),
+  delete: (id) => axiosInstance.delete(`/meetings/${id}/`),
+  getNextMeetings: () => axiosInstance.get('/meetings/next-meetings/'),
+};
+
+// User Services (for admin user management and general user operations)
+export const userService = {
+  getAll: (params = {}) => axiosInstance.get('/users/', { params }),
+  getById: (id) => axiosInstance.get(`/users/${id}/`),
+  create: (data) => axiosInstance.post('/users/', data),
+  update: (id, data) => axiosInstance.patch(`/users/${id}/`, data),
+  delete: (id) => axiosInstance.delete(`/users/${id}/`),
+};
+
 // Admin Services
 export const adminService = {
-  // User Management
+  // User Management (deprecated - use userService instead)
   getAllUsers: (params = {}) => axiosInstance.get('/users/', { params }),
   getUserById: (id) => axiosInstance.get(`/users/${id}/`),
   createUser: (data) => axiosInstance.post('/users/', data),

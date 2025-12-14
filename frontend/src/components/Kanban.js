@@ -461,7 +461,7 @@ const Kanban = () => {
                                 )}
                                 {task.deadline && (
                                   <Typography variant="caption" color="error" sx={{ display: 'block' }}>
-                                    موعد: {moment(task.deadline).format('jYYYY/jMM/jDD')}
+                                    موعد: <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>{moment(task.deadline).format('jYYYY/jMM/jDD')}</Box>
                                   </Typography>
                                 )}
                                 {task.is_draft && (
@@ -553,13 +553,21 @@ const Kanban = () => {
               {selectedTask.start_date && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="subtitle2" color="text.secondary">تاریخ شروع:</Typography>
-                  <Typography variant="body2">{moment(selectedTask.start_date).format('jYYYY/jMM/jDD')}</Typography>
+                  <Typography variant="body2" component="div">
+                    <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+                      {moment(selectedTask.start_date).format('jYYYY/jMM/jDD')}
+                    </Box>
+                  </Typography>
                 </Box>
               )}
               {selectedTask.deadline && (
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="subtitle2" color="text.secondary">موعد نهایی:</Typography>
-                  <Typography variant="body2" color="error">{moment(selectedTask.deadline).format('jYYYY/jMM/jDD')}</Typography>
+                  <Typography variant="body2" color="error" component="div">
+                    <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+                      {moment(selectedTask.deadline).format('jYYYY/jMM/jDD')}
+                    </Box>
+                  </Typography>
                 </Box>
               )}
               {selectedTask.estimated_hours > 0 && (

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.conf import settings
 
-from .models import Project, Task, WorkingDay, Report, Feedback, Domain, ReportResultChoices, StatusChoices
+from .models import Project, Task, WorkingDay, Report, Feedback, Domain, Meeting, MeetingExternalParticipant, ReportResultChoices, StatusChoices, MeetingTypeChoices, RecurrenceTypeChoices
 
 
 class DomainSerializer(serializers.ModelSerializer):
@@ -430,6 +430,125 @@ class ReportSerializer(serializers.ModelSerializer):
 class ReportDetailSerializer(ReportSerializer):
     task = TaskDetailSerializer(read_only=True)
     working_day = WorkingDaySerializer(read_only=True)
+
+
+class MeetingExternalParticipantSerializer(serializers.ModelSerializer):
+    """Serializer for external meeting participants"""
+    class Meta:
+        model = MeetingExternalParticipant
+        fields = ['id', 'name']
+
+
+class MeetingSerializer(serializers.ModelSerializer):
+    """Serializer for Meeting model"""
+    participants = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
+    external_participants = serializers.ListField(
+        child=serializers.CharField(max_length=255),
+        required=False,
+        allow_empty=True,
+        write_only=True
+    )
+    external_participants_list = MeetingExternalParticipantSerializer(many=True, read_only=True, source='external_participants')
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    is_future = serializers.SerializerMethodField()
+    next_occurrences = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Meeting
+        fields = [
+            'id', 'datetime', 'type', 'topic', 'location', 'summary',
+            'recurrence_type', 'recurrence_end_date', 'recurrence_count', 'recurrence_interval',
+            'google_calendar_event_id', 'google_calendar_synced',
+            'participants', 'external_participants', 'external_participants_list',
+            'created_by', 'created_by_username', 'created_at', 'updated_at',
+            'is_future', 'next_occurrences'
+        ]
+        read_only_fields = ['created_by', 'created_at', 'updated_at', 'google_calendar_synced']
+        extra_kwargs = {
+            'datetime': {'required': True},
+            'type': {'required': True},
+            'topic': {'required': True}
+        }
+    
+    def get_is_future(self, obj):
+        """Check if meeting is in the future"""
+        return obj.is_future()
+    
+    def get_next_occurrences(self, obj):
+        """Get next 3 occurrences"""
+        occurrences = obj.get_next_occurrences(count=3)
+        return [occ.isoformat() for occ in occurrences]
+    
+    def create(self, validated_data):
+        external_participants = validated_data.pop('external_participants', [])
+        participants = validated_data.pop('participants', [])
+        
+        # Set created_by from request user
+        validated_data['created_by'] = self.context['request'].user
+        
+        meeting = Meeting.objects.create(**validated_data)
+        
+        # Add app user participants
+        if participants:
+            meeting.participants.set(participants)
+        
+        # Add external participants
+        for name in external_participants:
+            if name and name.strip():  # Only add non-empty names
+                MeetingExternalParticipant.objects.get_or_create(
+                    meeting=meeting,
+                    name=name.strip()
+                )
+        
+        return meeting
+    
+    def update(self, instance, validated_data):
+        external_participants = validated_data.pop('external_participants', None)
+        participants = validated_data.pop('participants', None)
+        
+        # Update basic fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Update app user participants if provided
+        if participants is not None:
+            instance.participants.set(participants)
+        
+        # Update external participants if provided
+        if external_participants is not None:
+            # Remove existing external participants
+            instance.external_participants.all().delete()
+            # Add new ones
+            for name in external_participants:
+                if name and name.strip():
+                    MeetingExternalParticipant.objects.get_or_create(
+                        meeting=instance,
+                        name=name.strip()
+                    )
+        
+        return instance
+
+
+class MeetingDetailSerializer(MeetingSerializer):
+    """Detailed serializer for Meeting with full participant information"""
+    participants_details = serializers.SerializerMethodField()
+    
+    class Meta(MeetingSerializer.Meta):
+        fields = MeetingSerializer.Meta.fields + ['participants_details']
+    
+    def get_participants_details(self, obj):
+        """Return detailed information about app user participants"""
+        return [
+            {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name
+            }
+            for user in obj.participants.all()
+        ]
 
 
 class FeedbackSerializer(serializers.ModelSerializer):

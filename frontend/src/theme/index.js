@@ -465,6 +465,19 @@ export const createAppTheme = (mode = 'light') => createTheme(
           },
         },
       },
+      MuiPopper: {
+        styleOverrides: {
+          root: {
+            '& .MuiPaper-root': {
+              background: mode === 'dark'
+                ? 'rgba(15, 23, 42, 1) !important'
+                : 'rgba(255, 255, 255, 1) !important',
+              backgroundImage: 'none !important',
+              '--Paper-overlay': 'none !important',
+            },
+          },
+        },
+      },
     },
   },
   faIR

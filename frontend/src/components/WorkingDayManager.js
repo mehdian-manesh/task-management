@@ -267,11 +267,11 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
                   وضعیت روز کاری
                 </Typography>
                 <Typography variant="body1">
-                  زمان ورود: {workingDay?.check_in ? formatToJalaliWithTime(workingDay.check_in) : '-'}
+                  زمان ورود: <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>{workingDay?.check_in ? formatToJalaliWithTime(workingDay.check_in) : '-'}</Box>
                 </Typography>
                 {workingDay?.check_out && (
                   <Typography variant="body1">
-                    زمان خروج: {formatToJalaliWithTime(workingDay.check_out)}
+                    زمان خروج: <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>{formatToJalaliWithTime(workingDay.check_out)}</Box>
                   </Typography>
                 )}
                 {!workingDay?.check_out && (

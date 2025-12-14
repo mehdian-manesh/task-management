@@ -711,7 +711,9 @@ const OrganizationalDashboard = () => {
                                         color="error"
                                         sx={{ fontSize: '0.875rem' }}
                                       >
-                                        {moment(task.deadline).format('jYYYY/jMM/jDD')}
+                                        <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+                                          {moment(task.deadline).format('jYYYY/jMM/jDD')}
+                                        </Box>
                                       </Typography>
                                     ) : (
                                       '-'

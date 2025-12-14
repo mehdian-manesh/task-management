@@ -25,12 +25,13 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { taskService, projectService, domainService } from '../api/services';
-import { formatToJalali, jalaliToGregorian } from '../utils/dateUtils';
+import { formatToJalali } from '../utils/dateUtils';
 import { toPersianNumbers } from '../utils/numberUtils';
 import TableControls from './TableControls';
 import Pagination from './Pagination';
 import SortableTableHeader from './SortableTableHeader';
 import PaginatedSelect from './PaginatedSelect';
+import JalaliDatePicker from './JalaliDatePicker';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -368,7 +369,9 @@ const TaskManager = () => {
                 </TableCell>
                 <TableCell align="right">{task.phase ? toPersianNumbers(task.phase) : '-'}</TableCell>
                 <TableCell align="right">
-                  {formatToJalali(task.deadline)}
+                  <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+                    {formatToJalali(task.deadline)}
+                  </Box>
                 </TableCell>
                 <TableCell align="right">
                   {task.is_draft && <Chip label="پیش‌نویس" size="small" color="warning" />}
@@ -466,23 +469,19 @@ const TaskManager = () => {
             margin="normal"
             dir="rtl"
           />
-          <TextField
+          <JalaliDatePicker
             fullWidth
-            type="date"
             label="تاریخ شروع"
             value={formData.start_date}
             onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
             margin="normal"
-            InputLabelProps={{ shrink: true }}
           />
-          <TextField
+          <JalaliDatePicker
             fullWidth
-            type="date"
             label="موعد نهایی"
             value={formData.deadline}
             onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
             margin="normal"
-            InputLabelProps={{ shrink: true }}
           />
           <TextField
             fullWidth

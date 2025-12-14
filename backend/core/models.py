@@ -28,6 +28,19 @@ class FeedbackTypeChoices(enum.Enum):
     QUESTION = 'question'  # سوال
 
 
+class MeetingTypeChoices(enum.Enum):
+    IN_PERSON = 'in_person'  # حضوری
+    ONLINE = 'online'  # آنلاین
+
+
+class RecurrenceTypeChoices(enum.Enum):
+    NONE = 'none'  # بدون تکرار
+    DAILY = 'daily'  # روزانه
+    WEEKLY = 'weekly'  # هفتگی
+    MONTHLY = 'monthly'  # ماهانه
+    YEARLY = 'yearly'  # سالانه
+
+
 class Domain(models.Model):
     """
     Organizational structure domain using materialized path method for performance.
@@ -194,3 +207,157 @@ class Feedback(models.Model):
     )  # Optional
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class Meeting(models.Model):
+    """
+    Meeting entity - only admins can create meetings.
+    Participants can be app users or external participants (non-app users).
+    Compatible with Google Calendar for future sync.
+    """
+    datetime = models.DateTimeField()  # Required: date and time of the meeting (Gregorian calendar)
+    type = models.CharField(
+        max_length=20,
+        choices=[(mtype.value, mtype.name.replace('_', ' ').title()) for mtype in MeetingTypeChoices],
+        default=MeetingTypeChoices.IN_PERSON.value
+    )  # Required: in-person or online
+    topic = models.CharField(max_length=255)  # Required: meeting topic
+    location = models.CharField(max_length=500, blank=True)  # Venue if in-person, URL if online
+    summary = models.TextField(blank=True)  # Meeting summary
+    
+    # Recurrence fields (all based on Gregorian calendar)
+    recurrence_type = models.CharField(
+        max_length=20,
+        choices=[(rtype.value, rtype.name.capitalize()) for rtype in RecurrenceTypeChoices],
+        default=RecurrenceTypeChoices.NONE.value
+    )
+    recurrence_end_date = models.DateTimeField(null=True, blank=True)  # End date for recurrence
+    recurrence_count = models.PositiveIntegerField(null=True, blank=True)  # Number of occurrences (alternative to end_date)
+    recurrence_interval = models.PositiveIntegerField(default=1)  # Interval (e.g., every 2 weeks)
+    
+    # Google Calendar compatibility fields
+    google_calendar_event_id = models.CharField(max_length=255, blank=True, null=True)  # Google Calendar event ID
+    google_calendar_synced = models.BooleanField(default=False)  # Whether synced with Google Calendar
+    google_calendar_sync_token = models.CharField(max_length=255, blank=True, null=True)  # For incremental sync
+    
+    participants = models.ManyToManyField(User, related_name='meetings', blank=True)  # App user participants
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_meetings')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['datetime']  # Order by datetime ascending for future meetings
+
+    def __str__(self):
+        return f"{self.topic} - {self.datetime}"
+    
+    def is_future(self):
+        """Check if meeting is in the future"""
+        from django.utils import timezone
+        return self.datetime > timezone.now()
+    
+    def is_past_or_present(self):
+        """Check if meeting is in the past or present (log)"""
+        from django.utils import timezone
+        return self.datetime <= timezone.now()
+    
+    def get_next_occurrences(self, count=3):
+        """
+        Get next occurrences of this meeting based on recurrence rules.
+        Returns list of datetime objects (all in the future).
+        All dates are based on Gregorian calendar.
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+        from dateutil.relativedelta import relativedelta
+        
+        occurrences = []
+        current = self.datetime
+        now = timezone.now()
+        
+        # If meeting is in the past and no recurrence, return empty
+        if current <= now and self.recurrence_type == RecurrenceTypeChoices.NONE.value:
+            return []
+        
+        # If meeting is in the future and no recurrence, return just this one
+        if current > now and self.recurrence_type == RecurrenceTypeChoices.NONE.value:
+            return [current]
+        
+        # If meeting is in the past but has recurrence, find the next occurrence
+        if current <= now and self.recurrence_type != RecurrenceTypeChoices.NONE.value:
+            # Calculate how many intervals have passed
+            while current <= now:
+                if self.recurrence_type == RecurrenceTypeChoices.DAILY.value:
+                    current = current + timedelta(days=self.recurrence_interval)
+                elif self.recurrence_type == RecurrenceTypeChoices.WEEKLY.value:
+                    current = current + timedelta(weeks=self.recurrence_interval)
+                elif self.recurrence_type == RecurrenceTypeChoices.MONTHLY.value:
+                    current = current + relativedelta(months=self.recurrence_interval)
+                elif self.recurrence_type == RecurrenceTypeChoices.YEARLY.value:
+                    current = current + relativedelta(years=self.recurrence_interval)
+                else:
+                    return []  # Unknown recurrence type
+                
+                # Check if we've exceeded end date
+                if self.recurrence_end_date and current > self.recurrence_end_date:
+                    return []
+        
+        # Calculate next occurrences based on recurrence
+        iteration = 0
+        max_iterations = 1000  # Safety limit
+        
+        while len(occurrences) < count and iteration < max_iterations:
+            if current > now:  # Only add future occurrences
+                occurrences.append(current)
+            
+            # Calculate next occurrence
+            if self.recurrence_type == RecurrenceTypeChoices.DAILY.value:
+                current = current + timedelta(days=self.recurrence_interval)
+            elif self.recurrence_type == RecurrenceTypeChoices.WEEKLY.value:
+                current = current + timedelta(weeks=self.recurrence_interval)
+            elif self.recurrence_type == RecurrenceTypeChoices.MONTHLY.value:
+                current = current + relativedelta(months=self.recurrence_interval)
+            elif self.recurrence_type == RecurrenceTypeChoices.YEARLY.value:
+                current = current + relativedelta(years=self.recurrence_interval)
+            else:
+                break  # No recurrence
+            
+            # Check if we've exceeded end date or count
+            if self.recurrence_end_date and current > self.recurrence_end_date:
+                break
+            if self.recurrence_count:
+                # Count total occurrences from original datetime
+                total_occurrences = 1  # Original meeting
+                temp_current = self.datetime
+                while temp_current < current:
+                    total_occurrences += 1
+                    if self.recurrence_type == RecurrenceTypeChoices.DAILY.value:
+                        temp_current = temp_current + timedelta(days=self.recurrence_interval)
+                    elif self.recurrence_type == RecurrenceTypeChoices.WEEKLY.value:
+                        temp_current = temp_current + timedelta(weeks=self.recurrence_interval)
+                    elif self.recurrence_type == RecurrenceTypeChoices.MONTHLY.value:
+                        temp_current = temp_current + relativedelta(months=self.recurrence_interval)
+                    elif self.recurrence_type == RecurrenceTypeChoices.YEARLY.value:
+                        temp_current = temp_current + relativedelta(years=self.recurrence_interval)
+                    if total_occurrences >= self.recurrence_count:
+                        break
+                if total_occurrences >= self.recurrence_count:
+                    break
+            
+            iteration += 1
+        
+        return occurrences[:count]
+
+
+class MeetingExternalParticipant(models.Model):
+    """
+    External participants (non-app users) for meetings.
+    """
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE, related_name='external_participants')
+    name = models.CharField(max_length=255)  # Name of the external participant
+
+    class Meta:
+        unique_together = ['meeting', 'name']
+
+    def __str__(self):
+        return f"{self.name} - {self.meeting.topic}"

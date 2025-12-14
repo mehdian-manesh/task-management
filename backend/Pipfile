@@ -11,6 +11,8 @@ django-cors-headers = "*"
 drf-nested-routers = "*"
 pillow = "*"
 django-filter = "*"
+python-dateutil = "*"
+
 [dev-packages]
 drf-spectacular = "*"
 django-extensions = "*"

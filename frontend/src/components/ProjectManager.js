@@ -30,6 +30,7 @@ import TableControls from './TableControls';
 import Pagination from './Pagination';
 import SortableTableHeader from './SortableTableHeader';
 import PaginatedSelect from './PaginatedSelect';
+import JalaliDatePicker from './JalaliDatePicker';
 
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
@@ -320,10 +321,14 @@ const ProjectManager = () => {
                   />
                 </TableCell>
                 <TableCell align="right">
-                  {project.start_date ? moment(project.start_date).format('jYYYY/jMM/jDD') : '-'}
+                  <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+                    {project.start_date ? moment(project.start_date).format('jYYYY/jMM/jDD') : '-'}
+                  </Box>
                 </TableCell>
                 <TableCell align="right">
-                  {project.deadline ? moment(project.deadline).format('jYYYY/jMM/jDD') : '-'}
+                  <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+                    {project.deadline ? moment(project.deadline).format('jYYYY/jMM/jDD') : '-'}
+                  </Box>
                 </TableCell>
                 <TableCell align="right">{project.estimated_hours ? toPersianNumbers(project.estimated_hours) : '-'}</TableCell>
                 <TableCell align="right">
@@ -396,23 +401,19 @@ const ProjectManager = () => {
               </MenuItem>
             ))}
           </TextField>
-          <TextField
+          <JalaliDatePicker
             fullWidth
-            type="date"
             label="تاریخ شروع"
             value={formData.start_date}
             onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
             margin="normal"
-            InputLabelProps={{ shrink: true }}
           />
-          <TextField
+          <JalaliDatePicker
             fullWidth
-            type="date"
             label="موعد نهایی"
             value={formData.deadline}
             onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
             margin="normal"
-            InputLabelProps={{ shrink: true }}
           />
           <TextField
             fullWidth

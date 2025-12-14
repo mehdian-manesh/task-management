@@ -24,6 +24,7 @@ import SystemLogs from './SystemLogs';
 import Settings from './Settings';
 import Sidebar from './Sidebar';
 import UserProfile from './UserProfile';
+import MeetingManager from './MeetingManager';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -146,6 +147,8 @@ const Dashboard = () => {
           return <ProjectManager />;
         case 'feedback':
           return <FeedbackManager />;
+        case 'meetings':
+          return <MeetingManager />;
         case 'profile':
           return <UserProfile />;
         default:
@@ -162,6 +165,8 @@ const Dashboard = () => {
           return <Kanban />;
         case 'feedback':
           return <FeedbackManager />;
+        case 'meetings':
+          return <MeetingManager />;
         case 'profile':
           return <UserProfile />;
         default:

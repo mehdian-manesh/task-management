@@ -244,7 +244,9 @@ const FeedbackManager = () => {
                       />
                     )}
                     <Typography variant="caption" color="text.secondary" display="block">
-                      {moment(feedback.created_at).format('jYYYY/jMM/jDD - HH:mm')}
+                      <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+                        {moment(feedback.created_at).format('jYYYY/jMM/jDD - HH:mm')}
+                      </Box>
                     </Typography>
                   </Box>
                   <Box>

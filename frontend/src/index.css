@@ -184,3 +184,76 @@ body.dark-mode .MuiMenuItem-root {
 body.dark-mode .MuiMenuItem-root:hover {
   background: rgba(30, 41, 59, 1) !important;
 }
+
+/* Fix LTR direction for Date Picker inputs */
+.MuiPickersInputBase-root {
+  direction: ltr !important;
+}
+
+.MuiPickersInputBase-input {
+  direction: ltr !important;
+  text-align: left !important;
+  font-variant-numeric: normal !important;
+}
+
+.MuiPickersInputBase-input input,
+.MuiPickersInputBase-input input[dir],
+input.MuiPickersInputBase-input,
+input[type="text"].MuiPickersInputBase-input {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: normal !important;
+}
+
+.MuiPickersInputBase-inputAdornedEnd {
+  padding-right: 14px !important;
+  padding-left: 0 !important;
+}
+
+.MuiPickersInputBase-adornedEnd .MuiInputAdornment-root {
+  margin-right: 0 !important;
+  margin-left: auto !important;
+}
+
+/* Convert Western numerals to Persian in date picker inputs using JavaScript */
+.MuiPickersInputBase-input input::after {
+  content: attr(data-persian-value);
+}
+
+/* Remove transparency from Date Picker popup */
+.MuiPickersPopper-paper {
+  background: var(--mui-palette-background-paper, rgba(255, 255, 255, 1)) !important;
+  background-image: none !important;
+  --Paper-overlay: none !important;
+}
+
+body.dark-mode .MuiPickersPopper-paper {
+  background: rgba(15, 23, 42, 1) !important;
+  background-image: none !important;
+}
+
+.MuiPickersCalendarHeader-root,
+.MuiDayCalendar-root,
+.MuiPickersDay-root,
+.MuiPickersArrowSwitcher-root,
+.MuiClock-root,
+.MuiClockNumber-root,
+.MuiPickersToolbar-root {
+  background: transparent !important;
+}
+
+.MuiPickersDay-root:hover {
+  background: rgba(241, 245, 249, 1) !important;
+}
+
+body.dark-mode .MuiPickersDay-root:hover {
+  background: rgba(30, 41, 59, 1) !important;
+}
+
+.MuiPickersDay-root.Mui-selected {
+  background: rgba(37, 99, 235, 0.8) !important;
+}
+
+.MuiPickersDay-root.Mui-selected:hover {
+  background: rgba(37, 99, 235, 0.9) !important;
+}

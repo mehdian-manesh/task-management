@@ -30,6 +30,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import FolderIcon from '@mui/icons-material/Folder';
 import FeedbackIcon from '@mui/icons-material/Feedback';
+import EventIcon from '@mui/icons-material/Event';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
@@ -53,6 +54,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
     { id: 'working-day', label: 'روز کاری', icon: <AccessTimeIcon /> },
     { id: 'tasks', label: 'وظایف', icon: <AssignmentIcon /> },
     { id: 'kanban', label: 'کانبان', icon: <ViewKanbanIcon /> },
+    { id: 'meetings', label: 'جلسات', icon: <EventIcon /> },
   ];
 
   const adminOnlyItems = [
