@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.conf import settings
 
-from .models import Project, Task, WorkingDay, Report, Feedback, Domain, Meeting, MeetingExternalParticipant, ReportResultChoices, StatusChoices, MeetingTypeChoices, RecurrenceTypeChoices
+from .models import Project, Task, WorkingDay, Report, Feedback, Domain, Meeting, MeetingExternalParticipant, ReportResultChoices, StatusChoices, MeetingTypeChoices, RecurrenceTypeChoices, ReportNote, SavedReport
 
 
 class DomainSerializer(serializers.ModelSerializer):
@@ -556,3 +556,39 @@ class FeedbackSerializer(serializers.ModelSerializer):
         model = Feedback
         fields = ['id', 'user', 'description', 'type', 'created_at', 'updated_at']
         read_only_fields = ['user', 'created_at', 'updated_at']
+
+
+class ReportNoteSerializer(serializers.ModelSerializer):
+    created_by_username = serializers.CharField(source='created_by.username', read_only=True)
+    domain_name = serializers.CharField(source='domain.name', read_only=True, allow_null=True)
+    
+    class Meta:
+        model = ReportNote
+        fields = ['id', 'period_type', 'jalali_year', 'jalali_month', 'jalali_day', 'jalali_week',
+                  'domain', 'domain_name', 'note', 'created_by', 'created_by_username', 'created_at', 'updated_at']
+        read_only_fields = ['created_by', 'created_at', 'updated_at']
+
+
+class SavedReportSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True, allow_null=True)
+    domain_name = serializers.CharField(source='domain.name', read_only=True, allow_null=True)
+    pdf_file_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = SavedReport
+        fields = ['id', 'report_type', 'period_type', 'jalali_year', 'jalali_month', 'jalali_week',
+                  'user', 'user_username', 'domain', 'domain_name', 'report_data', 'pdf_file', 'pdf_file_url', 'created_at']
+        read_only_fields = ['created_at']
+    
+    def get_pdf_file_url(self, obj):
+        """Return the PDF file URL if it exists"""
+        if obj.pdf_file:
+            request = self.context.get('request')
+            if request:
+                url = request.build_absolute_uri(obj.pdf_file.url)
+                # Ensure HTTPS if request is HTTPS
+                if request.is_secure() and url.startswith('http://'):
+                    url = url.replace('http://', 'https://')
+                return url
+            return obj.pdf_file.url
+        return None

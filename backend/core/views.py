@@ -8,7 +8,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Project, Task, WorkingDay, Report, Feedback, Domain, Meeting
+from .models import Project, Task, WorkingDay, Report, Feedback, Domain, Meeting, ReportNote, SavedReport
 from django.utils import timezone as tz
 from .serializers import (
     ProjectSerializer, ProjectDetailSerializer,
@@ -18,8 +18,12 @@ from .serializers import (
     FeedbackSerializer,
     UserSerializer, UserCreateSerializer, UserUpdateSerializer,
     DomainSerializer, DomainTreeSerializer,
-    MeetingSerializer, MeetingDetailSerializer
+    MeetingSerializer, MeetingDetailSerializer,
+    ReportNoteSerializer, SavedReportSerializer
 )
+from .report_service import ReportService
+from .pdf_service import generate_report_pdf
+from django.http import HttpResponse
 from .domain_utils import filter_by_domain, user_can_access_domain, user_can_access_entity
 from .filters import ProjectFilter, TaskFilter, WorkingDayFilter, ReportFilter, FeedbackFilter, UserFilter
 
@@ -752,3 +756,225 @@ def settings_view(request):
             'message': 'تنظیمات با موفقیت به‌روزرسانی شد',
             'settings': request.data,
         })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def generate_individual_report_view(request):
+    """Generate individual report for the authenticated user"""
+    period_type = request.query_params.get('period_type')
+    year = request.query_params.get('year')
+    month = request.query_params.get('month')
+    day = request.query_params.get('day')
+    week = request.query_params.get('week')
+    
+    if not period_type or not year:
+        return Response(
+            {'detail': 'period_type and year are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        year = int(year)
+        month = int(month) if month else None
+        day = int(day) if day else None
+        week = int(week) if week else None
+    except (ValueError, TypeError):
+        return Response(
+            {'detail': 'Invalid date parameters'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        report_data = ReportService.generate_individual_report(
+            request.user, period_type, year, month=month, day=day, week=week
+        )
+        return Response(report_data)
+    except ValueError as e:
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser])
+def generate_team_report_view(request):
+    """Generate team report for a domain (admin only)"""
+    domain_id = request.query_params.get('domain_id')
+    period_type = request.query_params.get('period_type')
+    year = request.query_params.get('year')
+    month = request.query_params.get('month')
+    week = request.query_params.get('week')
+    
+    if not domain_id or not period_type or not year:
+        return Response(
+            {'detail': 'domain_id, period_type, and year are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        domain = Domain.objects.get(id=domain_id)
+        year = int(year)
+        month = int(month) if month else None
+        week = int(week) if week else None
+    except Domain.DoesNotExist:
+        return Response(
+            {'detail': 'Domain not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except (ValueError, TypeError):
+        return Response(
+            {'detail': 'Invalid date parameters'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        report_data = ReportService.generate_team_report(
+            domain, period_type, year, month=month, week=week
+        )
+        return Response(report_data)
+    except ValueError as e:
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def export_individual_report_pdf_view(request):
+    """Export individual report as PDF"""
+    period_type = request.query_params.get('period_type')
+    year = request.query_params.get('year')
+    month = request.query_params.get('month')
+    day = request.query_params.get('day')
+    week = request.query_params.get('week')
+    
+    if not period_type or not year:
+        return Response(
+            {'detail': 'period_type and year are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        year = int(year)
+        month = int(month) if month else None
+        day = int(day) if day else None
+        week = int(week) if week else None
+    except (ValueError, TypeError):
+        return Response(
+            {'detail': 'Invalid date parameters'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        report_data = ReportService.generate_individual_report(
+            request.user, period_type, year, month=month, day=day, week=week
+        )
+        pdf_file = generate_report_pdf(report_data, report_type='individual')
+        
+        from .jalali_utils import format_jalali_period
+        period_str = format_jalali_period(period_type, year, month=month, week=week, day=day)
+        filename = f"report_individual_{period_str.replace(' ', '_')}.pdf"
+        
+        response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except ValueError as e:
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAdminUser])
+def export_team_report_pdf_view(request):
+    """Export team report as PDF (admin only)"""
+    domain_id = request.query_params.get('domain_id')
+    period_type = request.query_params.get('period_type')
+    year = request.query_params.get('year')
+    month = request.query_params.get('month')
+    week = request.query_params.get('week')
+    
+    if not domain_id or not period_type or not year:
+        return Response(
+            {'detail': 'domain_id, period_type, and year are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        domain = Domain.objects.get(id=domain_id)
+        year = int(year)
+        month = int(month) if month else None
+        week = int(week) if week else None
+    except Domain.DoesNotExist:
+        return Response(
+            {'detail': 'Domain not found'},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    except (ValueError, TypeError):
+        return Response(
+            {'detail': 'Invalid date parameters'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        report_data = ReportService.generate_team_report(
+            domain, period_type, year, month=month, week=week
+        )
+        pdf_file = generate_report_pdf(report_data, report_type='team')
+        
+        from .jalali_utils import format_jalali_period
+        period_str = format_jalali_period(period_type, year, month=month, week=week)
+        filename = f"report_team_{domain.name}_{period_str.replace(' ', '_')}.pdf"
+        
+        response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except ValueError as e:
+        return Response(
+            {'detail': str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+class ReportNoteViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing report notes (admin only)"""
+    queryset = ReportNote.objects.all()
+    serializer_class = ReportNoteSerializer
+    permission_classes = [permissions.IsAdminUser]
+    
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class SavedReportViewSet(viewsets.ReadOnlyModelViewSet):
+    """ViewSet for viewing saved reports"""
+    queryset = SavedReport.objects.all()
+    serializer_class = SavedReportSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if not self.request.user.is_staff:
+            # Regular users can only see their own individual reports
+            queryset = queryset.filter(report_type='individual', user=self.request.user)
+        return queryset
+    
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
+        """Download saved report PDF"""
+        saved_report = self.get_object()
+        
+        if saved_report.pdf_file:
+            response = HttpResponse(saved_report.pdf_file.read(), content_type='application/pdf')
+            filename = f"saved_report_{saved_report.id}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+        else:
+            return Response(
+                {'detail': 'PDF file not available'},
+                status=status.HTTP_404_NOT_FOUND
+            )

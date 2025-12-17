@@ -46,6 +46,7 @@ export const workingDayService = {
 
 // Report Services
 export const reportService = {
+  // Working day reports
   getByWorkingDay: (workingDayId, params = {}) => 
     axiosInstance.get(`/working-days/${workingDayId}/reports/`, { params }),
   create: (workingDayId, data) => 
@@ -54,6 +55,21 @@ export const reportService = {
     axiosInstance.patch(`/working-days/${workingDayId}/reports/${reportId}/`, data),
   delete: (workingDayId, reportId) => 
     axiosInstance.delete(`/working-days/${workingDayId}/reports/${reportId}/`),
+  // Report generation
+  generateIndividualReport: (params = {}) => 
+    axiosInstance.get('/reports/generate/individual/', { params }),
+  generateTeamReport: (params = {}) => 
+    axiosInstance.get('/reports/generate/team/', { params }),
+  exportIndividualReportPDF: (params = {}) => 
+    axiosInstance.get('/reports/generate/individual/pdf/', { 
+      params, 
+      responseType: 'blob' 
+    }),
+  exportTeamReportPDF: (params = {}) => 
+    axiosInstance.get('/reports/generate/team/pdf/', { 
+      params, 
+      responseType: 'blob' 
+    }),
 };
 
 // Feedback Services
@@ -114,4 +130,22 @@ export const adminService = {
   // Settings
   getSettings: () => axiosInstance.get('/admin/settings/'),
   updateSettings: (data) => axiosInstance.post('/admin/settings/', data),
+};
+
+// Report Note Services
+export const reportNoteService = {
+  getAll: (params = {}) => axiosInstance.get('/report-notes/', { params }),
+  getById: (id) => axiosInstance.get(`/report-notes/${id}/`),
+  create: (data) => axiosInstance.post('/report-notes/', data),
+  update: (id, data) => axiosInstance.patch(`/report-notes/${id}/`, data),
+  delete: (id) => axiosInstance.delete(`/report-notes/${id}/`),
+};
+
+// Saved Report Services
+export const savedReportService = {
+  getAll: (params = {}) => axiosInstance.get('/saved-reports/', { params }),
+  getById: (id) => axiosInstance.get(`/saved-reports/${id}/`),
+  downloadPDF: (id) => axiosInstance.get(`/saved-reports/${id}/download/`, { 
+    responseType: 'blob' 
+  }),
 };

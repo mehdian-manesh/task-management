@@ -12,6 +12,9 @@ drf-nested-routers = "*"
 pillow = "*"
 django-filter = "*"
 python-dateutil = "*"
+jdatetime = "*"
+weasyprint = "*"
+django-crontab = "*"
 
 [dev-packages]
 drf-spectacular = "*"

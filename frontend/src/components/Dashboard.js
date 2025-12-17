@@ -25,6 +25,9 @@ import Settings from './Settings';
 import Sidebar from './Sidebar';
 import UserProfile from './UserProfile';
 import MeetingManager from './MeetingManager';
+import ReportViewer from './ReportViewer';
+import ReportNotesManager from './ReportNotesManager';
+import SavedReportsList from './SavedReportsList';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -167,6 +170,10 @@ const Dashboard = () => {
           return <FeedbackManager />;
         case 'meetings':
           return <MeetingManager />;
+        case 'reports':
+          return <ReportViewer reportType="individual" />;
+        case 'saved-reports':
+          return <SavedReportsList />;
         case 'profile':
           return <UserProfile />;
         default:

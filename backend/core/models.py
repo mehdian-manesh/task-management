@@ -361,3 +361,77 @@ class MeetingExternalParticipant(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.meeting.topic}"
+
+
+class ReportNote(models.Model):
+    """Admin notes for specific time periods"""
+    PERIOD_TYPE_CHOICES = [
+        ('daily', 'Daily'),
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    ]
+    
+    period_type = models.CharField(max_length=20, choices=PERIOD_TYPE_CHOICES)
+    jalali_year = models.IntegerField()
+    jalali_month = models.IntegerField(null=True, blank=True)  # For monthly/yearly
+    jalali_day = models.IntegerField(null=True, blank=True)  # For daily
+    jalali_week = models.IntegerField(null=True, blank=True)  # For weekly (week number in year)
+    domain = models.ForeignKey(Domain, on_delete=models.CASCADE, null=True, blank=True, related_name='report_notes')  # None = global note
+    note = models.TextField()
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_report_notes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        period_str = f"{self.jalali_year}"
+        if self.period_type == 'daily' and self.jalali_day:
+            period_str += f"/{self.jalali_month}/{self.jalali_day}"
+        elif self.period_type == 'weekly' and self.jalali_week:
+            period_str += f" week {self.jalali_week}"
+        elif self.period_type == 'monthly' and self.jalali_month:
+            period_str += f"/{self.jalali_month}"
+        return f"{self.period_type} note for {period_str}"
+
+
+class SavedReport(models.Model):
+    """Static snapshot of reports - immutable after creation"""
+    REPORT_TYPE_CHOICES = [
+        ('individual', 'Individual'),
+        ('team', 'Team'),
+    ]
+    
+    PERIOD_TYPE_CHOICES = [
+        ('weekly', 'Weekly'),
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    ]
+    
+    report_type = models.CharField(max_length=20, choices=REPORT_TYPE_CHOICES)
+    period_type = models.CharField(max_length=20, choices=PERIOD_TYPE_CHOICES)
+    jalali_year = models.IntegerField()
+    jalali_month = models.IntegerField(null=True, blank=True)
+    jalali_week = models.IntegerField(null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='saved_reports')  # For individual reports
+    domain = models.ForeignKey(Domain, on_delete=models.CASCADE, null=True, blank=True, related_name='saved_reports')  # For team reports
+    report_data = models.JSONField()  # Static snapshot of all report data
+    pdf_file = models.FileField(upload_to='reports/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = [
+            ['report_type', 'period_type', 'jalali_year', 'jalali_month', 'jalali_week', 'user', 'domain']
+        ]
+
+    def __str__(self):
+        period_str = f"{self.jalali_year}"
+        if self.period_type == 'weekly' and self.jalali_week:
+            period_str += f" week {self.jalali_week}"
+        elif self.period_type == 'monthly' and self.jalali_month:
+            period_str += f"/{self.jalali_month}"
+        report_target = self.user.username if self.user else (self.domain.name if self.domain else "Global")
+        return f"{self.report_type} {self.period_type} report for {report_target} - {period_str}"

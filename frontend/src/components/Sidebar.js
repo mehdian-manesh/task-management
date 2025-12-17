@@ -33,6 +33,9 @@ import FeedbackIcon from '@mui/icons-material/Feedback';
 import EventIcon from '@mui/icons-material/Event';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import DescriptionIcon from '@mui/icons-material/Description';
+import NoteIcon from '@mui/icons-material/Note';
+import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 
 const drawerWidth = 240;
 const collapsedWidth = 64;
@@ -59,11 +62,18 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
 
   const adminOnlyItems = [
     { id: 'projects', label: 'پروژه‌ها', icon: <FolderIcon /> },
+    { id: 'team-reports', label: 'گزارش تیمی', icon: <DescriptionIcon /> },
+    { id: 'report-notes', label: 'یادداشت‌های گزارش', icon: <NoteIcon /> },
+  ];
+
+  const reportItems = [
+    { id: 'reports', label: 'گزارش کار', icon: <DescriptionIcon /> },
+    { id: 'saved-reports', label: 'گزارش‌های ذخیره شده', icon: <FolderOpenIcon /> },
   ];
 
   const allMenuItems = user?.isAdmin
-    ? [...adminMenuItems, ...commonMenuItems, ...adminOnlyItems, { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> }]
-    : [...commonMenuItems, { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> }];
+    ? [...adminMenuItems, ...commonMenuItems, ...adminOnlyItems, ...reportItems, { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> }]
+    : [...commonMenuItems, ...reportItems, { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> }];
 
   const handleMenuClick = (viewId) => {
     setCurrentView(viewId);
