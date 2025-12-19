@@ -57,38 +57,38 @@ const Dashboard = () => {
     // #region agent log
     // Debug sidebar positioning - check after render
     const checkLayout = () => {
-      const parentBox = document.querySelector('[data-testid="dashboard-container"]') || 
+      const parentBox = document.querySelector('[data-testid="dashboard-container"]') ||
         document.querySelector('body > div#root > div > div');
       const mainContent = document.querySelector('main');
       const sidebarDrawer = document.querySelector('.MuiDrawer-root.MuiDrawer-anchorRight');
       const sidebarPaper = document.querySelector('.MuiDrawer-root.MuiDrawer-anchorRight .MuiDrawer-paper');
-      
+
       if (parentBox) {
         const parentStyles = window.getComputedStyle(parentBox);
         const parentRect = parentBox.getBoundingClientRect();
       }
-      
+
       if (mainContent) {
         const mainStyles = window.getComputedStyle(mainContent);
         const mainRect = mainContent.getBoundingClientRect();
       }
-      
+
       const sidebarWrapper = document.querySelector('[data-testid="sidebar-wrapper"]')?.parentElement;
       if (sidebarWrapper) {
         const wrapperStyles = window.getComputedStyle(sidebarWrapper);
         const wrapperRect = sidebarWrapper.getBoundingClientRect();
       }
-      
+
       if (sidebarDrawer) {
         const drawerStyles = window.getComputedStyle(sidebarDrawer);
         const drawerRect = sidebarDrawer.getBoundingClientRect();
       }
-      
+
       if (sidebarPaper) {
         const paperStyles = window.getComputedStyle(sidebarPaper);
         const paperRect = sidebarPaper.getBoundingClientRect();
       }
-      
+
       // Check if sidebar is visually on left or right
       if (mainContent && sidebarPaper) {
         const mainRect = mainContent.getBoundingClientRect();
@@ -97,7 +97,7 @@ const Dashboard = () => {
         const computedDirection = parentBox ? window.getComputedStyle(parentBox).direction : 'unknown';
       }
     };
-    
+
     // Run after a short delay to ensure DOM is ready
     const timeoutId = setTimeout(checkLayout, 100);
     return () => clearTimeout(timeoutId);
@@ -109,7 +109,7 @@ const Dashboard = () => {
       const response = await workingDayService.getAll();
       // Handle paginated response
       const workingDays = response.data.results || response.data;
-      const today = Array.isArray(workingDays) 
+      const today = Array.isArray(workingDays)
         ? workingDays.find(wd => !wd.check_out && !wd.is_on_leave)
         : null;
       setTodayWorkingDay(today);
@@ -152,6 +152,14 @@ const Dashboard = () => {
           return <FeedbackManager />;
         case 'meetings':
           return <MeetingManager />;
+        case 'reports':
+          return <ReportViewer reportType="individual" />;
+        case 'saved-reports':
+          return <SavedReportsList />;
+        case 'team-reports':
+          return <ReportViewer reportType="team" />;
+        case 'report-notes':
+          return <ReportNotesManager />;
         case 'profile':
           return <UserProfile />;
         default:
@@ -194,12 +202,12 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <Box 
+    <Box
       ref={containerRef}
       data-testid="dashboard-container"
-      sx={{ 
-        display: 'flex', 
-        minHeight: '100vh', 
+      sx={{
+        display: 'flex',
+        minHeight: '100vh',
         background: 'transparent',
         flexDirection: 'row-reverse',
         position: 'relative',
@@ -211,8 +219,8 @@ const Dashboard = () => {
           position="fixed"
           sx={{
             zIndex: (theme) => theme.zIndex.drawer + 1,
-            background: (theme) => theme.palette.mode === 'dark' 
-              ? 'rgba(15, 23, 42, 0.4)' 
+            background: (theme) => theme.palette.mode === 'dark'
+              ? 'rgba(15, 23, 42, 0.4)'
               : 'rgba(255, 255, 255, 0.15)',
             borderBottom: (theme) => theme.palette.mode === 'dark'
               ? '1px solid rgba(255, 255, 255, 0.15)'
@@ -239,16 +247,16 @@ const Dashboard = () => {
       {/* Main Content - Windows 11 Style */}
       <Box
         component="main"
-          sx={{
-            flexGrow: 1,
-            width: { md: `calc(100% - ${sidebarWidth}px)` },
-            minHeight: '100vh',
-            background: 'transparent',
-            mt: { xs: 7, md: 0 },
-            overflow: 'auto',
-            transition: 'width 0.3s ease',
-            position: 'relative',
-          }}
+        sx={{
+          flexGrow: 1,
+          width: { md: `calc(100% - ${sidebarWidth}px)` },
+          minHeight: '100vh',
+          background: 'transparent',
+          mt: { xs: 7, md: 0 },
+          overflow: 'auto',
+          transition: 'width 0.3s ease',
+          position: 'relative',
+        }}
       >
         <Box
           sx={{

@@ -26,7 +26,6 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { reportNoteService, domainService } from '../api/services';
-import { toPersianNumbers } from '../utils/numberUtils';
 import { formatToJalaliWithTime } from '../utils/dateUtils';
 import { getCurrentJalaliDate, formatJalaliPeriod } from '../utils/jalaliReportUtils';
 import TableControls from './TableControls';
@@ -45,19 +44,19 @@ const ReportNotesManager = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [message, setMessage] = useState(null);
-  
+
   // Pagination
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [totalCount, setTotalCount] = useState(0);
-  
+
   // Filters
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState({
     period_type: '',
     domain: '',
   });
-  
+
   const [formData, setFormData] = useState({
     period_type: 'weekly',
     jalali_year: getCurrentJalaliDate().year,
@@ -67,18 +66,9 @@ const ReportNotesManager = () => {
     domain: null,
     note: '',
   });
-  
+
   const [domains, setDomains] = useState([]);
-  
-  useEffect(() => {
-    loadDomains();
-    loadNotes();
-  }, [page, filters]);
-  
-  useEffect(() => {
-    loadNotes();
-  }, [page, filters]);
-  
+
   const loadDomains = async () => {
     try {
       const response = await domainService.getAll();
@@ -87,35 +77,54 @@ const ReportNotesManager = () => {
       console.error('Error loading domains:', error);
     }
   };
-  
-  const loadNotes = async () => {
+
+  const loadNotes = useCallback(async () => {
     setLoading(true);
     try {
       const params = {
         page,
         page_size: pageSize,
       };
-      
+
+      if (search) {
+        params.search = search;
+      }
+
       if (filters.period_type) {
         params.period_type = filters.period_type;
       }
-      
+
       if (filters.domain) {
         params.domain = filters.domain;
       }
-      
+
       const response = await reportNoteService.getAll(params);
       const data = response.data.results || response.data;
-      setNotes(data);
-      setTotalCount(response.data.count || data.length);
+      setNotes(Array.isArray(data) ? data : []);
+      // Handle paginated response
+      if (response.data.count !== undefined) {
+        setTotalCount(Number(response.data.count) || 0);
+      } else if (Array.isArray(data)) {
+        setTotalCount(data.length);
+      } else {
+        setTotalCount(0);
+      }
     } catch (error) {
       console.error('Error loading notes:', error);
       setMessage({ type: 'error', text: 'خطا در بارگذاری یادداشت‌ها' });
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, [page, pageSize, search, filters]);
+
+  useEffect(() => {
+    loadDomains();
+  }, []);
+
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
+
   const handleOpenDialog = (note = null) => {
     if (note) {
       setEditingNote(note);
@@ -142,7 +151,7 @@ const ReportNotesManager = () => {
     }
     setOpenDialog(true);
   };
-  
+
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingNote(null);
@@ -156,11 +165,11 @@ const ReportNotesManager = () => {
       note: '',
     });
   };
-  
+
   const handleSave = async () => {
     try {
       const data = { ...formData };
-      
+
       // Only include relevant fields based on period_type
       if (data.period_type !== 'daily') {
         data.jalali_day = null;
@@ -174,7 +183,7 @@ const ReportNotesManager = () => {
       if (!data.domain) {
         data.domain = null;
       }
-      
+
       if (editingNote) {
         await reportNoteService.update(editingNote.id, data);
         setMessage({ type: 'success', text: 'یادداشت با موفقیت به‌روزرسانی شد' });
@@ -182,7 +191,7 @@ const ReportNotesManager = () => {
         await reportNoteService.create(data);
         setMessage({ type: 'success', text: 'یادداشت با موفقیت ایجاد شد' });
       }
-      
+
       handleCloseDialog();
       loadNotes();
     } catch (error) {
@@ -190,12 +199,12 @@ const ReportNotesManager = () => {
       setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در ذخیره یادداشت' });
     }
   };
-  
+
   const handleDelete = async (id) => {
     if (!window.confirm('آیا مطمئن هستید که می‌خواهید این یادداشت را حذف کنید؟')) {
       return;
     }
-    
+
     try {
       await reportNoteService.delete(id);
       setMessage({ type: 'success', text: 'یادداشت با موفقیت حذف شد' });
@@ -205,7 +214,7 @@ const ReportNotesManager = () => {
       setMessage({ type: 'error', text: 'خطا در حذف یادداشت' });
     }
   };
-  
+
   const getPeriodLabel = (note) => {
     return formatJalaliPeriod(
       note.period_type,
@@ -215,7 +224,7 @@ const ReportNotesManager = () => {
       note.jalali_day
     );
   };
-  
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -230,7 +239,7 @@ const ReportNotesManager = () => {
           افزودن یادداشت
         </Button>
       </Box>
-      
+
       {message && (
         <Alert
           severity={message.type}
@@ -240,49 +249,48 @@ const ReportNotesManager = () => {
           {message.text}
         </Alert>
       )}
-      
+
       {/* Filters */}
       <TableControls
-        search={search}
-        onSearchChange={setSearch}
-        onSearch={() => loadNotes()}
-        filters={
-          <Box display="flex" gap={2}>
-            <FormControl sx={{ minWidth: 150 }}>
-              <InputLabel>نوع دوره</InputLabel>
-              <Select
-                value={filters.period_type || ''}
-                label="نوع دوره"
-                onChange={(e) => setFilters({ ...filters, period_type: e.target.value })}
-              >
-                <MenuItem value="">همه</MenuItem>
-                {PERIOD_TYPES.map((pt) => (
-                  <MenuItem key={pt.value} value={pt.value}>
-                    {pt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl sx={{ minWidth: 200 }}>
-              <InputLabel>حوزه</InputLabel>
-              <Select
-                value={filters.domain || ''}
-                label="حوزه"
-                onChange={(e) => setFilters({ ...filters, domain: e.target.value })}
-              >
-                <MenuItem value="">همه</MenuItem>
-                <MenuItem value="null">یادداشت عمومی</MenuItem>
-                {domains.map((domain) => (
-                  <MenuItem key={domain.id} value={domain.id}>
-                    {domain.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        }
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value);
+          setPage(1);
+        }}
+        searchPlaceholder="جستجو در یادداشت‌ها..."
+        filters={[
+          {
+            key: 'period_type',
+            label: 'نوع دوره',
+            value: filters.period_type || '',
+            options: [
+              { value: '', label: 'همه' },
+              ...PERIOD_TYPES,
+            ],
+          },
+          {
+            key: 'domain',
+            label: 'حوزه',
+            value: filters.domain || '',
+            options: [
+              { value: '', label: 'همه' },
+              { value: 'null', label: 'یادداشت عمومی' },
+              ...(Array.isArray(domains) ? domains.map(d => ({ value: d.id, label: d.name })) : []),
+            ],
+          },
+        ]}
+        onFilterChange={(key, value) => {
+          setFilters({ ...filters, [key]: value });
+          setPage(1);
+        }}
+        onClearFilters={() => {
+          setSearch('');
+          setFilters({ period_type: '', domain: '' });
+          setPage(1);
+        }}
+        filterModalTitle="فیلتر یادداشت‌های گزارش"
       />
-      
+
       {/* Notes List */}
       {loading ? (
         <Box display="flex" justifyContent="center" p={4}>
@@ -336,7 +344,7 @@ const ReportNotesManager = () => {
               </React.Fragment>
             ))}
           </List>
-          
+
           {notes.length === 0 && !loading && (
             <Box p={4} textAlign="center">
               <Typography color="text.secondary">یادداشتی یافت نشد</Typography>
@@ -344,14 +352,14 @@ const ReportNotesManager = () => {
           )}
         </Paper>
       )}
-      
+
       <Pagination
+        count={totalCount}
         page={page}
-        totalCount={totalCount}
         pageSize={pageSize}
         onPageChange={setPage}
       />
-      
+
       {/* Add/Edit Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
@@ -373,7 +381,7 @@ const ReportNotesManager = () => {
                 ))}
               </Select>
             </FormControl>
-            
+
             <TextField
               label="سال (جلالی)"
               type="number"
@@ -381,7 +389,7 @@ const ReportNotesManager = () => {
               onChange={(e) => setFormData({ ...formData, jalali_year: parseInt(e.target.value) })}
               fullWidth
             />
-            
+
             {formData.period_type === 'daily' && (
               <>
                 <TextField
@@ -400,7 +408,7 @@ const ReportNotesManager = () => {
                 />
               </>
             )}
-            
+
             {formData.period_type === 'weekly' && (
               <TextField
                 label="شماره هفته"
@@ -410,7 +418,7 @@ const ReportNotesManager = () => {
                 fullWidth
               />
             )}
-            
+
             {(formData.period_type === 'monthly' || formData.period_type === 'yearly') && (
               <TextField
                 label="ماه (جلالی)"
@@ -421,7 +429,7 @@ const ReportNotesManager = () => {
                 disabled={formData.period_type === 'yearly'}
               />
             )}
-            
+
             <FormControl fullWidth>
               <InputLabel>حوزه (اختیاری - خالی = عمومی)</InputLabel>
               <Select
@@ -430,14 +438,14 @@ const ReportNotesManager = () => {
                 onChange={(e) => setFormData({ ...formData, domain: e.target.value || null })}
               >
                 <MenuItem value="">یادداشت عمومی</MenuItem>
-                {domains.map((domain) => (
+                {Array.isArray(domains) && domains.map((domain) => (
                   <MenuItem key={domain.id} value={domain.id}>
                     {domain.name}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
-            
+
             <TextField
               label="یادداشت"
               multiline

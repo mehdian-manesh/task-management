@@ -127,48 +127,48 @@ const SavedReportsList = () => {
         گزارش‌های ذخیره شده
       </Typography>
       
-      {/* Filters */}
       <TableControls
-        search={search}
+        searchValue={search}
         onSearchChange={setSearch}
-        onSearch={() => loadReports()}
-        filters={
-          <Box display="flex" gap={2}>
-            {user.is_staff && (
-              <FormControl sx={{ minWidth: 150 }}>
-                <InputLabel>نوع گزارش</InputLabel>
-                <Select
-                  value={filters.report_type || ''}
-                  label="نوع گزارش"
-                  onChange={(e) => setFilters({ ...filters, report_type: e.target.value })}
-                >
-                  <MenuItem value="">همه</MenuItem>
-                  {REPORT_TYPES.map((rt) => (
-                    <MenuItem key={rt.value} value={rt.value}>
-                      {rt.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-            <FormControl sx={{ minWidth: 150 }}>
-              <InputLabel>نوع دوره</InputLabel>
-              <Select
-                value={filters.period_type || ''}
-                label="نوع دوره"
-                onChange={(e) => setFilters({ ...filters, period_type: e.target.value })}
-              >
-                <MenuItem value="">همه</MenuItem>
-                {PERIOD_TYPES.map((pt) => (
-                  <MenuItem key={pt.value} value={pt.value}>
-                    {pt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-        }
+        searchPlaceholder="جستجو در گزارش‌ها..."
+        filters={[]}
       />
+      
+      {/* Custom Filters */}
+      <Box display="flex" gap={2} sx={{ mb: 2 }}>
+        {user.is_staff && (
+          <FormControl sx={{ minWidth: 150 }}>
+            <InputLabel>نوع گزارش</InputLabel>
+            <Select
+              value={filters.report_type || ''}
+              label="نوع گزارش"
+              onChange={(e) => setFilters({ ...filters, report_type: e.target.value })}
+            >
+              <MenuItem value="">همه</MenuItem>
+              {REPORT_TYPES.map((rt) => (
+                <MenuItem key={rt.value} value={rt.value}>
+                  {rt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel>نوع دوره</InputLabel>
+          <Select
+            value={filters.period_type || ''}
+            label="نوع دوره"
+            onChange={(e) => setFilters({ ...filters, period_type: e.target.value })}
+          >
+            <MenuItem value="">همه</MenuItem>
+            {PERIOD_TYPES.map((pt) => (
+              <MenuItem key={pt.value} value={pt.value}>
+                {pt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
       
       {loading ? (
         <Box display="flex" justifyContent="center" p={4}>
