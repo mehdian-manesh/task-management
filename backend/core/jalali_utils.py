@@ -23,7 +23,7 @@ def jalali_to_gregorian(year, month, day):
         j_date = jdatetime.date(year, month, day)
         g_date = j_date.togregorian()
         return g_date
-    except (ValueError, jdatetime.InvalidDateError) as e:
+    except ValueError as e:
         raise ValueError(f"Invalid Jalali date: {year}/{month}/{day} - {e}")
 
 
@@ -106,7 +106,7 @@ def get_jalali_month_start_end(year, month):
         end_datetime = timezone.make_aware(datetime.combine(month_end_gregorian, datetime.max.time()))
         
         return start_datetime, end_datetime
-    except (ValueError, jdatetime.InvalidDateError) as e:
+    except ValueError as e:
         raise ValueError(f"Invalid Jalali month: {year}/{month} - {e}")
 
 
@@ -120,7 +120,7 @@ def get_jalali_year_start_end(year):
         try:
             test_date = jdatetime.date(year, 12, 30)
             year_end_jalali = test_date
-        except (ValueError, jdatetime.InvalidDateError):
+        except ValueError:
             pass  # Not a leap year, use Esfand 29
         
         # Convert to Gregorian
@@ -132,7 +132,7 @@ def get_jalali_year_start_end(year):
         end_datetime = timezone.make_aware(datetime.combine(year_end_gregorian, datetime.max.time()))
         
         return start_datetime, end_datetime
-    except (ValueError, jdatetime.InvalidDateError) as e:
+    except ValueError as e:
         raise ValueError(f"Invalid Jalali year: {year} - {e}")
 
 
