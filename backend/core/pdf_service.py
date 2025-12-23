@@ -6,6 +6,48 @@ from django.template.loader import render_to_string
 from weasyprint import HTML, CSS
 from django.conf import settings
 import os
+import urllib.request
+import shutil
+
+
+def _ensure_vazir_font():
+    """Ensure Vazir font file exists locally, download if needed"""
+    font_dir = settings.BASE_DIR / 'core' / 'static' / 'fonts'
+    font_dir.mkdir(parents=True, exist_ok=True)
+    
+    font_file = font_dir / 'Vazir-Regular.ttf'
+    
+    # Try multiple possible URLs
+    font_urls = [
+        'https://github.com/rastikerdar/vazir-font/raw/v30.1.0/dist/Vazir-Regular.ttf',
+        'https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/Vazir-Regular.ttf',
+    ]
+    
+    if not font_file.exists():
+        for font_url in font_urls:
+            try:
+                urllib.request.urlretrieve(font_url, font_file)
+                if font_file.exists() and font_file.stat().st_size > 0:
+                    break
+            except Exception:
+                continue
+        else:
+            return None
+    
+    # Try to install font system-wide so WeasyPrint can find it via fontconfig
+    try:
+        system_font_dir = '/usr/share/fonts/truetype/vazir'
+        os.makedirs(system_font_dir, exist_ok=True)
+        system_font_file = os.path.join(system_font_dir, 'Vazir-Regular.ttf')
+        if not os.path.exists(system_font_file):
+            shutil.copy2(font_file, system_font_file)
+            # Refresh font cache (might require root, but try anyway)
+            os.system('fc-cache -f -v 2>/dev/null || true')
+    except Exception:
+        # Continue even if system install fails - will use local file via CSS
+        pass
+    
+    return font_file
 
 
 def generate_report_pdf(report_data, report_type='individual'):
@@ -24,8 +66,20 @@ def generate_report_pdf(report_data, report_type='individual'):
     
     # Generate PDF
     pdf_file = BytesIO()
-    HTML(string=html_content).write_pdf(pdf_file, stylesheets=[get_pdf_css()])
-    pdf_file.seek(0)
+    css = get_pdf_css()
+    
+    try:
+        # Set base_url to font directory so WeasyPrint can resolve font paths in CSS
+        font_file_obj = _ensure_vazir_font()
+        base_url = None
+        if font_file_obj and font_file_obj.exists():
+            base_url = str(font_file_obj.parent.absolute().as_uri())
+        
+        html_obj = HTML(string=html_content, base_url=base_url) if base_url else HTML(string=html_content)
+        html_obj.write_pdf(pdf_file, stylesheets=[css])
+        pdf_file.seek(0)
+    except Exception as e:
+        raise
     
     return pdf_file
 
@@ -179,18 +233,45 @@ def build_report_html(report_data, report_type):
 
 def get_pdf_css():
     """Get CSS styles for PDF"""
-    css_content = """
+    # Try to ensure font is available locally
+    font_file = _ensure_vazir_font()
+    
+    # Build font-face declaration  
+    if font_file and font_file.exists():
+        # Use relative path - will be resolved via base_url in HTML
+        font_filename = font_file.name  # 'Vazir-Regular.ttf'
+        font_face = f"""
+    @font-face {{
+        font-family: 'Vazir';
+        src: url('./{font_filename}') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }}"""
+        font_family = "'Vazir', 'DejaVu Sans', 'Tahoma', 'Arial Unicode MS', 'Segoe UI', 'Arial', sans-serif"
+    else:
+        # Fallback to external URL
+        font_face = """
+    @font-face {
+        font-family: 'Vazir';
+        src: url('https://cdn.jsdelivr.net/gh/rastikerdar/vazirfont@v30.1.0/dist/Vazir-Regular.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+    }"""
+        font_family = "'Vazir', 'DejaVu Sans', 'Tahoma', 'Arial Unicode MS', 'Segoe UI', 'Arial', sans-serif"
+    
+    css_content = font_face + """
     @page {
         size: A4;
         margin: 2cm;
     }
     
     body {
-        font-family: 'Tahoma', 'Arial', sans-serif;
+        font-family: """ + font_family + """;
         font-size: 12pt;
         line-height: 1.6;
         direction: rtl;
         text-align: right;
+        unicode-bidi: embed;
     }
     
     h2 {
