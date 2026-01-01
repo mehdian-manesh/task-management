@@ -7,6 +7,7 @@ import {
   AppBar,
   Toolbar,
   IconButton,
+  Typography,
   useTheme,
   useMediaQuery,
 } from '@mui/material';
@@ -20,6 +21,7 @@ import Kanban from './Kanban';
 import UserManagement from './UserManagement';
 import Statistics from './Statistics';
 import OrganizationalDashboard from './OrganizationalDashboard';
+import OrganizationalStructure from './OrganizationalStructure';
 import SystemLogs from './SystemLogs';
 import Settings from './Settings';
 import Sidebar from './Sidebar';
@@ -136,6 +138,8 @@ const Dashboard = () => {
           return <Statistics />;
         case 'organizational-dashboard':
           return <OrganizationalDashboard />;
+        case 'organizational-structure':
+          return <OrganizationalStructure />;
         case 'system-logs':
           return <SystemLogs />;
         case 'settings':
@@ -230,13 +234,44 @@ const Dashboard = () => {
               : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
           }}
         >
-          <Toolbar>
+          <Toolbar sx={{ justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                component="img"
+                src={`${process.env.PUBLIC_URL}/logo.svg`}
+                alt="Logo"
+                sx={{
+                  height: 32,
+                  width: 32,
+                  filter: (theme) => theme.palette.mode === 'dark' 
+                    ? 'drop-shadow(0 2px 4px rgba(37, 99, 235, 0.3))' 
+                    : 'drop-shadow(0 2px 4px rgba(37, 99, 235, 0.2))',
+                }}
+              />
+              <Typography 
+                variant="h6" 
+                component="div" 
+                sx={{ 
+                  fontWeight: 600,
+                  color: (theme) => theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.9)' 
+                    : 'rgba(0, 0, 0, 0.87)',
+                  display: { xs: 'none', sm: 'block' },
+                }}
+              >
+                مدیریت زمان
+              </Typography>
+            </Box>
             <IconButton
               color="inherit"
               aria-label="open drawer"
-              edge="start"
+              edge="end"
               onClick={handleSidebarToggle}
-              sx={{ ml: 2, color: 'rgba(255, 255, 255, 0.9)' }}
+              sx={{ 
+                color: (theme) => theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.9)' 
+                  : 'rgba(0, 0, 0, 0.87)',
+              }}
             >
               <MenuIcon />
             </IconButton>

@@ -36,6 +36,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import DescriptionIcon from '@mui/icons-material/Description';
 import NoteIcon from '@mui/icons-material/Note';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 const drawerWidth = 240;
 const collapsedWidth = 64;
@@ -45,35 +46,40 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
 
-  const adminMenuItems = [
-    { id: 'organizational-dashboard', label: 'داشبورد سازمانی', icon: <DashboardIcon /> },
-    { id: 'user-management', label: 'مدیریت کاربران', icon: <PeopleIcon /> },
-    { id: 'statistics', label: 'آمار', icon: <BarChartIcon /> },
-    { id: 'system-logs', label: 'لاگ‌های سیستم', icon: <ListIcon /> },
-    { id: 'settings', label: 'تنظیمات', icon: <SettingsIcon /> },
-  ];
-
-  const commonMenuItems = [
-    { id: 'working-day', label: 'روز کاری', icon: <AccessTimeIcon /> },
-    { id: 'tasks', label: 'وظایف', icon: <AssignmentIcon /> },
-    { id: 'kanban', label: 'کانبان', icon: <ViewKanbanIcon /> },
-    { id: 'meetings', label: 'جلسات', icon: <EventIcon /> },
-  ];
-
-  const adminOnlyItems = [
-    { id: 'projects', label: 'پروژه‌ها', icon: <FolderIcon /> },
-    { id: 'team-reports', label: 'گزارش تیمی', icon: <DescriptionIcon /> },
-    { id: 'report-notes', label: 'یادداشت‌های گزارش', icon: <NoteIcon /> },
-  ];
-
-  const reportItems = [
-    { id: 'reports', label: 'گزارش کار', icon: <DescriptionIcon /> },
-    { id: 'saved-reports', label: 'گزارش‌های ذخیره شده', icon: <FolderOpenIcon /> },
-  ];
-
+  // Menu items organized by desired order
   const allMenuItems = user?.isAdmin
-    ? [...adminMenuItems, ...commonMenuItems, ...adminOnlyItems, ...reportItems, { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> }]
-    : [...commonMenuItems, ...reportItems, { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> }];
+    ? [
+        // Top section: Dashboard and core features
+        { id: 'organizational-dashboard', label: 'داشبورد سازمانی', icon: <DashboardIcon /> },
+        { id: 'working-day', label: 'روز کاری', icon: <AccessTimeIcon /> },
+        { id: 'statistics', label: 'آمار', icon: <BarChartIcon /> },
+        { id: 'projects', label: 'پروژه‌ها', icon: <FolderIcon /> },
+        { id: 'kanban', label: 'کانبان', icon: <ViewKanbanIcon /> },
+        { id: 'meetings', label: 'جلسات', icon: <EventIcon /> },
+        { id: 'tasks', label: 'وظایف', icon: <AssignmentIcon /> },
+        // Reports section
+        { id: 'reports', label: 'گزارش کار', icon: <DescriptionIcon /> },
+        { id: 'report-notes', label: 'یادداشت‌های گزارش', icon: <NoteIcon /> },
+        { id: 'team-reports', label: 'گزارش تیمی', icon: <DescriptionIcon /> },
+        { id: 'saved-reports', label: 'گزارش‌های ذخیره شده', icon: <FolderOpenIcon /> },
+        // Feedback
+        { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> },
+        // Admin section at bottom
+        { id: 'organizational-structure', label: 'ساختار سازمانی', icon: <AccountTreeIcon /> },
+        { id: 'user-management', label: 'مدیریت کاربران', icon: <PeopleIcon /> },
+        { id: 'settings', label: 'تنظیمات', icon: <SettingsIcon /> },
+        { id: 'system-logs', label: 'لاگ‌های سیستم', icon: <ListIcon /> },
+      ]
+    : [
+        // Non-admin menu items
+        { id: 'working-day', label: 'روز کاری', icon: <AccessTimeIcon /> },
+        { id: 'tasks', label: 'وظایف', icon: <AssignmentIcon /> },
+        { id: 'kanban', label: 'کانبان', icon: <ViewKanbanIcon /> },
+        { id: 'meetings', label: 'جلسات', icon: <EventIcon /> },
+        { id: 'reports', label: 'گزارش کار', icon: <DescriptionIcon /> },
+        { id: 'saved-reports', label: 'گزارش‌های ذخیره شده', icon: <FolderOpenIcon /> },
+        { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> },
+      ];
 
   const handleMenuClick = (viewId) => {
     setCurrentView(viewId);
@@ -104,12 +110,12 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
         zIndex: 1,
       },
     }}>
-      {/* Toggle Button */}
+      {/* Toggle Button and Logo */}
       {!isMobile && (
         <Box
           sx={{
             display: 'flex',
-            justifyContent: 'flex-start',
+            justifyContent: 'space-between',
             alignItems: 'center',
             height: 56,
             minHeight: 56,
@@ -130,6 +136,22 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
             },
           }}
         >
+          {!collapsed && (
+            <Box
+              component="img"
+              src={`${process.env.PUBLIC_URL}/logo.svg`}
+              alt="Logo"
+              sx={{
+                height: 32,
+                width: 32,
+                ml: 1,
+                filter: isDark 
+                  ? 'drop-shadow(0 2px 4px rgba(37, 99, 235, 0.3))' 
+                  : 'drop-shadow(0 2px 4px rgba(37, 99, 235, 0.2))',
+                transition: 'opacity 0.3s ease',
+              }}
+            />
+          )}
           <IconButton
             onClick={onToggleCollapse}
             sx={{

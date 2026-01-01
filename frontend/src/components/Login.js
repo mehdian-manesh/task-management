@@ -62,9 +62,24 @@ const Login = () => {
           }}
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-            <LoginIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
-            <Typography component="h1" variant="h5">
+            <Box
+              component="img"
+              src={`${process.env.PUBLIC_URL}/logo.svg`}
+              alt="Logo"
+              sx={{
+                height: 80,
+                width: 80,
+                mb: 2,
+                filter: (theme) => theme.palette.mode === 'dark' 
+                  ? 'drop-shadow(0 4px 8px rgba(37, 99, 235, 0.3))' 
+                  : 'drop-shadow(0 4px 8px rgba(37, 99, 235, 0.2))',
+              }}
+            />
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 600 }}>
               ورود به سیستم
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              سیستم مدیریت زمان و گزارش کار
             </Typography>
           </Box>
 
