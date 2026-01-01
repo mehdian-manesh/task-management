@@ -24,9 +24,9 @@ export const getJalaliWeekNumber = (year, month, day) => {
   const yearStart = moment(`${year}/1/1`, 'jYYYY/jMM/jDD');
   
   // Find first Saturday of the year
-  const firstDayWeekday = yearStart.day(); // 0=Saturday, 1=Sunday, etc.
-  const daysUntilSaturday = (7 - firstDayWeekday) % 7;
-  const firstSaturday = yearStart.clone().add(daysUntilSaturday, 'days');
+  const firstDayWeekday = yearStart.day(); // Sunday=0 ... Saturday=6
+  const daysBackToSaturday = (firstDayWeekday - 6 + 7) % 7; // Saturday=6 in moment
+  const firstSaturday = yearStart.clone().subtract(daysBackToSaturday, 'days');
   
   if (jDate.isBefore(firstSaturday)) {
     return 0; // Before first Saturday, belongs to previous year's last week
@@ -49,14 +49,15 @@ export const getJalaliPeriodDates = (periodType, year, month, week, day) => {
   } else if (periodType === 'weekly') {
     // Find the Saturday of the week (week starts on Saturday)
     const yearStart = moment(`${year}/1/1`, 'jYYYY/jMM/jDD');
-    const firstDayWeekday = yearStart.day();
-    const daysUntilSaturday = (7 - firstDayWeekday) % 7;
-    const firstSaturday = yearStart.clone().add(daysUntilSaturday, 'days');
+    const firstDayWeekday = yearStart.day(); // Sunday=0 ... Saturday=6 (moment)
+    const daysBackToSaturday = (firstDayWeekday - 6 + 7) % 7; // Saturday=6 in moment
+    const firstSaturday = yearStart.clone().subtract(daysBackToSaturday, 'days');
     
     // Calculate week start (Saturday)
     const weekStart = firstSaturday.clone().add((week - 1) * 7, 'days');
     startMoment = weekStart.clone().startOf('day');
     endMoment = weekStart.clone().add(6, 'days').endOf('day');
+    // instrumentation removed after verification
   } else if (periodType === 'monthly') {
     startMoment = moment(`${year}/${month}/1`, 'jYYYY/jMM/jDD').startOf('day');
     // Get last day of month

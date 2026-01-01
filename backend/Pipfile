@@ -23,6 +23,7 @@ django-extensions = "*"
 pytest = "*"
 pytest-django = "*"
 pytest-cov = "*"
+pytest-xdist = "*"
 
 [requires]
 python_version = "3.13"

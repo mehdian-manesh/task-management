@@ -63,9 +63,10 @@ def get_jalali_week_number(year, month, day):
 def get_jalali_week_start_end(year, week):
     """Get start and end dates (Gregorian) for a Jalali week"""
     year_start = jdatetime.date(year, 1, 1)
-    # Find the first Saturday of the year (week starts on Saturday)
-    days_since_saturday = (year_start.weekday() + 2) % 7
-    first_saturday = year_start - timedelta(days=days_since_saturday)
+    # Find the Saturday on or before 1 Farvardin (week numbering starts there)
+    # weekday(): Saturday=0, ..., Friday=6 (jdatetime)
+    days_back_to_saturday = year_start.weekday()
+    first_saturday = year_start - timedelta(days=days_back_to_saturday)
     
     # Calculate week start (Saturday)
     week_start_jalali = first_saturday + timedelta(days=(week - 1) * 7)
@@ -93,11 +94,13 @@ def get_jalali_month_start_end(year, month):
         elif month <= 11:
             days_in_month = 30
         else:  # month == 12 (Esfand)
-            # Check if it's a leap year
-            if jdatetime.date(year, 12, 29).togregorian().year != jdatetime.date(year, 12, 30).togregorian().year:
+            # Check if it's a leap year by trying to create Esfand 30
+            # If it succeeds, it's a leap year (30 days), otherwise 29 days
+            try:
+                test_date = jdatetime.date(year, 12, 30)
                 days_in_month = 30  # Leap year
-            else:
-                days_in_month = 29
+            except ValueError:
+                days_in_month = 29  # Not a leap year
         
         month_end_jalali = jdatetime.date(year, month, days_in_month)
         
@@ -166,7 +169,8 @@ def get_jalali_date_range(period_type, year, month=None, day=None, week=None):
     elif period_type == 'weekly':
         if week is None:
             raise ValueError("week is required for weekly period")
-        return get_jalali_week_start_end(year, week)
+        result = get_jalali_week_start_end(year, week)
+        return result
     
     elif period_type == 'monthly':
         if month is None:

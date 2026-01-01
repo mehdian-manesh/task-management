@@ -151,6 +151,20 @@ class TestGetJalaliMonthStartEnd:
             # If it's not a leap year, that's okay
             pass
     
+    def test_get_jalali_month_start_end_esfand_1404(self):
+        """Test getting month dates for Esfand 1404 (non-leap year, 29 days)"""
+        # Year 1404 is not a leap year, so Esfand should have 29 days
+        start, end = get_jalali_month_start_end(1404, 12)
+        assert isinstance(start, datetime)
+        assert isinstance(end, datetime)
+        assert timezone.is_aware(start)
+        assert timezone.is_aware(end)
+        assert start <= end
+        # Verify it's actually Esfand by checking the date range
+        # The difference should be approximately 28 days (29 days - 1 day)
+        days_diff = (end.date() - start.date()).days
+        assert days_diff == 28  # 29 days total, so 28 days difference
+    
     def test_get_jalali_month_start_end_invalid_month(self):
         """Test that invalid months raise ValueError"""
         with pytest.raises(ValueError):

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import moment from 'moment-jalaali';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFnsJalali } from '@mui/x-date-pickers/AdapterDateFnsJalali';
@@ -6,12 +7,23 @@ import { faIR } from 'date-fns-jalali/locale';
 import { TextField } from '@mui/material';
 import { toPersianNumbers } from '../utils/numberUtils';
 
+// Ensure Persian locale is loaded for moment-jalaali
+moment.loadPersian({ dialect: 'persian-modern' });
+
 // Convert Gregorian date string (YYYY-MM-DD) to Date object
+// Uses local timezone to avoid day shifts
 const gregorianToDate = (dateString) => {
   if (!dateString) return null;
   try {
-    // Parse Gregorian date string (YYYY-MM-DD)
-    const date = new Date(dateString + 'T00:00:00');
+    // Parse Gregorian date string (YYYY-MM-DD) and create date in local timezone
+    const parts = dateString.split('-');
+    if (parts.length !== 3) return null;
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+    const day = parseInt(parts[2], 10);
+    // Create date in local timezone (not UTC) to avoid day shifts
+    // But ensure it's at midnight local time
+    const date = new Date(year, month, day, 0, 0, 0, 0);
     if (isNaN(date.getTime())) return null;
     return date;
   } catch (error) {
@@ -55,11 +67,42 @@ const JalaliDatePicker = ({ value, onChange, label, required, margin = 'normal',
 
   // Custom TextField that converts numerals to Persian
   const CustomTextField = React.useCallback((textFieldProps) => {
+    // Access dateValue from closure
     try {
       const { value: pickerValue, onChange: pickerOnChange, onBlur, onFocus, inputProps, error, helperText, ...other } = textFieldProps;
       
-      // Convert Western numerals to Persian for display
-      const displayValue = pickerValue ? toPersianNumbers(String(pickerValue)) : '';
+      // Always use dateValue (computed from the DatePicker's value prop) to format display
+      // This ensures we're working with the actual Date object, not a formatted string
+      // Fallback to pickerValue if it's a Date object (in case adapter passes it directly)
+      let displayValue = '';
+      const dateToFormat = dateValue || (pickerValue instanceof Date ? pickerValue : null);
+      if (dateToFormat instanceof Date && !isNaN(dateToFormat.getTime())) {
+        try {
+          // Use local date components (not UTC) to avoid timezone issues
+          // Get local year, month, day from the Date object
+          const localYear = dateToFormat.getFullYear();
+          const localMonth = dateToFormat.getMonth() + 1; // getMonth() returns 0-11
+          const localDay = dateToFormat.getDate();
+          
+          // Create a moment from the Gregorian date using local components
+          // Format as YYYY-MM-DD and parse it to ensure we use local time
+          const gregorianString = `${localYear}-${String(localMonth).padStart(2, '0')}-${String(localDay).padStart(2, '0')}`;
+          const m = moment(gregorianString, 'YYYY-MM-DD');
+          
+          if (m.isValid()) {
+            // Use the same method as ReportViewer: extract Jalali components and format
+            const jalaliYear = m.jYear();
+            const jalaliMonth = m.jMonth() + 1; // jMonth() returns 0-11
+            const jalaliDay = m.jDate();
+            const jalaliFormatted = `${jalaliYear}/${String(jalaliMonth).padStart(2, '0')}/${String(jalaliDay).padStart(2, '0')}`;
+            displayValue = toPersianNumbers(jalaliFormatted);
+          } else {
+            displayValue = '';
+          }
+        } catch (e) {
+          displayValue = '';
+        }
+      }
       
       // Handle onChange to ensure DatePicker receives the correct value
       const handleTextFieldChange = (event) => {
@@ -111,7 +154,7 @@ const JalaliDatePicker = ({ value, onChange, label, required, margin = 'normal',
       // Fallback to default TextField if custom one fails
       return <TextField {...textFieldProps} />;
     }
-  }, []);
+  }, [dateValue]);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFnsJalali} adapterLocale={faIR}>

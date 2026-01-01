@@ -26,8 +26,9 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { reportService } from '../api/services';
 import { getCurrentJalaliDate, formatJalaliPeriod } from '../utils/jalaliReportUtils';
 import { toPersianNumbers } from '../utils/numberUtils';
-import { formatToJalaliWithTime } from '../utils/dateUtils';
+import { formatToJalali, formatToJalaliWithTime } from '../utils/dateUtils';
 import JalaliDatePicker from './JalaliDatePicker';
+import moment from 'moment-jalaali';
 import { domainService } from '../api/services';
 
 const PERIOD_TYPES = [
@@ -59,6 +60,22 @@ const ReportViewer = ({ reportType = 'individual' }) => {
       loadDomains();
     }
   }, [reportType]);
+
+  // Adjust day when month or year changes to ensure it's within valid range
+  useEffect(() => {
+    if (periodType === 'daily' || periodType === 'monthly') {
+      const testMoment = moment(`${jalaliYear}/${jalaliMonth}/${jalaliDay}`, 'jYYYY/jMM/jDD');
+      if (!testMoment.isValid()) {
+        // Day is out of range, set to last day of month
+        const firstDayMoment = moment(`${jalaliYear}/${jalaliMonth}/1`, 'jYYYY/jMM/jDD');
+        if (firstDayMoment.isValid()) {
+          const daysInMonth = firstDayMoment.jDaysInMonth();
+          setJalaliDay(daysInMonth);
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jalaliYear, jalaliMonth]);
   
   const loadDomains = async () => {
     try {
@@ -177,6 +194,8 @@ const ReportViewer = ({ reportType = 'individual' }) => {
     );
   }
   
+  const formatDate = (date) => formatToJalali(date);
+
   return (
     <Box>
       <Box
@@ -229,12 +248,30 @@ const ReportViewer = ({ reportType = 'individual' }) => {
             <>
               <JalaliDatePicker
                 label="تاریخ"
-                value={`${jalaliYear}-${String(jalaliMonth).padStart(2, '0')}-${String(jalaliDay).padStart(2, '0')}`}
+                value={(() => {
+                  // Convert Jalali components to Gregorian date string
+                  // Use a valid day (day will be adjusted by useEffect if needed)
+                  const jalaliMoment = moment(`${jalaliYear}/${jalaliMonth}/${jalaliDay}`, 'jYYYY/jMM/jDD');
+                  if (!jalaliMoment.isValid()) {
+                    // If still invalid, use last day of month as fallback
+                    const firstDayMoment = moment(`${jalaliYear}/${jalaliMonth}/1`, 'jYYYY/jMM/jDD');
+                    if (firstDayMoment.isValid()) {
+                      const daysInMonth = firstDayMoment.jDaysInMonth();
+                      const fallbackMoment = moment(`${jalaliYear}/${jalaliMonth}/${daysInMonth}`, 'jYYYY/jMM/jDD');
+                      return fallbackMoment.isValid() ? fallbackMoment.format('YYYY-MM-DD') : '';
+                    }
+                    return '';
+                  }
+                  return jalaliMoment.format('YYYY-MM-DD');
+                })()}
                 onChange={(e) => {
-                  const dateParts = e.target.value.split('-');
-                  setJalaliYear(parseInt(dateParts[0]));
-                  setJalaliMonth(parseInt(dateParts[1]));
-                  setJalaliDay(parseInt(dateParts[2]));
+                  // Convert Gregorian date string back to Jalali components
+                  const gregorianMoment = moment(e.target.value, 'YYYY-MM-DD');
+                  if (gregorianMoment.isValid()) {
+                    setJalaliYear(gregorianMoment.jYear());
+                    setJalaliMonth(gregorianMoment.jMonth() + 1);
+                    setJalaliDay(gregorianMoment.jDate());
+                  }
                 }}
                 fullWidth={false}
               />
@@ -250,7 +287,7 @@ const ReportViewer = ({ reportType = 'individual' }) => {
                   label="سال"
                   onChange={(e) => setJalaliYear(e.target.value)}
                 >
-                  {Array.from({ length: 5 }, (_, i) => currentJalali.year - 2 + i).map((year) => (
+                  {Array.from({ length: 11 }, (_, i) => 1400 + i).map((year) => (
                     <MenuItem key={year} value={year}>
                       {toPersianNumbers(year)}
                     </MenuItem>
@@ -264,7 +301,7 @@ const ReportViewer = ({ reportType = 'individual' }) => {
                   label="هفته"
                   onChange={(e) => setJalaliWeek(e.target.value)}
                 >
-                  {Array.from({ length: 52 }, (_, i) => i + 1).map((week) => (
+                  {Array.from({ length: 53 }, (_, i) => i + 1).map((week) => (
                     <MenuItem key={week} value={week}>
                       {toPersianNumbers(week)}
                     </MenuItem>
@@ -283,7 +320,7 @@ const ReportViewer = ({ reportType = 'individual' }) => {
                   label="سال"
                   onChange={(e) => setJalaliYear(e.target.value)}
                 >
-                  {Array.from({ length: 5 }, (_, i) => currentJalali.year - 2 + i).map((year) => (
+                  {Array.from({ length: 11 }, (_, i) => 1400 + i).map((year) => (
                     <MenuItem key={year} value={year}>
                       {toPersianNumbers(year)}
                     </MenuItem>
@@ -295,7 +332,20 @@ const ReportViewer = ({ reportType = 'individual' }) => {
                 <Select
                   value={jalaliMonth}
                   label="ماه"
-                  onChange={(e) => setJalaliMonth(e.target.value)}
+                  onChange={(e) => {
+                    const newMonth = e.target.value;
+                    setJalaliMonth(newMonth);
+                    // Adjust day if it's out of range for the new month
+                    const testMoment = moment(`${jalaliYear}/${newMonth}/${jalaliDay}`, 'jYYYY/jMM/jDD');
+                    if (!testMoment.isValid()) {
+                      // Day is out of range, set to last day of month
+                      const firstDayMoment = moment(`${jalaliYear}/${newMonth}/1`, 'jYYYY/jMM/jDD');
+                      if (firstDayMoment.isValid()) {
+                        const daysInMonth = firstDayMoment.jDaysInMonth();
+                        setJalaliDay(daysInMonth);
+                      }
+                    }
+                  }}
                 >
                   {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
                     <MenuItem key={month} value={month}>
@@ -315,7 +365,7 @@ const ReportViewer = ({ reportType = 'individual' }) => {
                 label="سال"
                 onChange={(e) => setJalaliYear(e.target.value)}
               >
-                {Array.from({ length: 5 }, (_, i) => currentJalali.year - 2 + i).map((year) => (
+                {Array.from({ length: 11 }, (_, i) => 1400 + i).map((year) => (
                   <MenuItem key={year} value={year}>
                     {toPersianNumbers(year)}
                   </MenuItem>
@@ -357,7 +407,7 @@ const ReportViewer = ({ reportType = 'individual' }) => {
               {reportData.period?.formatted}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              از {reportData.period?.start_date} تا {reportData.period?.end_date}
+              از {formatDate(reportData.period?.start_date)} تا {formatDate(reportData.period?.end_date)}
             </Typography>
           </Paper>
           
@@ -484,7 +534,7 @@ const ReportViewer = ({ reportType = 'individual' }) => {
                             {wh.user?.username || wh.user?.first_name || '-'}
                           </TableCell>
                         )}
-                        <TableCell>{wh.date}</TableCell>
+                        <TableCell>{formatDate(wh.date)}</TableCell>
                         <TableCell>{wh.check_in ? formatToJalaliWithTime(wh.check_in) : '-'}</TableCell>
                         <TableCell>{wh.check_out ? formatToJalaliWithTime(wh.check_out) : '-'}</TableCell>
                         <TableCell>{toPersianNumbers(wh.total_hours?.toFixed(2) || '0')}</TableCell>

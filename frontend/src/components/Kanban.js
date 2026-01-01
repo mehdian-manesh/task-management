@@ -106,10 +106,6 @@ const Kanban = () => {
       result[column.id] = filteredTasks;
     });
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:77',message:'tasksByStatus calculated',data:{isDragging:isDragging,draggedTaskId:draggedTaskId,validTasksCount:validTasks.length,columnsWithTasks:Object.keys(result).map(k=>`${k}:${result[k].length}`).join(',')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
-    
     return result;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   // isDragging and draggedTaskId intentionally omitted to prevent re-renders during drag
@@ -118,9 +114,6 @@ const Kanban = () => {
   const getTasksByStatus = (status) => {
     // During drag, use frozen list to maintain stability for react-beautiful-dnd
     if (isDraggingRef.current && frozenTasksByStatusRef.current) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:104',message:'Using frozen tasks list during drag',data:{status:status,frozenCount:frozenTasksByStatusRef.current[status]?.length || 0,currentCount:tasksByStatus[status]?.length || 0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
-      // #endregion
       return frozenTasksByStatusRef.current[status] || [];
     }
     
@@ -128,7 +121,6 @@ const Kanban = () => {
   };
 
   const handleDragStart = (start) => {
-    // #region agent log
     // Capture mouse position and element position at drag start
     const draggedElement = document.querySelector(`[data-rbd-draggable-id="${start.draggableId}"]`);
     const container = document.querySelector('[data-rbd-drag-drop-context-id]');
@@ -186,9 +178,6 @@ const Kanban = () => {
       };
     }
     
-    fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:117',message:'Drag start - positioning data',data:{draggableId:start.draggableId,source:start.source,mousePos:mousePos,elementRect:elementRect,containerRect:containerRect,scrollInfo:scrollInfo,rtlInfo:rtlInfo,computedStyles:computedStyles,dragStartOffset:dragStartOffsetRef.current},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
-    
     // Freeze the current tasksByStatus to maintain list stability during drag
     // This is critical for react-beautiful-dnd - it needs stable list references
     frozenTasksByStatusRef.current = { ...tasksByStatus };
@@ -200,18 +189,9 @@ const Kanban = () => {
     // Only update state for UI (like disabling dropdown) - this causes minimal re-render
     setIsDragging(true);
     setDraggedTaskId(start.draggableId);
-    
-    // #region agent log
-    const task = validTasks.find(t => t.id === parseInt(start.draggableId));
-    fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:138',message:'Drag start - task found and frozen',data:{taskFound:!!task,taskId:task?.id,taskStatus:task?.status,sourceColumn:start.source.droppableId,frozenTasksCount:frozenTasksByStatusRef.current[start.source.droppableId]?.length || 0},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
   };
 
   const handleDragEnd = async (result) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:103',message:'Drag end',data:{draggableId:result.draggableId,source:result.source,destination:result.destination,hasDestination:!!result.destination},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-    
     // Reset dragging state immediately (both refs and state)
     isDraggingRef.current = false;
     draggedTaskIdRef.current = null;
@@ -222,9 +202,6 @@ const Kanban = () => {
     setDraggedTaskId(null);
 
     if (!result.destination) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:110',message:'Drag cancelled - no destination',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       return;
     }
 
@@ -302,22 +279,7 @@ const Kanban = () => {
       <DragDropContext 
         onDragStart={handleDragStart} 
         onDragEnd={handleDragEnd}
-        onDragUpdate={(update) => {
-          // #region agent log
-          const draggedEl = document.querySelector(`[data-rbd-draggable-id="${update.draggableId}"]`);
-          if (draggedEl) {
-            const rect = draggedEl.getBoundingClientRect();
-            const styles = window.getComputedStyle(draggedEl);
-            const mousePos = lastMousePosRef.current;
-            const offsetFromMouse = {
-              x: rect.left - mousePos.x,
-              y: rect.top - mousePos.y,
-            };
-            
-            fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:230',message:'Drag update - position tracking',data:{draggableId:update.draggableId,destination:update.destination,elementRect:rect,mousePos:mousePos,offsetFromMouse:offsetFromMouse,transform:styles.transform,direction:styles.direction},timestamp:Date.now(),sessionId:'debug-session',runId:'post-fix',hypothesisId:'C'})}).catch(()=>{});
-          }
-          // #endregion
-        }}
+        onDragUpdate={() => {}}
       >
         <Box sx={{ display: 'flex', gap: 2, overflowX: 'auto', pb: 2 }}>
           {COLUMNS.map((column) => (
@@ -393,108 +355,78 @@ const Kanban = () => {
                     >
                       {(() => {
                         const columnTasks = getTasksByStatus(column.id);
-                        // #region agent log
-                        fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:281',message:'Rendering column tasks',data:{columnId:column.id,tasksCount:columnTasks.length,isDragging:isDraggingRef.current,draggedTaskId:draggedTaskIdRef.current,taskIds:columnTasks.map(t=>t.id)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-                        // #endregion
-                        return columnTasks.map((task, index) => {
-                          // #region agent log
-                          if (isDraggingRef.current && draggedTaskIdRef.current && String(task.id) === draggedTaskIdRef.current) {
-                            fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:257',message:'Rendering dragged task',data:{taskId:task.id,taskStatus:task.status,columnId:column.id,index:index,tasksInColumn:columnTasks.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-                          }
-                          // #endregion
-                          return (
-                        <Draggable
-                          key={task.id}
-                          draggableId={String(task.id)}
-                          index={index}
-                          isDragDisabled={false}
-                          isCombineEnabled={false}
-                        >
-                          {(provided, snapshot) => {
-                            // #region agent log
-                            if (snapshot.isDragging) {
-                              const draggedEl = provided.innerRef?.current || document.querySelector(`[data-rbd-draggable-id="${task.id}"]`);
-                              if (draggedEl) {
-                                const rect = draggedEl.getBoundingClientRect();
-                                const styles = window.getComputedStyle(draggedEl);
-                                const transform = styles.transform;
-                                const mousePos = lastMousePosRef.current;
-                                const offsetFromMouse = {
-                                  x: rect.left - mousePos.x,
-                                  y: rect.top - mousePos.y,
-                                };
-                                
-                                fetch('http://127.0.0.1:7242/ingest/69fdd91a-7d17-40b0-8271-ffb4b17741c4',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Kanban.js:322',message:'Dragging - transform and offset',data:{taskId:task.id,elementRect:rect,mousePos:mousePos,offsetFromMouse:offsetFromMouse,transform:transform,computedStyles:{position:styles.position,left:styles.left,right:styles.right,top:styles.top,bottom:styles.bottom,direction:styles.direction}},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-                              }
-                            }
-                            // #endregion
-                            
-                            return (
-                            <Card
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              style={provided.draggableProps.style}
-                              sx={{
-                                mb: 1,
-                                cursor: 'grab',
-                                opacity: snapshot.isDragging ? 0.8 : 1,
-                                borderLeft: `4px solid ${task.color || column.color}`,
-                                position: 'relative',
-                                '&:hover': {
-                                  boxShadow: 3,
-                                },
-                                '&:active': {
-                                  cursor: 'grabbing',
-                                },
-                              }}
-                              onClick={() => !isDragging && handleTaskClick(task)}
-                            >
-                              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                                <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, pr: 3 }}>
-                                  {task.name}
-                                </Typography>
-                                {task.project_id && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                                    {getProjectName(task.project_id)}
+                        return columnTasks.map((task, index) => (
+                          <Draggable
+                            key={task.id}
+                            draggableId={String(task.id)}
+                            index={index}
+                            isDragDisabled={false}
+                            isCombineEnabled={false}
+                          >
+                            {(provided, snapshot) => (
+                              <Card
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={provided.draggableProps.style}
+                                sx={{
+                                  mb: 1,
+                                  cursor: 'grab',
+                                  opacity: snapshot.isDragging ? 0.8 : 1,
+                                  borderLeft: `4px solid ${task.color || column.color}`,
+                                  position: 'relative',
+                                  '&:hover': {
+                                    boxShadow: 3,
+                                  },
+                                  '&:active': {
+                                    cursor: 'grabbing',
+                                  },
+                                }}
+                                onClick={() => !isDragging && handleTaskClick(task)}
+                              >
+                                <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5, pr: 3 }}>
+                                    {task.name}
                                   </Typography>
-                                )}
-                                {task.deadline && (
-                                  <Typography variant="caption" color="error" sx={{ display: 'block' }}>
-                                    موعد: <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>{moment(task.deadline).format('jYYYY/jMM/jDD')}</Box>
-                                  </Typography>
-                                )}
-                                {task.is_draft && (
-                                  <Chip label="پیش‌نویس" size="small" color="warning" sx={{ mt: 0.5 }} />
-                                )}
-                                {task.phase > 0 && (
-                                  <Chip
-                                    label={toPersianNumbers(`فاز ${task.phase}`)}
-                                    size="small"
-                                    sx={{
-                                      mt: 0.5,
-                                      ml: 0.5,
-                                      color: 'text.primary',
-                                      fontWeight: 600,
-                                      backgroundColor: (theme) => theme.palette.mode === 'dark'
-                                        ? 'rgba(255, 255, 255, 0.2)'
-                                        : 'rgba(0, 0, 0, 0.08)',
-                                      '& .MuiChip-label': {
-                                        color: (theme) => theme.palette.mode === 'dark'
-                                          ? '#ffffff'
-                                          : '#1e293b',
+                                  {task.project_id && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                                      {getProjectName(task.project_id)}
+                                    </Typography>
+                                  )}
+                                  {task.deadline && (
+                                    <Typography variant="caption" color="error" sx={{ display: 'block' }}>
+                                      موعد: <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>{moment(task.deadline).format('jYYYY/jMM/jDD')}</Box>
+                                    </Typography>
+                                  )}
+                                  {task.is_draft && (
+                                    <Chip label="پیش‌نویس" size="small" color="warning" sx={{ mt: 0.5 }} />
+                                  )}
+                                  {task.phase > 0 && (
+                                    <Chip
+                                      label={toPersianNumbers(`فاز ${task.phase}`)}
+                                      size="small"
+                                      sx={{
+                                        mt: 0.5,
+                                        ml: 0.5,
+                                        color: 'text.primary',
                                         fontWeight: 600,
-                                      }
-                                    }}
-                                  />
-                                )}
-                              </CardContent>
-                            </Card>
-                            );
-                          }}
-                        </Draggable>
-                        );
-                        });
+                                        backgroundColor: (theme) => theme.palette.mode === 'dark'
+                                          ? 'rgba(255, 255, 255, 0.2)'
+                                          : 'rgba(0, 0, 0, 0.08)',
+                                        '& .MuiChip-label': {
+                                          color: (theme) => theme.palette.mode === 'dark'
+                                            ? '#ffffff'
+                                            : '#1e293b',
+                                          fontWeight: 600,
+                                        }
+                                      }}
+                                    />
+                                  )}
+                                </CardContent>
+                              </Card>
+                            )}
+                          </Draggable>
+                        ));
                       })()}
                       {provided.placeholder}
                     </Box>

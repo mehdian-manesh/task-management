@@ -236,9 +236,9 @@ const ReportNotesManager = () => {
         mb={3}
       >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 600 }}>
-            مدیریت یادداشت‌های گزارش
-          </Typography>
+        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+          مدیریت یادداشت‌های گزارش
+        </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             افزودن، ویرایش و حذف یادداشت‌های مدیریتی مرتبط با دوره‌های مختلف گزارش.
           </Typography>
