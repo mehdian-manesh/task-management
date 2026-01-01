@@ -265,14 +265,23 @@ class ProjectDetailSerializer(ProjectSerializer):
     assignees = UserSerializer(many=True, read_only=True)
 
 
+class NullablePrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    """PrimaryKeyRelatedField that converts empty strings to None"""
+
+    def to_internal_value(self, data):
+        if data == '' or data is None:
+            return None
+        return super().to_internal_value(data)
+
+
 class TaskSerializer(serializers.ModelSerializer):
-    project_id = serializers.PrimaryKeyRelatedField(
+    project_id = NullablePrimaryKeyRelatedField(
         source='project',
         queryset=Project.objects.all(),
         required=False,
         allow_null=True
     )
-    domain_id = serializers.PrimaryKeyRelatedField(
+    domain_id = NullablePrimaryKeyRelatedField(
         source='domain',
         queryset=Domain.objects.all(),
         required=False,
@@ -283,6 +292,14 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=User.objects.all(),
         required=False
     )
+
+    def validate(self, attrs):
+        """Validate task data"""
+        return super().validate(attrs)
+
+    def is_valid(self, raise_exception=False):
+        """Override to log validation errors"""
+        return super().is_valid(raise_exception=raise_exception)
 
     class Meta:
         model = Task

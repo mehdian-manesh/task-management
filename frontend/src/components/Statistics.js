@@ -40,23 +40,7 @@ const Statistics = () => {
     return <Typography>خطا در بارگذاری آمار</Typography>;
   }
 
-  // Consistent card gradient - theme-aware (brighter for better contrast)
-  const getCardGradient = () => {
-    if (isDark) {
-      return 'linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%)'; // Bright blue to bright purple
-    } else {
-      return 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)'; // Primary to secondary
-    }
-  };
-
-  // Consistent accent color for borders and highlights
-  const getAccentColor = () => {
-    return 'rgba(37, 99, 235, 0.4)'; // Primary color
-  };
-
   const StatCard = ({ title, value, subtitle }) => {
-    const gradient = getCardGradient();
-    const accentColor = getAccentColor();
 
     return (
       <Card

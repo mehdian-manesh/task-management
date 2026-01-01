@@ -91,7 +91,7 @@ class TaskViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action in ['retrieve', 'list']:
             return TaskDetailSerializer
         return TaskSerializer
 
@@ -112,6 +112,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         # Apply domain filtering
         queryset = filter_by_domain(queryset, user, 'domain')
         return queryset
+
 
     def perform_create(self, serializer):
         from .domain_utils import get_user_domain
@@ -422,25 +423,25 @@ def statistics_view(request):
     """Get system statistics - Admin only"""
     now = timezone.now()
     today = now.date()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-    
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+
     # User statistics
     total_users = User.objects.count()
     active_users = User.objects.filter(is_active=True).count()
     admin_users = User.objects.filter(is_staff=True).count()
-    
+
     # Project statistics
     total_projects = Project.objects.count()
     active_projects = Project.objects.filter(
         status__in=['todo', 'doing', 'test']
     ).count()
-    
+
     # Task statistics
     total_tasks = Task.objects.count()
     draft_tasks = Task.objects.filter(is_draft=True).count()
     tasks_by_status = Task.objects.values('status').annotate(count=Count('id'))
-    
+
     # Working day statistics
     total_working_days = WorkingDay.objects.count()
     # Use date range instead of check_in__date for better timezone handling
@@ -453,7 +454,7 @@ def statistics_view(request):
         check_out__isnull=True,
         is_on_leave=False
     ).count()
-    
+
     # Report statistics
     total_reports = Report.objects.count()
     reports_this_week = Report.objects.filter(
@@ -510,22 +511,22 @@ def organizational_dashboard_view(request):
     """Get organizational dashboard data - Admin only"""
     now = timezone.now()
     today = now.date()
-    week_ago = today - timedelta(days=7)
-    month_ago = today - timedelta(days=30)
-    
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+
     # User activity
     active_users_this_week = WorkingDay.objects.filter(
         check_in__gte=week_ago
     ).values('user').distinct().count()
-    
+
     # Project progress
     projects_by_status = Project.objects.values('status').annotate(count=Count('id'))
-    
+
     # Task distribution
     tasks_by_project = Task.objects.values('project__name').annotate(
         count=Count('id')
     ).order_by('-count')[:10]
-    
+
     # User productivity (reports per user)
     user_productivity = Report.objects.filter(
         start_time__gte=month_ago

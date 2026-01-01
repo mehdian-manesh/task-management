@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Drawer,
   List,
@@ -7,7 +6,6 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Divider,
   Box,
   Typography,
   Avatar,
@@ -25,8 +23,6 @@ import ListIcon from '@mui/icons-material/List';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseIcon from '@mui/icons-material/Close';
 import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import FolderIcon from '@mui/icons-material/Folder';
 import FeedbackIcon from '@mui/icons-material/Feedback';

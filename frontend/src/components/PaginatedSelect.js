@@ -20,7 +20,7 @@ import SearchIcon from '@mui/icons-material/Search';
 /**
  * PaginatedSelect - A select component that loads options from a paginated backend endpoint
  * with search and infinite scroll support.
- * 
+ *
  * @param {Function} fetchFunction - Function that accepts (params) and returns a promise with {data: {results, count, next}}}
  * @param {string} value - Selected value
  * @param {Function} onChange - Callback when value changes (receives the selected value)
@@ -28,6 +28,7 @@ import SearchIcon from '@mui/icons-material/Search';
  * @param {string} placeholder - Placeholder text for search
  * @param {string} emptyOptionLabel - Label for empty option (e.g., "بدون پروژه")
  * @param {string} emptyOptionValue - Value for empty option (default: "")
+ * @param {string} initialLabel - Initial label to display before options are loaded
  * @param {Function} getOptionValue - Function to get value from option object (default: (opt) => opt.id)
  * @param {Function} getOptionLabel - Function to get label from option object (default: (opt) => opt.name || opt.username || String(opt))
  * @param {number} pageSize - Page size for pagination (default: 20)
@@ -41,6 +42,7 @@ const PaginatedSelect = ({
   placeholder = 'جستجو...',
   emptyOptionLabel = '',
   emptyOptionValue = '',
+  initialLabel = '',
   getOptionValue = (opt) => opt.id,
   getOptionLabel = (opt) => opt.name || opt.username || String(opt),
   pageSize = 20,
@@ -64,17 +66,19 @@ const PaginatedSelect = ({
       if (currentOption) {
         setSelectedLabel(getOptionLabel(currentOption));
       } else {
-        // Value exists but not in options - keep current label or set empty
+        // Value exists but not in options - use initialLabel if provided, otherwise keep current label or set empty
         // The label will be updated when options are loaded
         if (!selectedLabel && options.length > 0) {
-          setSelectedLabel('');
+          setSelectedLabel(initialLabel || '');
+        } else if (initialLabel && !selectedLabel) {
+          setSelectedLabel(initialLabel);
         }
       }
     } else {
       setSelectedLabel(emptyOptionLabel || '');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, emptyOptionValue, emptyOptionLabel, options]);
+  }, [value, emptyOptionValue, emptyOptionLabel, options, initialLabel]);
 
   // Load options from backend
   const loadOptions = useCallback(async (pageNum = 1, search = '', append = false, findSelected = false) => {
@@ -109,11 +113,14 @@ const PaginatedSelect = ({
       
       // Update selected label if we found the selected option
       if (value && value !== emptyOptionValue) {
-        const allOptions = append ? [...options, ...newOptions] : newOptions;
-        const foundOption = allOptions.find(opt => getOptionValue(opt) === value);
-        if (foundOption) {
-          setSelectedLabel(getOptionLabel(foundOption));
-        }
+        setOptions(prevOptions => {
+          const allOptions = append ? [...prevOptions, ...newOptions] : newOptions;
+          const foundOption = allOptions.find(opt => getOptionValue(opt) === value);
+          if (foundOption) {
+            setSelectedLabel(getOptionLabel(foundOption));
+          }
+          return prevOptions; // Return unchanged since we already updated above
+        });
       }
       
       setHasMore(!!next);

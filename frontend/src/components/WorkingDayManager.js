@@ -203,20 +203,6 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
     setReportsPage(1);
   };
 
-  const handleReportsSortChange = (sortKey) => {
-    if (sortKey) {
-      const currentKey = reportsOrdering.startsWith('-') ? reportsOrdering.substring(1) : reportsOrdering;
-      if (currentKey === sortKey) {
-        setReportsOrdering(reportsOrdering.startsWith('-') ? sortKey : `-${sortKey}`);
-      } else {
-        setReportsOrdering(sortKey);
-      }
-    } else {
-      setReportsOrdering('-start_time');
-    }
-    setReportsPage(1);
-  };
-
   const handleReportsClearFilters = () => {
     setReportsSearch('');
     setReportsFilters({ result: '' });

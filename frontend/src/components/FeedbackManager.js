@@ -54,10 +54,6 @@ const FeedbackManager = () => {
     type: '',
   });
 
-  useEffect(() => {
-    loadFeedbacks();
-  }, [page, search, filters, ordering]);
-
   const buildParams = useCallback(() => {
     const params = {
       page,
@@ -79,7 +75,7 @@ const FeedbackManager = () => {
     return params;
   }, [page, pageSize, search, filters, ordering]);
 
-  const loadFeedbacks = async () => {
+  const loadFeedbacks = useCallback(async () => {
     try {
       const params = buildParams();
       const response = await feedbackService.getAll(params);
@@ -96,7 +92,11 @@ const FeedbackManager = () => {
     } catch (error) {
       setMessage({ type: 'error', text: 'خطا در بارگذاری بازخوردها' });
     }
-  };
+  }, [buildParams]);
+
+  useEffect(() => {
+    loadFeedbacks();
+  }, [loadFeedbacks]);
 
   const handleOpenDialog = (feedback = null) => {
     if (feedback) {
@@ -155,20 +155,6 @@ const FeedbackManager = () => {
 
   const handleFilterChange = (key, value) => {
     setFilters({ ...filters, [key]: value });
-    setPage(1);
-  };
-
-  const handleSortChange = (sortKey) => {
-    if (sortKey) {
-      const currentKey = ordering.startsWith('-') ? ordering.substring(1) : ordering;
-      if (currentKey === sortKey) {
-        setOrdering(ordering.startsWith('-') ? sortKey : `-${sortKey}`);
-      } else {
-        setOrdering(sortKey);
-      }
-    } else {
-      setOrdering('-created_at');
-    }
     setPage(1);
   };
 

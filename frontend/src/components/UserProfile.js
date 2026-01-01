@@ -11,6 +11,8 @@ import {
   IconButton,
   useTheme,
   CircularProgress,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import { authService, adminService } from '../api/services';
@@ -18,17 +20,18 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import EditIcon from '@mui/icons-material/Edit';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SessionList from './SessionList';
 
 const UserProfile = () => {
   const { user, setUser } = useAuth();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingPicture, setUploadingPicture] = useState(false);
   const [message, setMessage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [tabValue, setTabValue] = useState(0);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -254,7 +257,6 @@ const UserProfile = () => {
 
       <Paper
         sx={{
-          p: 4,
           borderRadius: 6,
           background: isDark ? 'rgba(15, 23, 42, 0.4)' : 'rgba(255, 255, 255, 0.15)',
           border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.12)',
@@ -263,7 +265,29 @@ const UserProfile = () => {
             : '0 2px 8px 0 rgba(31, 38, 135, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: 2 }}>
+        <Tabs
+          value={tabValue}
+          onChange={(e, newValue) => setTabValue(newValue)}
+          sx={{
+            borderBottom: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.12)',
+            '& .MuiTab-root': {
+              color: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+              '&.Mui-selected': {
+                color: isDark ? '#ffffff' : '#6366f1',
+              },
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: '#6366f1',
+            },
+          }}
+        >
+          <Tab label="اطلاعات پروفایل" />
+          <Tab label="جلسات فعال" />
+        </Tabs>
+
+        {tabValue === 0 && (
+          <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 4, gap: 2 }}>
           <Box sx={{ position: 'relative' }}>
             <Avatar 
               src={previewUrl || undefined}
@@ -466,6 +490,14 @@ const UserProfile = () => {
             </Grid>
           </Grid>
         </Box>
+          </Box>
+        )}
+
+        {tabValue === 1 && (
+          <Box sx={{ p: 3 }}>
+            <SessionList />
+          </Box>
+        )}
       </Paper>
     </Box>
   );

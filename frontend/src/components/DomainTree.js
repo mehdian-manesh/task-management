@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -178,12 +178,18 @@ const DomainTree = () => {
   const [formData, setFormData] = useState({ name: '', parent: '' });
   const [message, setMessage] = useState(null);
 
-  useEffect(() => {
-    loadTree();
-    loadDomains();
+  const getAllNodeIds = useCallback((nodes) => {
+    let ids = [];
+    nodes.forEach((node) => {
+      ids.push(node.id);
+      if (node.children && node.children.length > 0) {
+        ids = ids.concat(getAllNodeIds(node.children));
+      }
+    });
+    return ids;
   }, []);
 
-  const loadTree = async () => {
+  const loadTree = useCallback(async () => {
     try {
       setError(null);
       setLoading(true);
@@ -198,27 +204,22 @@ const DomainTree = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [getAllNodeIds]);
 
-  const loadDomains = async () => {
+  const loadDomains = useCallback(async () => {
     try {
       const response = await domainService.getAll();
       setDomains(response.data.results || response.data || []);
     } catch (error) {
       console.error('Error loading domains:', error);
     }
-  };
+  }, []);
 
-  const getAllNodeIds = (nodes) => {
-    let ids = [];
-    nodes.forEach((node) => {
-      ids.push(node.id);
-      if (node.children && node.children.length > 0) {
-        ids = ids.concat(getAllNodeIds(node.children));
-      }
-    });
-    return ids;
-  };
+  useEffect(() => {
+    loadTree();
+    loadDomains();
+  }, [loadTree, loadDomains]);
+
 
   const handleExpand = (nodeId) => {
     setExpandedNodes((prev) => {

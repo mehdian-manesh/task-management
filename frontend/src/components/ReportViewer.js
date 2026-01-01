@@ -15,8 +15,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Card,
-  CardContent,
   List,
   ListItem,
   ListItemText,
@@ -26,12 +24,10 @@ import {
 } from '@mui/material';
 import DownloadIcon from '@mui/icons-material/Download';
 import { reportService } from '../api/services';
-import { useAuth } from '../context/AuthContext';
 import { getCurrentJalaliDate, formatJalaliPeriod } from '../utils/jalaliReportUtils';
 import { toPersianNumbers } from '../utils/numberUtils';
 import { formatToJalaliWithTime } from '../utils/dateUtils';
 import JalaliDatePicker from './JalaliDatePicker';
-import PaginatedSelect from './PaginatedSelect';
 import { domainService } from '../api/services';
 
 const PERIOD_TYPES = [
@@ -41,16 +37,7 @@ const PERIOD_TYPES = [
   { value: 'yearly', label: 'سالانه' },
 ];
 
-const REPORT_RESULT_LABELS = {
-  ongoing: 'هنوز تمام نشده',
-  success: 'با موفقیت انجام شد',
-  postponed: 'به تعویق افتاد',
-  failed: 'موفق به انجام آن نشدم',
-  cancelled: 'کنسل شد',
-};
-
 const ReportViewer = ({ reportType = 'individual' }) => {
-  const { user } = useAuth();
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

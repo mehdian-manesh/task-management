@@ -149,3 +149,14 @@ export const savedReportService = {
     responseType: 'blob' 
   }),
 };
+
+// Session Services
+export const sessionService = {
+  getAll: (params = {}) => axiosInstance.get('/sessions/', { params }),
+  getById: (id) => axiosInstance.get(`/sessions/${id}/`),
+  delete: (id) => axiosInstance.delete(`/sessions/${id}/`),
+  updateDeviceInfo: (id, data) => axiosInstance.post(`/sessions/${id}/update_device_info/`, data),
+  getUserSessions: (userId, params = {}) => axiosInstance.get('/admin/sessions/', { 
+    params: { user_id: userId, ...params } 
+  }),
+};

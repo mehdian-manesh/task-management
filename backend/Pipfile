@@ -15,6 +15,7 @@ python-dateutil = "*"
 jdatetime = "*"
 weasyprint = "*"
 django-crontab = "*"
+user-agents = "*"
 
 [dev-packages]
 drf-spectacular = "*"

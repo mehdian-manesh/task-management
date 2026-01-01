@@ -35,6 +35,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),
+    path('api/', include('accounts.urls')),
     path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/logout/', logout_view, name='logout'),

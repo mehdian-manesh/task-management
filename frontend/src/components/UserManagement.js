@@ -23,16 +23,20 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import SecurityIcon from '@mui/icons-material/Security';
 import { adminService, domainService } from '../api/services';
 import TableControls from './TableControls';
 import Pagination from './Pagination';
 import SortableTableHeader from './SortableTableHeader';
 import PaginatedSelect from './PaginatedSelect';
+import SessionList from './SessionList';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [sessionsDialogOpen, setSessionsDialogOpen] = useState(false);
+  const [selectedUserForSessions, setSelectedUserForSessions] = useState(null);
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -59,21 +63,6 @@ const UserManagement = () => {
     domain_id: '',
   });
 
-  useEffect(() => {
-    loadUsers();
-    loadDomains();
-  }, [page, search, filters, ordering]);
-
-  const loadDomains = async () => {
-    try {
-      const response = await domainService.getAll();
-      const domainsData = response.data.results || response.data;
-      setDomains(Array.isArray(domainsData) ? domainsData : []);
-    } catch (error) {
-      console.error('Error loading domains:', error);
-    }
-  };
-
   const buildParams = useCallback(() => {
     const params = {
       page,
@@ -99,7 +88,17 @@ const UserManagement = () => {
     return params;
   }, [page, pageSize, search, filters, ordering]);
 
-  const loadUsers = async () => {
+  const loadDomains = useCallback(async () => {
+    try {
+      const response = await domainService.getAll();
+      const domainsData = response.data.results || response.data;
+      setDomains(Array.isArray(domainsData) ? domainsData : []);
+    } catch (error) {
+      console.error('Error loading domains:', error);
+    }
+  }, []);
+
+  const loadUsers = useCallback(async () => {
     try {
       const params = buildParams();
       const response = await adminService.getAllUsers(params);
@@ -116,7 +115,12 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error loading users:', error);
     }
-  };
+  }, [buildParams]);
+
+  useEffect(() => {
+    loadUsers();
+    loadDomains();
+  }, [loadUsers, loadDomains]);
 
   const handleOpenDialog = (user = null) => {
     if (user) {
@@ -334,6 +338,16 @@ const UserManagement = () => {
                   )}
                 </TableCell>
                 <TableCell align="right">
+                  <IconButton 
+                    size="small" 
+                    onClick={() => {
+                      setSelectedUserForSessions(user);
+                      setSessionsDialogOpen(true);
+                    }}
+                    title="مشاهده جلسات"
+                  >
+                    <SecurityIcon fontSize="small" />
+                  </IconButton>
                   <IconButton size="small" onClick={() => handleOpenDialog(user)}>
                     <EditIcon fontSize="small" />
                   </IconButton>
@@ -430,6 +444,40 @@ const UserManagement = () => {
           <Button onClick={handleCloseDialog}>انصراف</Button>
           <Button onClick={handleSubmit} variant="contained">
             {selectedUser ? 'ذخیره' : 'ایجاد'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Sessions Dialog */}
+      <Dialog 
+        open={sessionsDialogOpen} 
+        onClose={() => {
+          setSessionsDialogOpen(false);
+          setSelectedUserForSessions(null);
+        }} 
+        maxWidth="md" 
+        fullWidth
+      >
+        <DialogTitle>
+          جلسات کاربر: {selectedUserForSessions?.username}
+        </DialogTitle>
+        <DialogContent>
+          {selectedUserForSessions && (
+            <SessionList 
+              userId={selectedUserForSessions.id} 
+              adminMode={true}
+              onSessionDeleted={() => {
+                // Refresh sessions list
+              }}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setSessionsDialogOpen(false);
+            setSelectedUserForSessions(null);
+          }}>
+            بستن
           </Button>
         </DialogActions>
       </Dialog>

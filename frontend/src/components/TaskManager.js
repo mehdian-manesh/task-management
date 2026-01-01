@@ -77,10 +77,6 @@ const TaskManager = () => {
     status: 'backlog',
   });
 
-  useEffect(() => {
-    loadTasks();
-  }, [page, search, filters, ordering]);
-
   const buildParams = useCallback(() => {
     const params = {
       page,
@@ -110,7 +106,7 @@ const TaskManager = () => {
     return params;
   }, [page, pageSize, search, filters, ordering]);
 
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       const params = buildParams();
       const response = await taskService.getAll(params);
@@ -127,7 +123,11 @@ const TaskManager = () => {
     } catch (error) {
       setMessage({ type: 'error', text: 'خطا در بارگذاری وظایف' });
     }
-  };
+  }, [buildParams]);
+
+  useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
 
 
   const handleOpenDialog = (task = null) => {
@@ -137,8 +137,8 @@ const TaskManager = () => {
         name: task.name,
         description: task.description || '',
         color: task.color || '#1976d2',
-        project_id: task.project_id || '',
-        domain_id: task.domain_id || '',
+        project_id: task.project_id ? String(task.project_id) : '',
+        domain_id: task.domain_id ? String(task.domain_id) : '',
         start_date: task.start_date || '',
         deadline: task.deadline || '',
         estimated_hours: task.estimated_hours || 0,
@@ -170,17 +170,61 @@ const TaskManager = () => {
 
   const handleSubmit = async () => {
     try {
+      // Prepare data: convert empty strings to null for optional fields, ensure integers are numbers
+      const submitData = { ...formData };
+
+      // Convert project_id: empty string -> null, otherwise ensure it's an integer
+      if (submitData.project_id === '' || submitData.project_id === null || submitData.project_id === undefined) {
+        submitData.project_id = null;
+      } else {
+        const projectIdNum = parseInt(submitData.project_id);
+        submitData.project_id = isNaN(projectIdNum) ? null : projectIdNum;
+      }
+
+      // Convert domain_id: empty string -> null, otherwise ensure it's an integer
+      if (submitData.domain_id === '' || submitData.domain_id === null || submitData.domain_id === undefined) {
+        submitData.domain_id = null;
+      } else {
+        const domainIdNum = parseInt(submitData.domain_id);
+        submitData.domain_id = isNaN(domainIdNum) ? null : domainIdNum;
+      }
+
+      // Convert empty date strings to null
+      if (submitData.start_date === '') submitData.start_date = null;
+      if (submitData.deadline === '') submitData.deadline = null;
+
+      // Ensure numeric fields are numbers
+      submitData.estimated_hours = parseInt(submitData.estimated_hours) || 0;
+      submitData.phase = parseInt(submitData.phase) || 0;
+
       if (editingTask) {
-        await taskService.update(editingTask.id, formData);
+        await taskService.update(editingTask.id, submitData);
         setMessage({ type: 'success', text: 'وظیفه با موفقیت به‌روزرسانی شد' });
       } else {
-        await taskService.create(formData);
+        await taskService.create(submitData);
         setMessage({ type: 'success', text: 'وظیفه با موفقیت ایجاد شد' });
       }
       handleCloseDialog();
       loadTasks();
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در ذخیره وظیفه' });
+      // Extract detailed error message
+      let errorMessage = 'خطا در ذخیره وظیفه';
+      if (error.response?.data) {
+        if (error.response.data.detail) {
+          errorMessage = error.response.data.detail;
+        } else if (error.response.data.project_id) {
+          errorMessage = `پروژه: ${Array.isArray(error.response.data.project_id) ? error.response.data.project_id[0] : error.response.data.project_id}`;
+        } else if (typeof error.response.data === 'object') {
+          // Try to get first error message
+          const firstError = Object.values(error.response.data)[0];
+          if (Array.isArray(firstError) && firstError.length > 0) {
+            errorMessage = firstError[0];
+          } else if (typeof firstError === 'string') {
+            errorMessage = firstError;
+          }
+        }
+      }
+      setMessage({ type: 'error', text: errorMessage });
     }
   };
 
@@ -423,11 +467,15 @@ const TaskManager = () => {
           />
           <PaginatedSelect
             fetchFunction={projectService.getAll}
-            value={formData.project_id}
-            onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+            value={formData.project_id === null || formData.project_id === '' ? '' : String(formData.project_id)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFormData({ ...formData, project_id: val === '' ? '' : val });
+            }}
             label="پروژه"
             emptyOptionLabel="بدون پروژه"
             emptyOptionValue=""
+            initialLabel={editingTask?.project?.name || ''}
             getOptionValue={(opt) => opt.id}
             getOptionLabel={(opt) => opt.name}
             margin="normal"
@@ -435,11 +483,15 @@ const TaskManager = () => {
           />
           <PaginatedSelect
             fetchFunction={domainService.getAll}
-            value={formData.domain_id}
-            onChange={(e) => setFormData({ ...formData, domain_id: e.target.value })}
+            value={formData.domain_id === null || formData.domain_id === '' ? '' : String(formData.domain_id)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setFormData({ ...formData, domain_id: val === '' ? '' : val });
+            }}
             label="دامنه (اختیاری - در صورت عدم انتخاب از پروژه به ارث می‌برد)"
             emptyOptionLabel="بدون دامنه"
             emptyOptionValue=""
+            initialLabel={editingTask?.domain?.name || ''}
             getOptionValue={(opt) => opt.id}
             getOptionLabel={(opt) => opt.name}
             margin="normal"

@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   Chip,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -16,7 +15,6 @@ import {
   TextField,
   useTheme,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
 import { taskService, projectService } from '../api/services';
 import moment from 'moment-jalaali';
 import { toPersianNumbers } from '../utils/numberUtils';
@@ -113,6 +111,8 @@ const Kanban = () => {
     // #endregion
     
     return result;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // isDragging and draggedTaskId intentionally omitted to prevent re-renders during drag
   }, [validTasks, selectedProject]);
 
   const getTasksByStatus = (status) => {

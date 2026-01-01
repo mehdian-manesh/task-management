@@ -46,4 +46,4 @@ add a new section in dashboard and organizational dashboard named "Calendar". in
 
 # TEST
 Update the current tests based on the recent changes and define new tests if necessary. Then run all the tests. Fix the failovers and rerun the tests until there are no failovers left.
-Finally, get the overall test coverage. If it is below 90, try to increase it as much as possible by defining more tests (again, if you define new tests, make sure that all the tests pass).
+Finally, get the overall test coverage. If it is below 90, try to increase it as much as possible by defining more tests (again, if you define new tests, make sure that all the tests pass). Try to resolve as many warnings as possible. Try to run the tests in parallel on all CPU cores. This may cause some tests to fail incorrectly. Be careful that the tests that fail will also fail in single-threaded mode. Finally, run all the tests once in single-threaded mode to make sure that all the tests pass.

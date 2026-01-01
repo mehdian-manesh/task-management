@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -10,7 +10,6 @@ import {
   TableHead,
   TableRow,
   IconButton,
-  Button,
   FormControl,
   InputLabel,
   Select,
@@ -21,8 +20,7 @@ import {
 import DownloadIcon from '@mui/icons-material/Download';
 import { savedReportService } from '../api/services';
 import { useAuth } from '../context/AuthContext';
-import { toPersianNumbers } from '../utils/numberUtils';
-import { formatToJalaliWithTime, formatToJalali } from '../utils/dateUtils';
+import { formatToJalaliWithTime } from '../utils/dateUtils';
 import { formatJalaliPeriod } from '../utils/jalaliReportUtils';
 import TableControls from './TableControls';
 import Pagination from './Pagination';
@@ -55,11 +53,7 @@ const SavedReportsList = () => {
     period_type: '',
   });
   
-  useEffect(() => {
-    loadReports();
-  }, [page, filters]);
-  
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -84,7 +78,11 @@ const SavedReportsList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, filters]);
+  
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
   
   const handleDownloadPDF = async (report) => {
     try {

@@ -71,10 +71,6 @@ const ProjectManager = () => {
     status: 'backlog',
   });
 
-  useEffect(() => {
-    loadProjects();
-  }, [page, search, filters, ordering]);
-
   const buildParams = useCallback(() => {
     const params = {
       page,
@@ -96,7 +92,7 @@ const ProjectManager = () => {
     return params;
   }, [page, pageSize, search, filters, ordering]);
 
-  const loadProjects = async () => {
+  const loadProjects = useCallback(async () => {
     try {
       const params = buildParams();
       const response = await projectService.getAll(params);
@@ -113,7 +109,11 @@ const ProjectManager = () => {
     } catch (error) {
       setMessage({ type: 'error', text: 'خطا در بارگذاری پروژه‌ها' });
     }
-  };
+  }, [buildParams]);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
 
   const handleOpenDialog = (project = null) => {
     if (project) {

@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
-import { authService } from '../api/services';
+import { authService, sessionService } from '../api/services';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { collectDeviceInfo } from '../utils/deviceInfo';
 
 const AuthContext = createContext();
 
@@ -146,6 +147,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (username, password) => {
+    // Collect device info before login
+    const deviceInfo = collectDeviceInfo();
     try {
       const response = await authService.login(username, password);
       const { access, refresh } = response.data;
@@ -178,6 +181,29 @@ export const AuthProvider = ({ children }) => {
 
       // Set up automatic token refresh after login
       setupTokenRefresh();
+      
+      // Update device info for the newly created session
+      try {
+        const decoded = jwtDecode(access);
+        const jti = decoded.jti;
+        // Find the session and update device info
+        // We'll get all sessions and find the one with matching JTI
+        const sessionsResponse = await sessionService.getAll();
+        const sessions = sessionsResponse.data.results || sessionsResponse.data;
+        const currentSession = Array.isArray(sessions) 
+          ? sessions.find(s => s.token_jti === jti)
+          : null;
+        
+        if (currentSession && deviceInfo) {
+          await sessionService.updateDeviceInfo(currentSession.id, {
+            screen_width: deviceInfo.screen_width,
+            screen_height: deviceInfo.screen_height,
+          });
+        }
+      } catch (deviceInfoError) {
+        // Non-critical error, just log it
+        console.error('Error updating device info:', deviceInfoError);
+      }
       
       return { success: true };
     } catch (error) {

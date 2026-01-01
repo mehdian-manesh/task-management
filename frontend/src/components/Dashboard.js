@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Box,
-  Container,
-  Paper,
   AppBar,
   Toolbar,
   IconButton,
@@ -46,7 +44,7 @@ const Dashboard = () => {
     if (user?.isAdmin && currentView === 'working-day') {
       setCurrentView('organizational-dashboard');
     }
-  }, [user]);
+  }, [user, currentView]);
 
   useEffect(() => {
     // Close sidebar on mobile when view changes
@@ -56,54 +54,7 @@ const Dashboard = () => {
   }, [currentView, isMobile]);
 
   useEffect(() => {
-    // #region agent log
-    // Debug sidebar positioning - check after render
-    const checkLayout = () => {
-      const parentBox = document.querySelector('[data-testid="dashboard-container"]') ||
-        document.querySelector('body > div#root > div > div');
-      const mainContent = document.querySelector('main');
-      const sidebarDrawer = document.querySelector('.MuiDrawer-root.MuiDrawer-anchorRight');
-      const sidebarPaper = document.querySelector('.MuiDrawer-root.MuiDrawer-anchorRight .MuiDrawer-paper');
-
-      if (parentBox) {
-        const parentStyles = window.getComputedStyle(parentBox);
-        const parentRect = parentBox.getBoundingClientRect();
-      }
-
-      if (mainContent) {
-        const mainStyles = window.getComputedStyle(mainContent);
-        const mainRect = mainContent.getBoundingClientRect();
-      }
-
-      const sidebarWrapper = document.querySelector('[data-testid="sidebar-wrapper"]')?.parentElement;
-      if (sidebarWrapper) {
-        const wrapperStyles = window.getComputedStyle(sidebarWrapper);
-        const wrapperRect = sidebarWrapper.getBoundingClientRect();
-      }
-
-      if (sidebarDrawer) {
-        const drawerStyles = window.getComputedStyle(sidebarDrawer);
-        const drawerRect = sidebarDrawer.getBoundingClientRect();
-      }
-
-      if (sidebarPaper) {
-        const paperStyles = window.getComputedStyle(sidebarPaper);
-        const paperRect = sidebarPaper.getBoundingClientRect();
-      }
-
-      // Check if sidebar is visually on left or right
-      if (mainContent && sidebarPaper) {
-        const mainRect = mainContent.getBoundingClientRect();
-        const sidebarRect = sidebarPaper.getBoundingClientRect();
-        const sidebarOnRight = sidebarRect.left > mainRect.right;
-        const computedDirection = parentBox ? window.getComputedStyle(parentBox).direction : 'unknown';
-      }
-    };
-
-    // Run after a short delay to ensure DOM is ready
-    const timeoutId = setTimeout(checkLayout, 100);
-    return () => clearTimeout(timeoutId);
-    // #endregion
+    // Sidebar positioning is handled by Material-UI Drawer component
   }, [currentView, isMobile, sidebarOpen]);
 
   const loadTodayWorkingDay = async () => {

@@ -10,7 +10,6 @@ import {
   Paper,
   Alert,
 } from '@mui/material';
-import LoginIcon from '@mui/icons-material/Login';
 
 const Login = () => {
   const [username, setUsername] = useState('');
