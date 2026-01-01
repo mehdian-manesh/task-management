@@ -127,3 +127,4 @@ def feedback(regular_user):
         description='Test feedback',
         type=FeedbackTypeChoices.SUGGESTION.value
     )
+

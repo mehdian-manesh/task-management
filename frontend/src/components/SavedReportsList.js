@@ -121,9 +121,14 @@ const SavedReportsList = () => {
   
   return (
     <Box>
-      <Typography variant="h4" sx={{ fontWeight: 600, mb: 3 }}>
-        گزارش‌های ذخیره شده
-      </Typography>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ fontWeight: 600 }}>
+          گزارش‌های ذخیره شده
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          لیست گزارش‌های ذخیره‌شده برای دسترسی سریع و دانلود دوباره در صورت نیاز.
+        </Typography>
+      </Box>
       
       <TableControls
         searchValue={search}

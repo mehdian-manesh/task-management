@@ -227,10 +227,22 @@ const ReportNotesManager = () => {
 
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
-          مدیریت یادداشت‌های گزارش
-        </Typography>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        flexWrap="wrap"
+        gap={2}
+        mb={3}
+      >
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 600 }}>
+            مدیریت یادداشت‌های گزارش
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            افزودن، ویرایش و حذف یادداشت‌های مدیریتی مرتبط با دوره‌های مختلف گزارش.
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

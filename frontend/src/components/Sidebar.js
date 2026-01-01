@@ -54,10 +54,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
         { id: 'meetings', label: 'جلسات', icon: <EventIcon /> },
         { id: 'tasks', label: 'وظایف', icon: <AssignmentIcon /> },
         // Reports section
-        { id: 'reports', label: 'گزارش کار', icon: <DescriptionIcon /> },
-        { id: 'report-notes', label: 'یادداشت‌های گزارش', icon: <NoteIcon /> },
-        { id: 'team-reports', label: 'گزارش تیمی', icon: <DescriptionIcon /> },
-        { id: 'saved-reports', label: 'گزارش‌های ذخیره شده', icon: <FolderOpenIcon /> },
+        { id: 'reports', label: 'گزارش‌ها', icon: <DescriptionIcon /> },
         // Feedback
         { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> },
         // Admin section at bottom
@@ -72,8 +69,7 @@ const Sidebar = ({ open, onClose, user, onLogout, currentView, setCurrentView, c
         { id: 'tasks', label: 'وظایف', icon: <AssignmentIcon /> },
         { id: 'kanban', label: 'کانبان', icon: <ViewKanbanIcon /> },
         { id: 'meetings', label: 'جلسات', icon: <EventIcon /> },
-        { id: 'reports', label: 'گزارش کار', icon: <DescriptionIcon /> },
-        { id: 'saved-reports', label: 'گزارش‌های ذخیره شده', icon: <FolderOpenIcon /> },
+        { id: 'reports', label: 'گزارش‌ها', icon: <DescriptionIcon /> },
         { id: 'feedback', label: 'بازخورد', icon: <FeedbackIcon /> },
       ];
 

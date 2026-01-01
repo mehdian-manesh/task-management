@@ -179,10 +179,24 @@ const ReportViewer = ({ reportType = 'individual' }) => {
   
   return (
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" sx={{ fontWeight: 600 }}>
-          {reportType === 'individual' ? 'گزارش کار' : 'گزارش تیمی'}
-        </Typography>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        flexWrap="wrap"
+        gap={2}
+        mb={3}
+      >
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 600 }}>
+            {reportType === 'individual' ? 'گزارش کار' : 'گزارش تیمی'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {reportType === 'individual'
+              ? 'نمایش و دانلود گزارش کار فردی در بازه‌های روزانه، هفتگی، ماهانه و سالانه.'
+              : 'نمایش و دانلود گزارش تیمی بر اساس حوزه انتخاب‌شده و بازه زمانی مورد نظر.'}
+          </Typography>
+        </Box>
         <Button
           variant="contained"
           startIcon={<DownloadIcon />}

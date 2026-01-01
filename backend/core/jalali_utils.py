@@ -28,9 +28,13 @@ def jalali_to_gregorian(year, month, day):
 
 
 def gregorian_to_jalali(g_date):
-    """Convert Gregorian date to Jalali date"""
+    """Convert Gregorian date to Jalali date using local timezone awareness."""
+    # Normalize to date in the current timezone to avoid UTC/local day mismatches
     if isinstance(g_date, datetime):
-        g_date = g_date.date()
+        if timezone.is_aware(g_date):
+            g_date = g_date.astimezone(timezone.get_current_timezone()).date()
+        else:
+            g_date = g_date.date()
     j_date = jdatetime.date.fromgregorian(date=g_date)
     return {
         'year': j_date.year,

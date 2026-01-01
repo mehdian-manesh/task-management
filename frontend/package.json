@@ -36,6 +36,9 @@
     "test": "craco test",
     "eject": "react-scripts eject"
   },
+  "devDependencies": {
+    "baseline-browser-mapping": "^2.9.11"
+  },
   "eslintConfig": {
     "extends": [
       "react-app",

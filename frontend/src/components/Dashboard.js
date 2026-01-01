@@ -25,9 +25,7 @@ import Settings from './Settings';
 import Sidebar from './Sidebar';
 import UserProfile from './UserProfile';
 import MeetingManager from './MeetingManager';
-import ReportViewer from './ReportViewer';
-import ReportNotesManager from './ReportNotesManager';
-import SavedReportsList from './SavedReportsList';
+import Reports from './Reports';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -38,13 +36,17 @@ const Dashboard = () => {
   const [currentView, setCurrentView] = useState('working-day');
   const [todayWorkingDay, setTodayWorkingDay] = useState(null);
 
+  const hasSetAdminDefaultView = React.useRef(false);
+
   useEffect(() => {
     loadTodayWorkingDay();
-    // Set default view based on user role
-    if (user?.isAdmin && currentView === 'working-day') {
+    // Set default view for admin only once on mount; allow manual switch afterwards
+    if (user?.isAdmin && !hasSetAdminDefaultView.current && currentView === 'working-day') {
       setCurrentView('organizational-dashboard');
+      hasSetAdminDefaultView.current = true;
     }
-  }, [user, currentView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   useEffect(() => {
     // Close sidebar on mobile when view changes
@@ -108,13 +110,7 @@ const Dashboard = () => {
         case 'meetings':
           return <MeetingManager />;
         case 'reports':
-          return <ReportViewer reportType="individual" />;
-        case 'saved-reports':
-          return <SavedReportsList />;
-        case 'team-reports':
-          return <ReportViewer reportType="team" />;
-        case 'report-notes':
-          return <ReportNotesManager />;
+          return <Reports />;
         case 'profile':
           return <UserProfile />;
         default:
@@ -134,9 +130,7 @@ const Dashboard = () => {
         case 'meetings':
           return <MeetingManager />;
         case 'reports':
-          return <ReportViewer reportType="individual" />;
-        case 'saved-reports':
-          return <SavedReportsList />;
+          return <Reports />;
         case 'profile':
           return <UserProfile />;
         default:

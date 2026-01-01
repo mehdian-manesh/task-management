@@ -26,6 +26,9 @@ services:
     environment:
       - REACT_APP_BACKEND_URL=https://localhost:${HTTPS_PORT:-443}/api
       - WATCHPACK_POLLING=true
+      - BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=1
+      - BROWSERSLIST_IGNORE_OLD_DATA=1
+      - NODE_OPTIONS=--no-warnings --no-deprecation
       - TZ=Asia/Tehran
 
   caddy:
