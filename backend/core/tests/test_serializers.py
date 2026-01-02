@@ -192,7 +192,10 @@ class TestReportSerializer:
         data = serializer.data
         
         assert data['working_day'] == working_day.id
-        assert data['task'] == task.id
+        # task is now serialized as a full object, not just id
+        assert isinstance(data['task'], dict)
+        assert data['task']['id'] == task.id
+        assert data['task']['name'] == task.name
         assert data['result'] == ReportResultChoices.SUCCESS.value
         assert data['comment'] == 'Completed'
     

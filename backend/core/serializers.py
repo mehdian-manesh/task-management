@@ -348,6 +348,7 @@ class WorkingDaySerializer(serializers.ModelSerializer):
 class ReportSerializer(serializers.ModelSerializer):
     task_id = serializers.IntegerField(write_only=True, required=False, allow_null=True)
     task_name = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
+    task = TaskSerializer(read_only=True)
     
     class Meta:
         model = Report

@@ -128,3 +128,4 @@ def feedback(regular_user):
         type=FeedbackTypeChoices.SUGGESTION.value
     )
 
+

@@ -243,6 +243,9 @@ class ReportViewSet(viewsets.ModelViewSet):
             # Regular users only see their own reports
             queryset = queryset.filter(working_day__user=user)
         
+        # Optimize queries by selecting related task
+        queryset = queryset.select_related('task')
+        
         return queryset
 
     def list(self, request, *args, **kwargs):
