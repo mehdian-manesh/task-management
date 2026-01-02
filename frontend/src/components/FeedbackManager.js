@@ -13,9 +13,9 @@ import {
   MenuItem,
   IconButton,
   Chip,
-  Alert,
   Grid,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -32,10 +32,11 @@ const FEEDBACK_TYPES = [
 ];
 
 const FeedbackManager = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const [feedbacks, setFeedbacks] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingFeedback, setEditingFeedback] = useState(null);
-  const [message, setMessage] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -90,9 +91,9 @@ const FeedbackManager = () => {
         setTotalCount(response.data.length);
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'خطا در بارگذاری بازخوردها' });
+      enqueueSnackbar('خطا در بارگذاری بازخوردها', { variant: 'error' });
     }
-  }, [buildParams]);
+  }, [buildParams, enqueueSnackbar]);
 
   useEffect(() => {
     loadFeedbacks();
@@ -112,27 +113,49 @@ const FeedbackManager = () => {
         type: '',
       });
     }
+    setFormErrors({});
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingFeedback(null);
+    setFormErrors({});
   };
 
   const handleSubmit = async () => {
+    setFormErrors({});
     try {
       if (editingFeedback) {
         await feedbackService.update(editingFeedback.id, formData);
-        setMessage({ type: 'success', text: 'بازخورد با موفقیت به‌روزرسانی شد' });
+        enqueueSnackbar('بازخورد با موفقیت به‌روزرسانی شد', { variant: 'success' });
       } else {
         await feedbackService.create(formData);
-        setMessage({ type: 'success', text: 'بازخورد با موفقیت ثبت شد' });
+        enqueueSnackbar('بازخورد با موفقیت ثبت شد', { variant: 'success' });
       }
       handleCloseDialog();
       loadFeedbacks();
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در ذخیره بازخورد' });
+      // Extract field-specific errors
+      const errors = {};
+      if (error.response?.data) {
+        Object.keys(error.response.data).forEach((key) => {
+          if (key !== 'detail' && key !== 'non_field_errors') {
+            const errorValue = error.response.data[key];
+            errors[key] = Array.isArray(errorValue) ? errorValue[0] : errorValue;
+          }
+        });
+        if (error.response.data.non_field_errors) {
+          errors.description = Array.isArray(error.response.data.non_field_errors) 
+            ? error.response.data.non_field_errors[0] 
+            : error.response.data.non_field_errors;
+        }
+        if (error.response.data.detail && Object.keys(errors).length === 0) {
+          // Only show detail as toast if no field-specific errors
+          enqueueSnackbar(error.response.data.detail, { variant: 'error' });
+        }
+      }
+      setFormErrors(errors);
     }
   };
 
@@ -140,10 +163,10 @@ const FeedbackManager = () => {
     if (window.confirm('آیا مطمئن هستید که می‌خواهید این بازخورد را حذف کنید؟')) {
       try {
         await feedbackService.delete(feedbackId);
-        setMessage({ type: 'success', text: 'بازخورد با موفقیت حذف شد' });
+        enqueueSnackbar('بازخورد با موفقیت حذف شد', { variant: 'success' });
         loadFeedbacks();
       } catch (error) {
-        setMessage({ type: 'error', text: 'خطا در حذف بازخورد' });
+        enqueueSnackbar('خطا در حذف بازخورد', { variant: 'error' });
       }
     }
   };
@@ -191,11 +214,6 @@ const FeedbackManager = () => {
         </Button>
       </Box>
 
-      {message && (
-        <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage(null)}>
-          {message.text}
-        </Alert>
-      )}
 
       <TableControls
         searchValue={search}
@@ -275,9 +293,16 @@ const FeedbackManager = () => {
             fullWidth
             label="نوع بازخورد"
             value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, type: e.target.value });
+              if (formErrors.type) {
+                setFormErrors({ ...formErrors, type: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            error={!!formErrors.type}
+            helperText={formErrors.type}
           >
             {FEEDBACK_TYPES.map((type) => (
               <MenuItem key={type.value} value={type.value}>
@@ -291,11 +316,18 @@ const FeedbackManager = () => {
             rows={6}
             label="توضیحات"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, description: e.target.value });
+              if (formErrors.description) {
+                setFormErrors({ ...formErrors, description: '' });
+              }
+            }}
             margin="normal"
             required
             dir="rtl"
             placeholder="لطفاً نظر، انتقاد، پیشنهاد یا سوال خود را بنویسید..."
+            error={!!formErrors.description}
+            helperText={formErrors.description}
           />
         </DialogContent>
         <DialogActions>

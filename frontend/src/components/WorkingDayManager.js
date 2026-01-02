@@ -6,7 +6,6 @@ import {
   Grid,
   Card,
   CardContent,
-  Alert,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -18,6 +17,7 @@ import {
   ListItemText,
   Divider,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import BeachAccessIcon from '@mui/icons-material/BeachAccess';
@@ -34,6 +34,7 @@ const RESULT_CHOICES = Object.entries(REPORT_RESULT_LABELS).map(([value, label])
 }));
 
 const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
+  const { enqueueSnackbar } = useSnackbar();
   const [workingDay, setWorkingDay] = useState(todayWorkingDay);
   const [reports, setReports] = useState([]);
   const [openReportDialog, setOpenReportDialog] = useState(false);
@@ -43,7 +44,7 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
     result: 'ongoing',
     comment: '',
   });
-  const [message, setMessage] = useState(null);
+  const [reportErrors, setReportErrors] = useState({});
 
   // Pagination state for reports
   const [reportsPage, setReportsPage] = useState(1);
@@ -105,57 +106,60 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
     try {
       const response = await workingDayService.checkIn();
       setWorkingDay(response.data);
-      setMessage({ type: 'success', text: 'با موفقیت ورود کردید' });
+      enqueueSnackbar('با موفقیت ورود کردید', { variant: 'success' });
       if (onUpdate && typeof onUpdate === 'function') {
         onUpdate();
       }
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در ورود' });
+      enqueueSnackbar(error.response?.data?.detail || 'خطا در ورود', { variant: 'error' });
     }
   };
 
   const handleCheckOut = async () => {
     if (!workingDay?.id) {
-      setMessage({ type: 'error', text: 'روز کاری یافت نشد' });
+      enqueueSnackbar('روز کاری یافت نشد', { variant: 'error' });
       return;
     }
     try {
       await workingDayService.checkOut(workingDay.id);
-      setMessage({ type: 'success', text: 'با موفقیت خروج کردید' });
+      enqueueSnackbar('با موفقیت خروج کردید', { variant: 'success' });
       onUpdate();
       setWorkingDay(null);
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در خروج' });
+      enqueueSnackbar(error.response?.data?.detail || 'خطا در خروج', { variant: 'error' });
     }
   };
 
   const handleLeave = async () => {
     if (!workingDay?.id) {
-      setMessage({ type: 'error', text: 'روز کاری یافت نشد' });
+      enqueueSnackbar('روز کاری یافت نشد', { variant: 'error' });
       return;
     }
     try {
       await workingDayService.leave(workingDay.id);
-      setMessage({ type: 'success', text: 'روز به عنوان مرخصی ثبت شد' });
+      enqueueSnackbar('روز به عنوان مرخصی ثبت شد', { variant: 'success' });
       onUpdate();
       setWorkingDay(null);
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در ثبت مرخصی' });
+      enqueueSnackbar(error.response?.data?.detail || 'خطا در ثبت مرخصی', { variant: 'error' });
     }
   };
 
   const handleAddReport = async () => {
     if (!workingDay?.id) {
-      setMessage({ type: 'error', text: 'روز کاری یافت نشد' });
+      enqueueSnackbar('روز کاری یافت نشد', { variant: 'error' });
       return;
     }
+    
+    // Clear previous errors
+    setReportErrors({});
     
     // Validate that either task_id or task_name is provided
     const taskId = newReport.task_id ? (typeof newReport.task_id === 'string' ? newReport.task_id.trim() : String(newReport.task_id)) : '';
     const taskName = newReport.task_name ? newReport.task_name.trim() : '';
     
     if (!taskId && !taskName) {
-      setMessage({ type: 'error', text: 'لطفاً یک وظیفه انتخاب کنید یا عنوان وظیفه جدید را وارد کنید' });
+      setReportErrors({ task_id: 'لطفاً یک وظیفه انتخاب کنید یا عنوان وظیفه جدید را وارد کنید' });
       return;
     }
     
@@ -170,7 +174,7 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       if (taskId) {
         reportData.task_id = parseInt(taskId, 10);
         if (isNaN(reportData.task_id)) {
-          setMessage({ type: 'error', text: 'شناسه وظیفه نامعتبر است' });
+          setReportErrors({ task_id: 'شناسه وظیفه نامعتبر است' });
           return;
         }
       } else if (taskName) {
@@ -179,17 +183,46 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       
       await reportService.create(workingDay.id, reportData);
       
-      setMessage({ type: 'success', text: 'گزارش با موفقیت ثبت شد' });
+      enqueueSnackbar('گزارش با موفقیت ثبت شد', { variant: 'success' });
       setOpenReportDialog(false);
       setNewReport({ task_id: '', task_name: '', result: 'ongoing', comment: '' });
+      setReportErrors({});
       loadReports(workingDay.id);
     } catch (error) {
-      const errorMessage = error.response?.data?.detail || 
-                          error.response?.data?.task_id?.[0] ||
-                          error.response?.data?.task_name?.[0] ||
-                          error.response?.data?.non_field_errors?.[0] ||
-                          'خطا در ثبت گزارش';
-      setMessage({ type: 'error', text: errorMessage });
+      // Extract field-specific errors
+      const errors = {};
+      if (error.response?.data) {
+        if (error.response.data.task_id) {
+          errors.task_id = Array.isArray(error.response.data.task_id) 
+            ? error.response.data.task_id[0] 
+            : error.response.data.task_id;
+        }
+        if (error.response.data.task_name) {
+          errors.task_name = Array.isArray(error.response.data.task_name) 
+            ? error.response.data.task_name[0] 
+            : error.response.data.task_name;
+        }
+        if (error.response.data.result) {
+          errors.result = Array.isArray(error.response.data.result) 
+            ? error.response.data.result[0] 
+            : error.response.data.result;
+        }
+        if (error.response.data.comment) {
+          errors.comment = Array.isArray(error.response.data.comment) 
+            ? error.response.data.comment[0] 
+            : error.response.data.comment;
+        }
+        if (error.response.data.non_field_errors) {
+          errors.task_id = Array.isArray(error.response.data.non_field_errors) 
+            ? error.response.data.non_field_errors[0] 
+            : error.response.data.non_field_errors;
+        }
+        if (error.response.data.detail && Object.keys(errors).length === 0) {
+          // Only show detail as toast if no field-specific errors
+          enqueueSnackbar(error.response.data.detail, { variant: 'error' });
+        }
+      }
+      setReportErrors(errors);
     }
   };
 
@@ -219,12 +252,6 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
         مدیریت روز کاری
       </Typography>
-
-      {message && (
-        <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage(null)}>
-          {message.text}
-        </Alert>
-      )}
 
       {!workingDay ? (
         <Card>
@@ -369,13 +396,21 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       )}
 
       {/* Add Report Dialog */}
-      <Dialog open={openReportDialog} onClose={() => setOpenReportDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={openReportDialog} onClose={() => {
+        setOpenReportDialog(false);
+        setReportErrors({});
+      }} maxWidth="sm" fullWidth>
         <DialogTitle>افزودن گزارش کاری</DialogTitle>
         <DialogContent>
           <PaginatedSelect
             fetchFunction={taskService.getAll}
             value={newReport.task_id}
-            onChange={(e) => setNewReport({ ...newReport, task_id: e.target.value })}
+            onChange={(e) => {
+              setNewReport({ ...newReport, task_id: e.target.value });
+              if (reportErrors.task_id) {
+                setReportErrors({ ...reportErrors, task_id: '' });
+              }
+            }}
             label="انتخاب وظیفه"
             emptyOptionLabel="وظیفه جدید"
             emptyOptionValue=""
@@ -383,6 +418,8 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
             getOptionLabel={(opt) => opt.name}
             margin="normal"
             fullWidth
+            error={!!reportErrors.task_id}
+            helperText={reportErrors.task_id}
           />
 
           {!newReport.task_id && (
@@ -390,9 +427,17 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
               fullWidth
               label="عنوان وظیفه جدید"
               value={newReport.task_name}
-              onChange={(e) => setNewReport({ ...newReport, task_name: e.target.value })}
+              onChange={(e) => {
+                setNewReport({ ...newReport, task_name: e.target.value });
+                if (reportErrors.task_name) {
+                  setReportErrors({ ...reportErrors, task_name: '' });
+                }
+              }}
               margin="normal"
               dir="rtl"
+              required
+              error={!!reportErrors.task_name}
+              helperText={reportErrors.task_name}
             />
           )}
 
@@ -401,9 +446,17 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
             fullWidth
             label="نتیجه"
             value={newReport.result}
-            onChange={(e) => setNewReport({ ...newReport, result: e.target.value })}
+            onChange={(e) => {
+              setNewReport({ ...newReport, result: e.target.value });
+              if (reportErrors.result) {
+                setReportErrors({ ...reportErrors, result: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            required
+            error={!!reportErrors.result}
+            helperText={reportErrors.result}
           >
             {RESULT_CHOICES.map((choice) => (
               <MenuItem key={choice.value} value={choice.value}>
@@ -418,9 +471,16 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
             rows={4}
             label="توضیحات"
             value={newReport.comment}
-            onChange={(e) => setNewReport({ ...newReport, comment: e.target.value })}
+            onChange={(e) => {
+              setNewReport({ ...newReport, comment: e.target.value });
+              if (reportErrors.comment) {
+                setReportErrors({ ...reportErrors, comment: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            error={!!reportErrors.comment}
+            helperText={reportErrors.comment}
           />
         </DialogContent>
         <DialogActions>

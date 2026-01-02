@@ -19,8 +19,8 @@ import {
   MenuItem,
   IconButton,
   Chip,
-  Alert,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -45,10 +45,11 @@ const STATUS_CHOICES = [
 
 const TaskManager = () => {
   const { user } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
   const [tasks, setTasks] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
-  const [message, setMessage] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -121,9 +122,9 @@ const TaskManager = () => {
         setTotalCount(response.data.length);
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'خطا در بارگذاری وظایف' });
+      enqueueSnackbar('خطا در بارگذاری وظایف', { variant: 'error' });
     }
-  }, [buildParams]);
+  }, [buildParams, enqueueSnackbar]);
 
   useEffect(() => {
     loadTasks();
@@ -160,15 +161,18 @@ const TaskManager = () => {
         status: 'backlog',
       });
     }
+    setFormErrors({});
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingTask(null);
+    setFormErrors({});
   };
 
   const handleSubmit = async () => {
+    setFormErrors({});
     try {
       // Prepare data: convert empty strings to null for optional fields, ensure integers are numbers
       const submitData = { ...formData };
@@ -199,32 +203,34 @@ const TaskManager = () => {
 
       if (editingTask) {
         await taskService.update(editingTask.id, submitData);
-        setMessage({ type: 'success', text: 'وظیفه با موفقیت به‌روزرسانی شد' });
+        enqueueSnackbar('وظیفه با موفقیت به‌روزرسانی شد', { variant: 'success' });
       } else {
         await taskService.create(submitData);
-        setMessage({ type: 'success', text: 'وظیفه با موفقیت ایجاد شد' });
+        enqueueSnackbar('وظیفه با موفقیت ایجاد شد', { variant: 'success' });
       }
       handleCloseDialog();
       loadTasks();
     } catch (error) {
-      // Extract detailed error message
-      let errorMessage = 'خطا در ذخیره وظیفه';
+      // Extract field-specific errors
+      const errors = {};
       if (error.response?.data) {
-        if (error.response.data.detail) {
-          errorMessage = error.response.data.detail;
-        } else if (error.response.data.project_id) {
-          errorMessage = `پروژه: ${Array.isArray(error.response.data.project_id) ? error.response.data.project_id[0] : error.response.data.project_id}`;
-        } else if (typeof error.response.data === 'object') {
-          // Try to get first error message
-          const firstError = Object.values(error.response.data)[0];
-          if (Array.isArray(firstError) && firstError.length > 0) {
-            errorMessage = firstError[0];
-          } else if (typeof firstError === 'string') {
-            errorMessage = firstError;
+        Object.keys(error.response.data).forEach((key) => {
+          if (key !== 'detail' && key !== 'non_field_errors') {
+            const errorValue = error.response.data[key];
+            errors[key] = Array.isArray(errorValue) ? errorValue[0] : errorValue;
           }
+        });
+        if (error.response.data.non_field_errors) {
+          errors.name = Array.isArray(error.response.data.non_field_errors) 
+            ? error.response.data.non_field_errors[0] 
+            : error.response.data.non_field_errors;
+        }
+        if (error.response.data.detail && Object.keys(errors).length === 0) {
+          // Only show detail as toast if no field-specific errors
+          enqueueSnackbar(error.response.data.detail, { variant: 'error' });
         }
       }
-      setMessage({ type: 'error', text: errorMessage });
+      setFormErrors(errors);
     }
   };
 
@@ -232,10 +238,10 @@ const TaskManager = () => {
     if (window.confirm('آیا مطمئن هستید که می‌خواهید این وظیفه را حذف کنید؟')) {
       try {
         await taskService.delete(taskId);
-        setMessage({ type: 'success', text: 'وظیفه با موفقیت حذف شد' });
+        enqueueSnackbar('وظیفه با موفقیت حذف شد', { variant: 'success' });
         loadTasks();
       } catch (error) {
-        setMessage({ type: 'error', text: 'خطا در حذف وظیفه' });
+        enqueueSnackbar('خطا در حذف وظیفه', { variant: 'error' });
       }
     }
   };
@@ -304,11 +310,6 @@ const TaskManager = () => {
         </Button>
       </Box>
 
-      {message && (
-        <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage(null)}>
-          {message.text}
-        </Alert>
-      )}
 
       <TableControls
         searchValue={search}
@@ -450,10 +451,17 @@ const TaskManager = () => {
             fullWidth
             label="نام وظیفه"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value });
+              if (formErrors.name) {
+                setFormErrors({ ...formErrors, name: '' });
+              }
+            }}
             margin="normal"
             required
             dir="rtl"
+            error={!!formErrors.name}
+            helperText={formErrors.name}
           />
           <TextField
             fullWidth
@@ -461,9 +469,16 @@ const TaskManager = () => {
             rows={3}
             label="توضیحات"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, description: e.target.value });
+              if (formErrors.description) {
+                setFormErrors({ ...formErrors, description: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            error={!!formErrors.description}
+            helperText={formErrors.description}
           />
           <PaginatedSelect
             fetchFunction={projectService.getAll}
@@ -471,6 +486,9 @@ const TaskManager = () => {
             onChange={(e) => {
               const val = e.target.value;
               setFormData({ ...formData, project_id: val === '' ? '' : val });
+              if (formErrors.project_id) {
+                setFormErrors({ ...formErrors, project_id: '' });
+              }
             }}
             label="پروژه"
             emptyOptionLabel="بدون پروژه"
@@ -480,6 +498,8 @@ const TaskManager = () => {
             getOptionLabel={(opt) => opt.name}
             margin="normal"
             fullWidth
+            error={!!formErrors.project_id}
+            helperText={formErrors.project_id}
           />
           <PaginatedSelect
             fetchFunction={domainService.getAll}
@@ -487,6 +507,9 @@ const TaskManager = () => {
             onChange={(e) => {
               const val = e.target.value;
               setFormData({ ...formData, domain_id: val === '' ? '' : val });
+              if (formErrors.domain_id) {
+                setFormErrors({ ...formErrors, domain_id: '' });
+              }
             }}
             label="دامنه (اختیاری - در صورت عدم انتخاب از پروژه به ارث می‌برد)"
             emptyOptionLabel="بدون دامنه"
@@ -496,15 +519,25 @@ const TaskManager = () => {
             getOptionLabel={(opt) => opt.name}
             margin="normal"
             fullWidth
+            error={!!formErrors.domain_id}
+            helperText={formErrors.domain_id}
           />
           <TextField
             select
             fullWidth
             label="وضعیت"
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, status: e.target.value });
+              if (formErrors.status) {
+                setFormErrors({ ...formErrors, status: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            required
+            error={!!formErrors.status}
+            helperText={formErrors.status}
           >
             {STATUS_CHOICES.map((choice) => (
               <MenuItem key={choice.value} value={choice.value}>
@@ -517,40 +550,75 @@ const TaskManager = () => {
             type="number"
             label="فاز پروژه"
             value={formData.phase}
-            onChange={(e) => setFormData({ ...formData, phase: parseInt(e.target.value) })}
+            onChange={(e) => {
+              setFormData({ ...formData, phase: parseInt(e.target.value) });
+              if (formErrors.phase) {
+                setFormErrors({ ...formErrors, phase: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            error={!!formErrors.phase}
+            helperText={formErrors.phase}
           />
           <JalaliDatePicker
             fullWidth
             label="تاریخ شروع"
             value={formData.start_date}
-            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, start_date: e.target.value });
+              if (formErrors.start_date) {
+                setFormErrors({ ...formErrors, start_date: '' });
+              }
+            }}
             margin="normal"
+            error={!!formErrors.start_date}
+            helperText={formErrors.start_date}
           />
           <JalaliDatePicker
             fullWidth
             label="موعد نهایی"
             value={formData.deadline}
-            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, deadline: e.target.value });
+              if (formErrors.deadline) {
+                setFormErrors({ ...formErrors, deadline: '' });
+              }
+            }}
             margin="normal"
+            error={!!formErrors.deadline}
+            helperText={formErrors.deadline}
           />
           <TextField
             fullWidth
             type="number"
             label="برآورد نفر-ساعت"
             value={formData.estimated_hours}
-            onChange={(e) => setFormData({ ...formData, estimated_hours: parseInt(e.target.value) })}
+            onChange={(e) => {
+              setFormData({ ...formData, estimated_hours: parseInt(e.target.value) });
+              if (formErrors.estimated_hours) {
+                setFormErrors({ ...formErrors, estimated_hours: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            error={!!formErrors.estimated_hours}
+            helperText={formErrors.estimated_hours}
           />
           <TextField
             fullWidth
             type="color"
             label="رنگ"
             value={formData.color}
-            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, color: e.target.value });
+              if (formErrors.color) {
+                setFormErrors({ ...formErrors, color: '' });
+              }
+            }}
             margin="normal"
+            error={!!formErrors.color}
+            helperText={formErrors.color}
           />
         </DialogContent>
         <DialogActions>

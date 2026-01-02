@@ -8,21 +8,22 @@ import {
   Typography,
   Container,
   Paper,
-  Alert,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 
 const Login = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setErrors({});
     setLoading(true);
 
     const result = await login(username, password);
@@ -30,7 +31,14 @@ const Login = () => {
     if (result.success) {
       navigate('/dashboard');
     } else {
-      setError(result.error);
+      // Try to extract field-specific errors
+      if (result.error && result.error.includes('نام کاربری')) {
+        setErrors({ username: result.error });
+      } else if (result.error && result.error.includes('رمز عبور')) {
+        setErrors({ password: result.error });
+      } else {
+        setErrors({ username: result.error });
+      }
     }
     
     setLoading(false);
@@ -82,11 +90,6 @@ const Login = () => {
             </Typography>
           </Box>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
-          )}
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <TextField
@@ -98,8 +101,15 @@ const Login = () => {
               autoComplete="username"
               autoFocus
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                if (errors.username) {
+                  setErrors({ ...errors, username: '' });
+                }
+              }}
               dir="rtl"
+              error={!!errors.username}
+              helperText={errors.username}
               sx={{ 
                 width: '60%',
                 '& .MuiInputBase-input': {
@@ -107,9 +117,6 @@ const Login = () => {
                   textAlign: 'center',
                   padding: '8px 14px'
                 }
-              }}
-              InputLabelProps={{
-                required: false
               }}
               inputProps={{
                 style: { textAlign: 'center' }
@@ -124,8 +131,15 @@ const Login = () => {
               id="password"
               autoComplete="current-password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errors.password) {
+                  setErrors({ ...errors, password: '' });
+                }
+              }}
               dir="rtl"
+              error={!!errors.password}
+              helperText={errors.password}
               sx={{ 
                 width: '60%',
                 '& .MuiInputBase-input': {
@@ -133,9 +147,6 @@ const Login = () => {
                   textAlign: 'center',
                   padding: '8px 14px'
                 }
-              }}
-              InputLabelProps={{
-                required: false
               }}
               inputProps={{
                 style: { textAlign: 'center' }

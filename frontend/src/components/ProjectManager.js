@@ -18,8 +18,8 @@ import {
   MenuItem,
   IconButton,
   Chip,
-  Alert,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -43,10 +43,11 @@ const STATUS_CHOICES = [
 ];
 
 const ProjectManager = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const [projects, setProjects] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
-  const [message, setMessage] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -107,9 +108,9 @@ const ProjectManager = () => {
         setTotalCount(response.data.length);
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'خطا در بارگذاری پروژه‌ها' });
+      enqueueSnackbar('خطا در بارگذاری پروژه‌ها', { variant: 'error' });
     }
-  }, [buildParams]);
+  }, [buildParams, enqueueSnackbar]);
 
   useEffect(() => {
     loadProjects();
@@ -141,27 +142,49 @@ const ProjectManager = () => {
         status: 'backlog',
       });
     }
+    setFormErrors({});
     setOpenDialog(true);
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingProject(null);
+    setFormErrors({});
   };
 
   const handleSubmit = async () => {
+    setFormErrors({});
     try {
       if (editingProject) {
         await projectService.update(editingProject.id, formData);
-        setMessage({ type: 'success', text: 'پروژه با موفقیت به‌روزرسانی شد' });
+        enqueueSnackbar('پروژه با موفقیت به‌روزرسانی شد', { variant: 'success' });
       } else {
         await projectService.create(formData);
-        setMessage({ type: 'success', text: 'پروژه با موفقیت ایجاد شد' });
+        enqueueSnackbar('پروژه با موفقیت ایجاد شد', { variant: 'success' });
       }
       handleCloseDialog();
       loadProjects();
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.detail || 'خطا در ذخیره پروژه' });
+      // Extract field-specific errors
+      const errors = {};
+      if (error.response?.data) {
+        Object.keys(error.response.data).forEach((key) => {
+          if (key !== 'detail' && key !== 'non_field_errors') {
+            const errorValue = error.response.data[key];
+            errors[key] = Array.isArray(errorValue) ? errorValue[0] : errorValue;
+          }
+        });
+        if (error.response.data.non_field_errors) {
+          errors.name = Array.isArray(error.response.data.non_field_errors) 
+            ? error.response.data.non_field_errors[0] 
+            : error.response.data.non_field_errors;
+        }
+        if (error.response.data.detail && Object.keys(errors).length === 0) {
+          // Only show detail as toast if no field-specific errors
+          enqueueSnackbar(error.response.data.detail, { variant: 'error' });
+        }
+      }
+      setFormErrors(errors);
     }
   };
 
@@ -169,10 +192,10 @@ const ProjectManager = () => {
     if (window.confirm('آیا مطمئن هستید که می‌خواهید این پروژه را حذف کنید؟')) {
       try {
         await projectService.delete(projectId);
-        setMessage({ type: 'success', text: 'پروژه با موفقیت حذف شد' });
+        enqueueSnackbar('پروژه با موفقیت حذف شد', { variant: 'success' });
         loadProjects();
       } catch (error) {
-        setMessage({ type: 'error', text: 'خطا در حذف پروژه' });
+        enqueueSnackbar('خطا در حذف پروژه', { variant: 'error' });
       }
     }
   };
@@ -238,11 +261,6 @@ const ProjectManager = () => {
         </Button>
       </Box>
 
-      {message && (
-        <Alert severity={message.type} sx={{ mb: 2 }} onClose={() => setMessage(null)}>
-          {message.text}
-        </Alert>
-      )}
 
       <TableControls
         searchValue={search}
@@ -359,10 +377,17 @@ const ProjectManager = () => {
             fullWidth
             label="نام پروژه"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value });
+              if (formErrors.name) {
+                setFormErrors({ ...formErrors, name: '' });
+              }
+            }}
             margin="normal"
             required
             dir="rtl"
+            error={!!formErrors.name}
+            helperText={formErrors.name}
           />
           <TextField
             fullWidth
@@ -370,14 +395,26 @@ const ProjectManager = () => {
             rows={3}
             label="توضیحات"
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, description: e.target.value });
+              if (formErrors.description) {
+                setFormErrors({ ...formErrors, description: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            error={!!formErrors.description}
+            helperText={formErrors.description}
           />
           <PaginatedSelect
             fetchFunction={domainService.getAll}
             value={formData.domain_id}
-            onChange={(e) => setFormData({ ...formData, domain_id: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, domain_id: e.target.value });
+              if (formErrors.domain_id) {
+                setFormErrors({ ...formErrors, domain_id: '' });
+              }
+            }}
             label="دامنه"
             emptyOptionLabel="بدون دامنه"
             emptyOptionValue=""
@@ -385,15 +422,25 @@ const ProjectManager = () => {
             getOptionLabel={(opt) => opt.name}
             margin="normal"
             fullWidth
+            error={!!formErrors.domain_id}
+            helperText={formErrors.domain_id}
           />
           <TextField
             select
             fullWidth
             label="وضعیت"
             value={formData.status}
-            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, status: e.target.value });
+              if (formErrors.status) {
+                setFormErrors({ ...formErrors, status: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            required
+            error={!!formErrors.status}
+            helperText={formErrors.status}
           >
             {STATUS_CHOICES.map((choice) => (
               <MenuItem key={choice.value} value={choice.value}>
@@ -405,32 +452,60 @@ const ProjectManager = () => {
             fullWidth
             label="تاریخ شروع"
             value={formData.start_date}
-            onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, start_date: e.target.value });
+              if (formErrors.start_date) {
+                setFormErrors({ ...formErrors, start_date: '' });
+              }
+            }}
             margin="normal"
+            error={!!formErrors.start_date}
+            helperText={formErrors.start_date}
           />
           <JalaliDatePicker
             fullWidth
             label="موعد نهایی"
             value={formData.deadline}
-            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, deadline: e.target.value });
+              if (formErrors.deadline) {
+                setFormErrors({ ...formErrors, deadline: '' });
+              }
+            }}
             margin="normal"
+            error={!!formErrors.deadline}
+            helperText={formErrors.deadline}
           />
           <TextField
             fullWidth
             type="number"
             label="برآورد نفر-ساعت"
             value={formData.estimated_hours}
-            onChange={(e) => setFormData({ ...formData, estimated_hours: parseInt(e.target.value) })}
+            onChange={(e) => {
+              setFormData({ ...formData, estimated_hours: parseInt(e.target.value) });
+              if (formErrors.estimated_hours) {
+                setFormErrors({ ...formErrors, estimated_hours: '' });
+              }
+            }}
             margin="normal"
             dir="rtl"
+            error={!!formErrors.estimated_hours}
+            helperText={formErrors.estimated_hours}
           />
           <TextField
             fullWidth
             type="color"
             label="رنگ"
             value={formData.color}
-            onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, color: e.target.value });
+              if (formErrors.color) {
+                setFormErrors({ ...formErrors, color: '' });
+              }
+            }}
             margin="normal"
+            error={!!formErrors.color}
+            helperText={formErrors.color}
           />
         </DialogContent>
         <DialogActions>

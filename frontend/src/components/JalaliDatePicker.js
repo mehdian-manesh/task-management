@@ -46,7 +46,7 @@ const dateToGregorian = (date) => {
   }
 };
 
-const JalaliDatePicker = ({ value, onChange, label, required, margin = 'normal', fullWidth = true, ...props }) => {
+const JalaliDatePicker = ({ value, onChange, label, required, margin = 'normal', fullWidth = true, error, helperText, ...props }) => {
   const [open, setOpen] = useState(false);
 
   // Convert incoming Gregorian date string to Date object
@@ -175,6 +175,8 @@ const JalaliDatePicker = ({ value, onChange, label, required, margin = 'normal',
             required,
             margin,
             onClick: () => setOpen(true),
+            error,
+            helperText,
             ...props,
           },
           inputAdornment: {

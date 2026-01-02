@@ -20,8 +20,8 @@ import {
   ListItemText,
   Chip,
   Divider,
-  Alert,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 import DownloadIcon from '@mui/icons-material/Download';
 import { reportService } from '../api/services';
 import { getCurrentJalaliDate, formatJalaliPeriod } from '../utils/jalaliReportUtils';
@@ -39,9 +39,9 @@ const PERIOD_TYPES = [
 ];
 
 const ReportViewer = ({ reportType = 'individual' }) => {
+  const { enqueueSnackbar } = useSnackbar();
   const [reportData, setReportData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   
   // Period selection state
   const [periodType, setPeriodType] = useState('weekly');
@@ -92,13 +92,11 @@ const ReportViewer = ({ reportType = 'individual' }) => {
   
   const loadReport = async () => {
     if (reportType === 'team' && !selectedDomainId) {
-      setError(null);
       setReportData(null);
       return;
     }
     
     setLoading(true);
-    setError(null);
     
     try {
       const params = {
@@ -126,7 +124,8 @@ const ReportViewer = ({ reportType = 'individual' }) => {
       setReportData(response.data);
     } catch (error) {
       console.error('Error loading report:', error);
-      setError(error.response?.data?.detail || 'خطا در بارگذاری گزارش');
+      enqueueSnackbar(error.response?.data?.detail || 'خطا در بارگذاری گزارش', { variant: 'error' });
+      setReportData(null);
     } finally {
       setLoading(false);
     }
@@ -142,7 +141,7 @@ const ReportViewer = ({ reportType = 'individual' }) => {
   
   const handleExportPDF = async () => {
     if (reportType === 'team' && !selectedDomainId) {
-      setError('لطفاً یک حوزه انتخاب کنید');
+      enqueueSnackbar('لطفاً یک حوزه انتخاب کنید', { variant: 'error' });
       return;
     }
     
@@ -180,19 +179,12 @@ const ReportViewer = ({ reportType = 'individual' }) => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
+      enqueueSnackbar('PDF با موفقیت دانلود شد', { variant: 'success' });
     } catch (error) {
       console.error('Error exporting PDF:', error);
-      setError('خطا در تولید PDF');
+      enqueueSnackbar('خطا در تولید PDF', { variant: 'error' });
     }
   };
-  
-  if (error && !loading) {
-    return (
-      <Box>
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
-  }
   
   const formatDate = (date) => formatToJalali(date);
 

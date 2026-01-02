@@ -221,6 +221,8 @@ const PaginatedSelect = ({
           ) : otherProps.InputProps?.endAdornment,
         }}
         dir="rtl"
+        error={otherProps.error}
+        helperText={otherProps.helperText}
       />
       
       <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
