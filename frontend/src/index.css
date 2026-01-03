@@ -31,7 +31,7 @@ body::before {
   left: 0;
   right: 0;
   bottom: 0;
-  background: 
+  background:
     radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
@@ -39,7 +39,7 @@ body::before {
   z-index: 0;
 }
 
-body > #root {
+body>#root {
   position: relative;
   z-index: 1;
 }
@@ -51,7 +51,7 @@ body.dark-mode {
 }
 
 body.dark-mode::before {
-  background: 
+  background:
     radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
@@ -137,9 +137,10 @@ body.dark-mode *::-webkit-scrollbar-thumb:hover {
 [data-rbd-draggable-id] {
   direction: inherit;
 }
+
 /* Target the clone/portaled element that react-beautiful-dnd creates when dragging */
-body > [data-rbd-drag-handle-draggable-id],
-body > [data-rbd-draggable-id] {
+body>[data-rbd-drag-handle-draggable-id],
+body>[data-rbd-draggable-id] {
   direction: ltr !important;
 }
 

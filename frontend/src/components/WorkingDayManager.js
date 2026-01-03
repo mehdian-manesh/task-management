@@ -102,6 +102,7 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
   }, [todayWorkingDay, loadReports, reportsPage, reportsFilters, reportsOrdering]);
 
 
+
   const handleCheckIn = async () => {
     try {
       const response = await workingDayService.checkIn();
@@ -396,10 +397,15 @@ const WorkingDayManager = ({ todayWorkingDay, onUpdate }) => {
       )}
 
       {/* Add Report Dialog */}
-      <Dialog open={openReportDialog} onClose={() => {
-        setOpenReportDialog(false);
-        setReportErrors({});
-      }} maxWidth="sm" fullWidth>
+      <Dialog 
+        open={openReportDialog} 
+        onClose={() => {
+          setOpenReportDialog(false);
+          setReportErrors({});
+        }} 
+        maxWidth="sm" 
+        fullWidth
+      >
         <DialogTitle>افزودن گزارش کاری</DialogTitle>
         <DialogContent>
           <PaginatedSelect

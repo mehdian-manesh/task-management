@@ -197,11 +197,36 @@ export const createAppTheme = (mode = 'light') => createTheme(
         defaultProps: {
           dir: 'rtl',
         },
+        styleOverrides: {
+          root: {
+            '& .MuiInputLabel-root': {
+              marginBottom: '2px',
+            },
+            '& .MuiInputBase-root': {
+              marginTop: '0 !important',
+            },
+          },
+        },
       },
       MuiInputLabel: {
         styleOverrides: {
           root: {
             transformOrigin: 'right',
+            display: 'flex',
+            flexDirection: 'row-reverse',
+            justifyContent: 'flex-end',
+            marginBottom: '2px',
+            paddingRight: '12px',
+            '& .MuiInputLabel-asterisk': {
+              order: 1,
+              marginRight: '4px',
+              marginLeft: 0,
+            },
+            '&.MuiInputLabel-shrink': {
+              transformOrigin: 'right',
+              paddingRight: '0 !important',
+              paddingLeft: '0 !important',
+            },
           },
         },
       },

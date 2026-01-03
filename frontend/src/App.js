@@ -97,6 +97,208 @@ function ThemedAppContent() {
     };
   }, []);
 
+  // Fix RTL InputLabel positioning for all labels in the application
+  React.useEffect(() => {
+    const fixedLabels = new WeakSet();
+    let rafId = null;
+    let debounceTimer = null;
+
+    const fixLabelPositioning = (forceRefix = false) => {
+      if (rafId) return;
+
+      rafId = requestAnimationFrame(() => {
+        const labels = document.querySelectorAll('.MuiInputLabel-root.MuiInputLabel-shrink');
+        labels.forEach((label) => {
+          if (!forceRefix && fixedLabels.has(label)) {
+            const currentLeft = label.style.left;
+            if (currentLeft && currentLeft.includes('px')) {
+              const computedStyle = window.getComputedStyle(label);
+              if (parseFloat(computedStyle.paddingRight) > 0 || parseFloat(computedStyle.paddingLeft) > 0) {
+                label.style.setProperty('padding-right', '0', 'important');
+                label.style.setProperty('padding-left', '0', 'important');
+              }
+              return;
+            }
+          }
+
+          const parent = label.closest('.MuiFormControl-root');
+          if (!parent) return;
+
+          const isRtl = parent.getAttribute('dir') === 'rtl' ||
+            window.getComputedStyle(parent).direction === 'rtl';
+          if (!isRtl) return;
+
+          label.style.setProperty('padding-right', '0', 'important');
+          label.style.setProperty('padding-left', '0', 'important');
+          // Never touch font/transform; only position. This avoids changing perceived font sizing.
+          label.style.removeProperty('transform');
+
+          const input = parent.querySelector('.MuiOutlinedInput-root');
+          const inputComputed = input ? window.getComputedStyle(input) : null;
+          const inputPaddingRight = inputComputed ? parseFloat(inputComputed.paddingRight) || 14 : 14;
+          const parentRect = parent.getBoundingClientRect();
+          const labelRect = label.getBoundingClientRect();
+          const labelWidth = labelRect.width;
+
+          // Calculate spacing: use minimal spacing to eliminate empty space on the right
+          // Keep some spacing for long labels to prevent overflow
+          const baseSpacing = inputPaddingRight;
+          const spacingAdjustment = labelWidth > 200 ? -6 : (labelWidth > 100 ? -10 : -12);
+          const spacing = Math.max(0, baseSpacing + spacingAdjustment);
+          let newLeft = Math.max(0, parentRect.width - labelWidth - spacing);
+
+          // Ensure label doesn't overflow: constrain to parent bounds
+          // Set initial position
+          label.style.setProperty('left', `${newLeft}px`, 'important');
+          label.style.setProperty('right', 'unset', 'important');
+
+          // Force reflow and re-measure to check for overflow
+          void label.offsetHeight;
+          const afterRect = label.getBoundingClientRect();
+          const actualLabelWidth = afterRect.width;
+
+          // If label overflows, adjust position
+          // Calculate maxLeft based on actual width after positioning
+          const maxLeft = parentRect.width - actualLabelWidth - spacing;
+
+          if (afterRect.right > parentRect.right) {
+            // Calculate the actual overflow amount
+            const overflowAmount = afterRect.right - parentRect.right;
+            // Calculate current left relative to parent
+            const currentLeftRelative = afterRect.left - parentRect.left;
+            // Calculate new left relative to parent to prevent overflow
+            const adjustedLeftRelative = currentLeftRelative - overflowAmount - 1; // -1 for safety margin
+            const adjustedLeft = Math.max(0, adjustedLeftRelative);
+
+            label.style.setProperty('left', `${adjustedLeft}px`, 'important');
+
+            // Force reflow and re-measure after adjustment
+            void label.offsetHeight;
+            const finalRect = label.getBoundingClientRect();
+            // If still overflowing, clamp using right instead of transform (transform can affect visual sizing)
+            if (finalRect.right > parentRect.right) {
+              label.style.setProperty('left', 'auto', 'important');
+              label.style.setProperty('right', `${spacing}px`, 'important');
+            }
+          }
+
+          fixedLabels.add(label);
+        });
+        rafId = null;
+      });
+    };
+
+    const debouncedFix = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => fixLabelPositioning(), 50);
+    };
+
+    const handleInputFocus = (e) => {
+      const formControl = e.target.closest('.MuiFormControl-root');
+      if (formControl) {
+        setTimeout(() => {
+          const label = formControl.querySelector('.MuiInputLabel-root.MuiInputLabel-shrink');
+          if (label) {
+            fixedLabels.delete(label);
+            fixLabelPositioning(true);
+          }
+        }, 50);
+      }
+    };
+
+    const handleResize = () => {
+      fixLabelPositioning(true);
+    };
+
+    const checkLabels = () => {
+      const labels = document.querySelectorAll('.MuiInputLabel-root.MuiInputLabel-shrink');
+      let hasUnfixedLabels = false;
+
+      labels.forEach((label) => {
+        if (!fixedLabels.has(label)) {
+          hasUnfixedLabels = true;
+        } else {
+          const currentLeft = label.style.left;
+          const computedStyle = window.getComputedStyle(label);
+          const hasPadding = parseFloat(computedStyle.paddingRight) > 0 ||
+            parseFloat(computedStyle.paddingLeft) > 0;
+
+          if (!currentLeft || !currentLeft.includes('px') || hasPadding) {
+            fixedLabels.delete(label);
+            hasUnfixedLabels = true;
+          }
+        }
+      });
+
+      if (hasUnfixedLabels) {
+        fixLabelPositioning(true);
+      }
+    };
+
+    const handleDialogOpen = () => {
+      [100, 300, 600].forEach((delay) => {
+        setTimeout(() => fixLabelPositioning(true), delay);
+      });
+    };
+
+    const observer = new MutationObserver((mutations) => {
+      let shouldFix = false;
+
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const target = mutation.target;
+          if (target.classList?.contains('MuiInputLabel-root') &&
+            target.classList.contains('MuiInputLabel-shrink')) {
+            fixedLabels.delete(target);
+            shouldFix = true;
+          }
+        }
+
+        if (mutation.type === 'childList') {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType !== 1) continue;
+
+            if (node.classList?.contains('MuiDialog-root') ||
+              node.querySelector?.('.MuiDialog-root')) {
+              handleDialogOpen();
+              shouldFix = true;
+            } else if (node.classList?.contains('MuiInputLabel-root') ||
+              node.querySelector?.('.MuiInputLabel-root.MuiInputLabel-shrink')) {
+              shouldFix = true;
+            }
+          }
+        }
+
+        if (shouldFix) break;
+      }
+
+      if (shouldFix) {
+        debouncedFix();
+      }
+    });
+
+    setTimeout(fixLabelPositioning, 200);
+    const intervalId = setInterval(checkLabels, 300);
+
+    document.addEventListener('focusin', handleInputFocus);
+    window.addEventListener('resize', handleResize);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => {
+      clearInterval(intervalId);
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (rafId) cancelAnimationFrame(rafId);
+      observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('focusin', handleInputFocus);
+    };
+  }, []);
+
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />

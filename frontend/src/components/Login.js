@@ -9,10 +9,8 @@ import {
   Container,
   Paper,
 } from '@mui/material';
-import { useSnackbar } from 'notistack';
 
 const Login = () => {
-  const { enqueueSnackbar } = useSnackbar();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
