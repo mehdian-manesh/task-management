@@ -16,10 +16,10 @@ jdatetime = "*"
 weasyprint = "*"
 django-crontab = "*"
 user-agents = "*"
-
-[dev-packages]
 drf-spectacular = "*"
 django-extensions = "*"
+
+[dev-packages]
 pytest = "*"
 pytest-django = "*"
 pytest-cov = "*"
