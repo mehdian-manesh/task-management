@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Box,
@@ -33,6 +33,7 @@ import SortableTableHeader from './SortableTableHeader';
 import PaginatedSelect from './PaginatedSelect';
 import JalaliDatePicker from './JalaliDatePicker';
 
+// Memoized status choices outside component to avoid recreation
 const STATUS_CHOICES = [
   { value: 'postpone', label: 'معوق شده' },
   { value: 'backlog', label: 'لیست انتظار' },
@@ -42,6 +43,65 @@ const STATUS_CHOICES = [
   { value: 'done', label: 'انجام شده' },
   { value: 'archive', label: 'بایگانی' },
 ];
+
+// Memoized status colors outside component
+const STATUS_COLORS = {
+  postpone: 'warning',
+  backlog: 'default',
+  todo: 'info',
+  doing: 'primary',
+  test: 'secondary',
+  done: 'success',
+  archive: 'default',
+};
+
+// Memoized Task Row component to prevent unnecessary re-renders
+const TaskRow = memo(({ task, onEdit, onDelete, user, getStatusColor }) => (
+  <TableRow key={task.id}>
+    <TableCell align="right">
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            backgroundColor: task.color || '#1976d2',
+          }}
+        />
+        {task.name}
+      </Box>
+    </TableCell>
+    <TableCell align="right">
+      {task.project?.name || '-'}
+    </TableCell>
+    <TableCell align="right">
+      <Chip
+        label={STATUS_CHOICES.find(s => s.value === task.status)?.label}
+        color={getStatusColor(task.status)}
+        size="small"
+      />
+    </TableCell>
+    <TableCell align="right">{task.phase ? toPersianNumbers(task.phase) : '-'}</TableCell>
+    <TableCell align="right">
+      <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
+        {formatToJalali(task.deadline)}
+      </Box>
+    </TableCell>
+    <TableCell align="right">
+      {task.is_draft && <Chip label="پیش‌نویس" size="small" color="warning" />}
+    </TableCell>
+    <TableCell align="right">
+      <IconButton size="small" onClick={() => onEdit(task)}>
+        <EditIcon fontSize="small" />
+      </IconButton>
+      {(user?.isAdmin || task.is_draft) && (
+        <IconButton size="small" onClick={() => onDelete(task.id)}>
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      )}
+    </TableCell>
+  </TableRow>
+));
 
 const TaskManager = () => {
   const { user } = useAuth();
@@ -65,7 +125,8 @@ const TaskManager = () => {
   });
   const [ordering, setOrdering] = useState('-created_at');
   
-  const [formData, setFormData] = useState({
+  // Memoized initial form data
+  const initialFormData = useMemo(() => ({
     name: '',
     description: '',
     color: '#1976d2',
@@ -76,7 +137,9 @@ const TaskManager = () => {
     estimated_hours: 0,
     phase: 0,
     status: 'backlog',
-  });
+  }), []);
+
+  const [formData, setFormData] = useState(initialFormData);
 
   const buildParams = useCallback(() => {
     const params = {
@@ -131,7 +194,7 @@ const TaskManager = () => {
   }, [loadTasks]);
 
 
-  const handleOpenDialog = (task = null) => {
+  const handleOpenDialog = useCallback((task = null) => {
     if (task) {
       setEditingTask(task);
       setFormData({
@@ -148,28 +211,17 @@ const TaskManager = () => {
       });
     } else {
       setEditingTask(null);
-      setFormData({
-        name: '',
-        description: '',
-        color: '#1976d2',
-        project_id: '',
-        domain_id: '',
-        start_date: '',
-        deadline: '',
-        estimated_hours: 0,
-        phase: 0,
-        status: 'backlog',
-      });
+      setFormData(initialFormData);
     }
     setFormErrors({});
     setOpenDialog(true);
-  };
+  }, [initialFormData]);
 
-  const handleCloseDialog = () => {
+  const handleCloseDialog = useCallback(() => {
     setOpenDialog(false);
     setEditingTask(null);
     setFormErrors({});
-  };
+  }, []);
 
   const handleSubmit = async () => {
     setFormErrors({});
@@ -234,7 +286,7 @@ const TaskManager = () => {
     }
   };
 
-  const handleDelete = async (taskId) => {
+  const handleDelete = useCallback(async (taskId) => {
     if (window.confirm('آیا مطمئن هستید که می‌خواهید این وظیفه را حذف کنید؟')) {
       try {
         await taskService.delete(taskId);
@@ -244,19 +296,19 @@ const TaskManager = () => {
         enqueueSnackbar('خطا در حذف وظیفه', { variant: 'error' });
       }
     }
-  };
+  }, [enqueueSnackbar, loadTasks]);
 
-  const handleSearchChange = (value) => {
+  const handleSearchChange = useCallback((value) => {
     setSearch(value);
     setPage(1); // Reset to first page on search
-  };
+  }, []);
 
-  const handleFilterChange = (key, value) => {
-    setFilters({ ...filters, [key]: value });
+  const handleFilterChange = useCallback((key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
     setPage(1); // Reset to first page on filter change
-  };
+  }, []);
 
-  const handleSortChange = (sortKey) => {
+  const handleSortChange = useCallback((sortKey) => {
     if (sortKey) {
       // Toggle if same column, otherwise set new sort
       const currentKey = ordering.startsWith('-') ? ordering.substring(1) : ordering;
@@ -271,31 +323,22 @@ const TaskManager = () => {
       setOrdering('-created_at');
     }
     setPage(1);
-  };
+  }, [ordering]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearch('');
     setFilters({ status: '', project: '', is_draft: '' });
     setOrdering('-created_at');
     setPage(1);
-  };
+  }, []);
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = useCallback((newPage) => {
     setPage(newPage);
-  };
+  }, []);
 
-  const getStatusColor = (status) => {
-    const colors = {
-      postpone: 'warning',
-      backlog: 'default',
-      todo: 'info',
-      doing: 'primary',
-      test: 'secondary',
-      done: 'success',
-      archive: 'default',
-    };
-    return colors[status] || 'default';
-  };
+  const getStatusColor = useCallback((status) => {
+    return STATUS_COLORS[status] || 'default';
+  }, []);
 
   return (
     <Box>
@@ -388,50 +431,14 @@ const TaskManager = () => {
           </TableHead>
           <TableBody>
             {tasks.map((task) => (
-              <TableRow key={task.id}>
-                <TableCell align="right">
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: '50%',
-                        backgroundColor: task.color || '#1976d2',
-                      }}
-                    />
-                    {task.name}
-                  </Box>
-                </TableCell>
-                <TableCell align="right">
-                  {task.project?.name || '-'}
-                </TableCell>
-                <TableCell align="right">
-                  <Chip
-                    label={STATUS_CHOICES.find(s => s.value === task.status)?.label}
-                    color={getStatusColor(task.status)}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell align="right">{task.phase ? toPersianNumbers(task.phase) : '-'}</TableCell>
-                <TableCell align="right">
-                  <Box component="span" dir="ltr" style={{ direction: 'ltr', display: 'inline-block' }}>
-                    {formatToJalali(task.deadline)}
-                  </Box>
-                </TableCell>
-                <TableCell align="right">
-                  {task.is_draft && <Chip label="پیش‌نویس" size="small" color="warning" />}
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton size="small" onClick={() => handleOpenDialog(task)}>
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  {(user?.isAdmin || task.is_draft) && (
-                    <IconButton size="small" onClick={() => handleDelete(task.id)}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                </TableCell>
-              </TableRow>
+              <TaskRow
+                key={task.id}
+                task={task}
+                onEdit={handleOpenDialog}
+                onDelete={handleDelete}
+                user={user}
+                getStatusColor={getStatusColor}
+              />
             ))}
           </TableBody>
         </Table>
@@ -632,4 +639,4 @@ const TaskManager = () => {
   );
 };
 
-export default TaskManager;
+export default memo(TaskManager);

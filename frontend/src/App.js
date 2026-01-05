@@ -34,56 +34,98 @@ function ThemedAppContent() {
     }
   }, [actualMode]);
 
-  // Convert all numbers in the DOM to Persian numerals (fallback for any missed numbers)
+  // Convert all numbers in the DOM to Persian numerals (optimized version)
   React.useEffect(() => {
-    // Use WeakSet to track processed text nodes (text nodes don't have dataset property)
+    // Use WeakSet to track processed text nodes
     const processedNodes = new WeakSet();
+    const processedElements = new WeakSet();
 
     const convertTextNodes = (root) => {
-      const walker = document.createTreeWalker(
-        root,
-        NodeFilter.SHOW_TEXT,
-        {
-          acceptNode: (node) => {
-            // Skip script and style tags
-            const parent = node.parentElement;
-            if (parent && (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE')) {
-              return NodeFilter.FILTER_REJECT;
-            }
-            // Skip if already processed
-            if (processedNodes.has(node)) {
-              return NodeFilter.FILTER_REJECT;
-            }
-            // Only process if contains digits
-            if (node.textContent && /\d/.test(node.textContent)) {
-              return NodeFilter.FILTER_ACCEPT;
-            }
-            return NodeFilter.FILTER_REJECT;
-          }
-        }
+      // Only process elements that are likely to contain numbers
+      const numberElements = root.querySelectorAll(
+        'span, div, p, td, th, li, h1, h2, h3, h4, h5, h6, button, input[type="text"], input[type="number"]'
       );
 
-      let textNode;
-      while ((textNode = walker.nextNode())) {
-        const text = textNode.textContent;
-        if (text && /\d/.test(text)) {
+      numberElements.forEach((element) => {
+        if (processedElements.has(element)) return;
+
+        // Skip elements with specific classes that shouldn't be converted
+        if (element.classList?.contains('MuiInputBase-input') ||
+            element.classList?.contains('MuiTypography-root') ||
+            element.getAttribute('dir') === 'ltr') {
+          return;
+        }
+
+        const textNodes = [];
+        const walker = document.createTreeWalker(
+          element,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode: (node) => {
+              if (processedNodes.has(node)) {
+                return NodeFilter.FILTER_REJECT;
+              }
+              if (node.textContent && /\d/.test(node.textContent)) {
+                return NodeFilter.FILTER_ACCEPT;
+              }
+              return NodeFilter.FILTER_REJECT;
+            }
+          }
+        );
+
+        let textNode;
+        while ((textNode = walker.nextNode())) {
+          textNodes.push(textNode);
+        }
+
+        textNodes.forEach((node) => {
+          const text = node.textContent;
           const persianText = toPersianNumbers(text);
           if (text !== persianText) {
-            textNode.textContent = persianText;
-            processedNodes.add(textNode);
+            node.textContent = persianText;
+            processedNodes.add(node);
           }
-        }
-      }
+        });
+
+        processedElements.add(element);
+      });
     };
 
-    // Initial conversion
+    // Initial conversion with delay to allow DOM to settle
     const timeoutId = setTimeout(() => {
       convertTextNodes(document.body);
-    }, 100);
+    }, 200);
 
-    // Use MutationObserver for dynamic content
-    const observer = new MutationObserver(() => {
-      convertTextNodes(document.body);
+    // Optimized MutationObserver - only trigger on specific mutations
+    let debounceTimer = null;
+    const observer = new MutationObserver((mutations) => {
+      let shouldConvert = false;
+
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          // Check if added nodes contain text with numbers
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === Node.TEXT_NODE && /\d/.test(node.textContent)) {
+              shouldConvert = true;
+              break;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              const textContent = node.textContent || '';
+              if (/\d/.test(textContent)) {
+                shouldConvert = true;
+                break;
+              }
+            }
+          }
+        }
+        if (shouldConvert) break;
+      }
+
+      if (shouldConvert) {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          convertTextNodes(document.body);
+        }, 50);
+      }
     });
 
     observer.observe(document.body, {
@@ -93,6 +135,7 @@ function ThemedAppContent() {
 
     return () => {
       clearTimeout(timeoutId);
+      if (debounceTimer) clearTimeout(debounceTimer);
       observer.disconnect();
     };
   }, []);

@@ -38,7 +38,8 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
-    "baseline-browser-mapping": "^2.9.11"
+    "baseline-browser-mapping": "^2.9.11",
+    "compression-webpack-plugin": "^10.0.0"
   },
   "eslintConfig": {
     "extends": [
