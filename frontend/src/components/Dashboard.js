@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Box,
@@ -8,41 +8,24 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
-  CircularProgress,
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import { workingDayService } from '../api/services';
-
-// Lazy load components for code splitting
-const WorkingDayManager = lazy(() => import('./WorkingDayManager'));
-const TaskManager = lazy(() => import('./TaskManager'));
-const ProjectManager = lazy(() => import('./ProjectManager'));
-const FeedbackManager = lazy(() => import('./FeedbackManager'));
-const Kanban = lazy(() => import('./Kanban'));
-const UserManagement = lazy(() => import('./UserManagement'));
-const Statistics = lazy(() => import('./Statistics'));
-const OrganizationalDashboard = lazy(() => import('./OrganizationalDashboard'));
-const OrganizationalStructure = lazy(() => import('./OrganizationalStructure'));
-const SystemLogs = lazy(() => import('./SystemLogs'));
-const Settings = lazy(() => import('./Settings'));
-const Sidebar = lazy(() => import('./Sidebar'));
-const UserProfile = lazy(() => import('./UserProfile'));
-const MeetingManager = lazy(() => import('./MeetingManager'));
-const Reports = lazy(() => import('./Reports'));
-
-// Loading component
-const LoadingFallback = () => (
-  <Box
-    sx={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      minHeight: '200px',
-    }}
-  >
-    <CircularProgress />
-  </Box>
-);
+import WorkingDayManager from './WorkingDayManager';
+import TaskManager from './TaskManager';
+import ProjectManager from './ProjectManager';
+import FeedbackManager from './FeedbackManager';
+import Kanban from './Kanban';
+import UserManagement from './UserManagement';
+import Statistics from './Statistics';
+import OrganizationalDashboard from './OrganizationalDashboard';
+import OrganizationalStructure from './OrganizationalStructure';
+import SystemLogs from './SystemLogs';
+import Settings from './Settings';
+import Sidebar from './Sidebar';
+import UserProfile from './UserProfile';
+import MeetingManager from './MeetingManager';
+import Reports from './Reports';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -261,27 +244,23 @@ const Dashboard = () => {
             maxWidth: '100%',
           }}
         >
-          <Suspense fallback={<LoadingFallback />}>
-            {renderView()}
-          </Suspense>
+          {renderView()}
         </Box>
       </Box>
 
       {/* Sidebar - Right Side */}
       <Box>
-        <Suspense fallback={<LoadingFallback />}>
-          <Sidebar
-            open={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
-            user={user}
-            onLogout={handleLogout}
-            currentView={currentView}
-            setCurrentView={setCurrentView}
-            collapsed={sidebarCollapsed}
-            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-            onProfileClick={() => setCurrentView('profile')}
-          />
-        </Suspense>
+        <Sidebar
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          user={user}
+          onLogout={handleLogout}
+          currentView={currentView}
+          setCurrentView={setCurrentView}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onProfileClick={() => setCurrentView('profile')}
+        />
       </Box>
     </Box>
   );

@@ -34,98 +34,56 @@ function ThemedAppContent() {
     }
   }, [actualMode]);
 
-  // Convert all numbers in the DOM to Persian numerals (optimized version)
+  // Convert all numbers in the DOM to Persian numerals (fallback for any missed numbers)
   React.useEffect(() => {
-    // Use WeakSet to track processed text nodes
+    // Use WeakSet to track processed text nodes (text nodes don't have dataset property)
     const processedNodes = new WeakSet();
-    const processedElements = new WeakSet();
 
     const convertTextNodes = (root) => {
-      // Only process elements that are likely to contain numbers
-      const numberElements = root.querySelectorAll(
-        'span, div, p, td, th, li, h1, h2, h3, h4, h5, h6, button, input[type="text"], input[type="number"]'
-      );
-
-      numberElements.forEach((element) => {
-        if (processedElements.has(element)) return;
-
-        // Skip elements with specific classes that shouldn't be converted
-        if (element.classList?.contains('MuiInputBase-input') ||
-            element.classList?.contains('MuiTypography-root') ||
-            element.getAttribute('dir') === 'ltr') {
-          return;
-        }
-
-        const textNodes = [];
-        const walker = document.createTreeWalker(
-          element,
-          NodeFilter.SHOW_TEXT,
-          {
-            acceptNode: (node) => {
-              if (processedNodes.has(node)) {
-                return NodeFilter.FILTER_REJECT;
-              }
-              if (node.textContent && /\d/.test(node.textContent)) {
-                return NodeFilter.FILTER_ACCEPT;
-              }
+      const walker = document.createTreeWalker(
+        root,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode: (node) => {
+            // Skip script and style tags
+            const parent = node.parentElement;
+            if (parent && (parent.tagName === 'SCRIPT' || parent.tagName === 'STYLE')) {
               return NodeFilter.FILTER_REJECT;
             }
+            // Skip if already processed
+            if (processedNodes.has(node)) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            // Only process if contains digits
+            if (node.textContent && /\d/.test(node.textContent)) {
+              return NodeFilter.FILTER_ACCEPT;
+            }
+            return NodeFilter.FILTER_REJECT;
           }
-        );
-
-        let textNode;
-        while ((textNode = walker.nextNode())) {
-          textNodes.push(textNode);
         }
+      );
 
-        textNodes.forEach((node) => {
-          const text = node.textContent;
+      let textNode;
+      while ((textNode = walker.nextNode())) {
+        const text = textNode.textContent;
+        if (text && /\d/.test(text)) {
           const persianText = toPersianNumbers(text);
           if (text !== persianText) {
-            node.textContent = persianText;
-            processedNodes.add(node);
-          }
-        });
-
-        processedElements.add(element);
-      });
-    };
-
-    // Initial conversion with delay to allow DOM to settle
-    const timeoutId = setTimeout(() => {
-      convertTextNodes(document.body);
-    }, 200);
-
-    // Optimized MutationObserver - only trigger on specific mutations
-    let debounceTimer = null;
-    const observer = new MutationObserver((mutations) => {
-      let shouldConvert = false;
-
-      for (const mutation of mutations) {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          // Check if added nodes contain text with numbers
-          for (const node of mutation.addedNodes) {
-            if (node.nodeType === Node.TEXT_NODE && /\d/.test(node.textContent)) {
-              shouldConvert = true;
-              break;
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
-              const textContent = node.textContent || '';
-              if (/\d/.test(textContent)) {
-                shouldConvert = true;
-                break;
-              }
-            }
+            textNode.textContent = persianText;
+            processedNodes.add(textNode);
           }
         }
-        if (shouldConvert) break;
       }
+    };
 
-      if (shouldConvert) {
-        if (debounceTimer) clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          convertTextNodes(document.body);
-        }, 50);
-      }
+    // Initial conversion
+    const timeoutId = setTimeout(() => {
+      convertTextNodes(document.body);
+    }, 100);
+
+    // Use MutationObserver for dynamic content
+    const observer = new MutationObserver(() => {
+      convertTextNodes(document.body);
     });
 
     observer.observe(document.body, {
@@ -135,7 +93,6 @@ function ThemedAppContent() {
 
     return () => {
       clearTimeout(timeoutId);
-      if (debounceTimer) clearTimeout(debounceTimer);
       observer.disconnect();
     };
   }, []);
@@ -201,8 +158,6 @@ function ThemedAppContent() {
           const actualLabelWidth = afterRect.width;
 
           // If label overflows, adjust position
-          // Calculate maxLeft based on actual width after positioning
-          const maxLeft = parentRect.width - actualLabelWidth - spacing;
 
           if (afterRect.right > parentRect.right) {
             // Calculate the actual overflow amount
