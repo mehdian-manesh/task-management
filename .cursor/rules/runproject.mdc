@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+i have run my web application using `docker compose -f docker-compose.dev.yml up` and go to the `https://localhost:2443` to test and view my application.

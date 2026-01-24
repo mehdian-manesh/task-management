@@ -1,0 +1,31 @@
+# Development Dockerfile for Backend
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install system dependencies (including Pillow and WeasyPrint requirements)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
+        libjpeg-dev \
+        zlib1g-dev \
+        libpng-dev \
+        libpango-1.0-0 \
+        libpangocairo-1.0-0 \
+        libpangoft2-1.0-0 \
+        libgobject-2.0-0 \
+        libglib2.0-0 \
+        libcairo2 \
+        libgdk-pixbuf-2.0-0 \
+        shared-mime-info \
+        fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install pipenv
+RUN pip install --no-cache-dir pipenv
+
+# Expose port
+EXPOSE 8000
+
+# Start development server
+CMD ["sh", "/app/entrypoint.dev.sh"]

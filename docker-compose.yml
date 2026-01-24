@@ -1,0 +1,91 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+      - backend_venv:/app/.venv
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      - DEBUG=1
+      - LANG=C.UTF-8
+      - DJANGO_SECRET_KEY=dev_secret_key
+      - DJANGO_ALLOWED_HOSTS=localhost,backend
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/taskmanagement
+      - TZ=Asia/Tehran
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request, sys; r = urllib.request.urlopen('http://localhost:8000/health/'); sys.exit(0 if r.status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=https://localhost:${HTTPS_PORT:-443}/api
+      - WATCHPACK_POLLING=true
+      - BASELINE_BROWSER_MAPPING_IGNORE_OLD_DATA=1
+      - BROWSERSLIST_IGNORE_OLD_DATA=1
+      - NODE_OPTIONS=--no-warnings --no-deprecation
+      - TZ=Asia/Tehran
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', (err) => { process.exit(1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=taskmanagement
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - TZ=Asia/Tehran
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taskmanagement"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:
+  backend_venv:

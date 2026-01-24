@@ -1,0 +1,260 @@
+@import url('https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css');
+
+* {
+  direction: rtl;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Vazir', 'Inter', 'Roboto', Tahoma, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  direction: rtl;
+  text-align: right;
+  background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 30%, #f8fafc 60%, #f3f4f6 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background 0.3s ease;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body>#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dark mode background - Liquid Glass Style */
+body.dark-mode {
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 30%, #0f172a 60%, #1a1f3a 100%);
+  background-attachment: fixed;
+}
+
+body.dark-mode::before {
+  background:
+    radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+}
+
+code {
+  font-family: 'Vazir Code', 'Inter', source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+input,
+textarea,
+select {
+  font-family: 'Vazir', 'Inter', Tahoma, Arial, sans-serif;
+}
+
+/* Responsive improvements */
+@media (max-width: 600px) {
+  body {
+    font-size: 14px;
+  }
+}
+
+/* Smooth scrolling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+body.dark-mode *::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Force sidebar to right side in RTL */
+[data-testid="dashboard-container"] {
+  direction: rtl !important;
+}
+
+.MuiDrawer-root.MuiDrawer-anchorRight {
+  right: 0 !important;
+  left: auto !important;
+}
+
+.MuiDrawer-root.MuiDrawer-anchorRight .MuiDrawer-paper {
+  right: 0 !important;
+  left: auto !important;
+  transform: none !important;
+  --Paper-overlay: none !important;
+  background-image: none !important;
+}
+
+/* Fix react-beautiful-dnd RTL positioning issue */
+/* When dragging, force LTR direction on the dragged element to fix cursor offset */
+[data-rbd-draggable-id] {
+  direction: inherit;
+}
+
+/* Target the clone/portaled element that react-beautiful-dnd creates when dragging */
+body>[data-rbd-drag-handle-draggable-id],
+body>[data-rbd-draggable-id] {
+  direction: ltr !important;
+}
+
+/* Remove transparency from Select boxes and their options */
+.MuiSelect-outlined {
+  background: var(--mui-palette-background-paper, rgba(255, 255, 255, 1)) !important;
+  background-image: none !important;
+}
+
+body.dark-mode .MuiSelect-outlined {
+  background: rgba(15, 23, 42, 1) !important;
+  background-image: none !important;
+}
+
+.MuiMenu-paper {
+  background: var(--mui-palette-background-paper, rgba(255, 255, 255, 1)) !important;
+  background-image: none !important;
+  --Paper-overlay: none !important;
+}
+
+body.dark-mode .MuiMenu-paper {
+  background: rgba(15, 23, 42, 1) !important;
+  background-image: none !important;
+}
+
+.MuiMenu-list {
+  background: transparent !important;
+}
+
+.MuiMenuItem-root {
+  background: transparent !important;
+}
+
+body.dark-mode .MuiMenuItem-root {
+  background: transparent !important;
+}
+
+.MuiMenuItem-root:hover {
+  background: rgba(241, 245, 249, 1) !important;
+}
+
+body.dark-mode .MuiMenuItem-root:hover {
+  background: rgba(30, 41, 59, 1) !important;
+}
+
+/* Fix LTR direction for Date Picker inputs */
+.MuiPickersInputBase-root {
+  direction: ltr !important;
+}
+
+.MuiPickersInputBase-input {
+  direction: ltr !important;
+  text-align: left !important;
+  font-variant-numeric: normal !important;
+}
+
+.MuiPickersInputBase-input input,
+.MuiPickersInputBase-input input[dir],
+input.MuiPickersInputBase-input,
+input[type="text"].MuiPickersInputBase-input {
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: normal !important;
+}
+
+.MuiPickersInputBase-inputAdornedEnd {
+  padding-right: 14px !important;
+  padding-left: 0 !important;
+}
+
+.MuiPickersInputBase-adornedEnd .MuiInputAdornment-root {
+  margin-right: 0 !important;
+  margin-left: auto !important;
+}
+
+/* Convert Western numerals to Persian in date picker inputs using JavaScript */
+.MuiPickersInputBase-input input::after {
+  content: attr(data-persian-value);
+}
+
+/* Remove transparency from Date Picker popup */
+.MuiPickersPopper-paper {
+  background: var(--mui-palette-background-paper, rgba(255, 255, 255, 1)) !important;
+  background-image: none !important;
+  --Paper-overlay: none !important;
+}
+
+body.dark-mode .MuiPickersPopper-paper {
+  background: rgba(15, 23, 42, 1) !important;
+  background-image: none !important;
+}
+
+.MuiPickersCalendarHeader-root,
+.MuiDayCalendar-root,
+.MuiPickersDay-root,
+.MuiPickersArrowSwitcher-root,
+.MuiClock-root,
+.MuiClockNumber-root,
+.MuiPickersToolbar-root {
+  background: transparent !important;
+}
+
+.MuiPickersDay-root:hover {
+  background: rgba(241, 245, 249, 1) !important;
+}
+
+body.dark-mode .MuiPickersDay-root:hover {
+  background: rgba(30, 41, 59, 1) !important;
+}
+
+.MuiPickersDay-root.Mui-selected {
+  background: rgba(37, 99, 235, 0.8) !important;
+}
+
+.MuiPickersDay-root.Mui-selected:hover {
+  background: rgba(37, 99, 235, 0.9) !important;
+}

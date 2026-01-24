@@ -1,0 +1,54 @@
+﻿# Development Caddyfile
+{
+    # Debug mode for development
+    debug
+    # Use self-signed certificates
+    local_certs
+}
+
+localhost {
+    tls internal
+
+    # Backend API
+    handle /api/* {
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host {host}
+            header_up X-Forwarded-Port {port}
+        }
+    }
+
+    # Media files (profile pictures, etc.) - served by Django backend
+    handle /media/* {
+        reverse_proxy backend:8000 {
+            header_up X-Forwarded-Proto {scheme}
+            header_up X-Forwarded-Host {host}
+            header_up X-Forwarded-Port {port}
+        }
+    }
+
+    # Frontend
+    handle /socket.io/* {
+        reverse_proxy frontend:3000
+    }
+    handle /* {
+        reverse_proxy frontend:3000
+    }
+
+    # Handle websocket connections
+    @websockets {
+        header Connection *Upgrade*
+        header Upgrade websocket
+    }
+    handle @websockets {
+        reverse_proxy frontend:3000
+    }
+
+    # Enable logging
+    log {
+        output stdout
+        format console
+        level DEBUG
+    }
+}
+

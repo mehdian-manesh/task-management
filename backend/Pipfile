@@ -1,0 +1,29 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+django = "*"
+djangorestframework = "*"
+djangorestframework-simplejwt = "*"
+django-cors-headers = "*"
+drf-nested-routers = "*"
+pillow = "*"
+django-filter = "*"
+python-dateutil = "*"
+jdatetime = "*"
+weasyprint = "*"
+django-crontab = "*"
+user-agents = "*"
+drf-spectacular = "*"
+django-extensions = "*"
+
+[dev-packages]
+pytest = "*"
+pytest-django = "*"
+pytest-cov = "*"
+pytest-xdist = "*"
+
+[requires]
+python_version = "3.13"

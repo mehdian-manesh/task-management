@@ -1,0 +1,829 @@
+[
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "admin",
+        "importPath": "django.contrib",
+        "description": "django.contrib",
+        "isExtraImport": true,
+        "detail": "django.contrib",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
+        "documentation": {}
+    },
+    {
+        "label": "AppConfig",
+        "importPath": "django.apps",
+        "description": "django.apps",
+        "isExtraImport": true,
+        "detail": "django.apps",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "TestCase",
+        "importPath": "django.test",
+        "description": "django.test",
+        "isExtraImport": true,
+        "detail": "django.test",
+        "documentation": {}
+    },
+    {
+        "label": "render",
+        "importPath": "django.shortcuts",
+        "description": "django.shortcuts",
+        "isExtraImport": true,
+        "detail": "django.shortcuts",
+        "documentation": {}
+    },
+    {
+        "label": "django.db.models.deletion",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "django.db.models.deletion",
+        "description": "django.db.models.deletion",
+        "detail": "django.db.models.deletion",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "settings",
+        "importPath": "django.conf",
+        "description": "django.conf",
+        "isExtraImport": true,
+        "detail": "django.conf",
+        "documentation": {}
+    },
+    {
+        "label": "enum",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "enum",
+        "description": "enum",
+        "detail": "enum",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "User",
+        "importPath": "django.contrib.auth.models",
+        "description": "django.contrib.auth.models",
+        "isExtraImport": true,
+        "detail": "django.contrib.auth.models",
+        "documentation": {}
+    },
+    {
+        "label": "serializers",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "status",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "viewsets",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "permissions",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "status",
+        "importPath": "rest_framework",
+        "description": "rest_framework",
+        "isExtraImport": true,
+        "detail": "rest_framework",
+        "documentation": {}
+    },
+    {
+        "label": "pytest",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pytest",
+        "description": "pytest",
+        "detail": "pytest",
+        "documentation": {}
+    },
+    {
+        "label": "reverse",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "path",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "include",
+        "importPath": "django.urls",
+        "description": "django.urls",
+        "isExtraImport": true,
+        "detail": "django.urls",
+        "documentation": {}
+    },
+    {
+        "label": "APITestCase",
+        "importPath": "rest_framework.test",
+        "description": "rest_framework.test",
+        "isExtraImport": true,
+        "detail": "rest_framework.test",
+        "documentation": {}
+    },
+    {
+        "label": "APIClient",
+        "importPath": "rest_framework.test",
+        "description": "rest_framework.test",
+        "isExtraImport": true,
+        "detail": "rest_framework.test",
+        "documentation": {}
+    },
+    {
+        "label": "*",
+        "importPath": "core.models",
+        "description": "core.models",
+        "isExtraImport": true,
+        "detail": "core.models",
+        "documentation": {}
+    },
+    {
+        "label": "*",
+        "importPath": "core.serializers",
+        "description": "core.serializers",
+        "isExtraImport": true,
+        "detail": "core.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "RefreshToken",
+        "importPath": "rest_framework_simplejwt.tokens",
+        "description": "rest_framework_simplejwt.tokens",
+        "isExtraImport": true,
+        "detail": "rest_framework_simplejwt.tokens",
+        "documentation": {}
+    },
+    {
+        "label": "DefaultRouter",
+        "importPath": "rest_framework.routers",
+        "description": "rest_framework.routers",
+        "isExtraImport": true,
+        "detail": "rest_framework.routers",
+        "documentation": {}
+    },
+    {
+        "label": "timezone",
+        "importPath": "django.utils",
+        "description": "django.utils",
+        "isExtraImport": true,
+        "detail": "django.utils",
+        "documentation": {}
+    },
+    {
+        "label": "action",
+        "importPath": "rest_framework.decorators",
+        "description": "rest_framework.decorators",
+        "isExtraImport": true,
+        "detail": "rest_framework.decorators",
+        "documentation": {}
+    },
+    {
+        "label": "Response",
+        "importPath": "rest_framework.response",
+        "description": "rest_framework.response",
+        "isExtraImport": true,
+        "detail": "rest_framework.response",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "get_asgi_application",
+        "importPath": "django.core.asgi",
+        "description": "django.core.asgi",
+        "isExtraImport": true,
+        "detail": "django.core.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "Path",
+        "importPath": "pathlib",
+        "description": "pathlib",
+        "isExtraImport": true,
+        "detail": "pathlib",
+        "documentation": {}
+    },
+    {
+        "label": "TokenObtainPairView",
+        "importPath": "rest_framework_simplejwt.views",
+        "description": "rest_framework_simplejwt.views",
+        "isExtraImport": true,
+        "detail": "rest_framework_simplejwt.views",
+        "documentation": {}
+    },
+    {
+        "label": "TokenRefreshView",
+        "importPath": "rest_framework_simplejwt.views",
+        "description": "rest_framework_simplejwt.views",
+        "isExtraImport": true,
+        "detail": "rest_framework_simplejwt.views",
+        "documentation": {}
+    },
+    {
+        "label": "get_wsgi_application",
+        "importPath": "django.core.wsgi",
+        "description": "django.core.wsgi",
+        "isExtraImport": true,
+        "detail": "django.core.wsgi",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "AccountsConfig",
+        "kind": 6,
+        "importPath": "backend.accounts.apps",
+        "description": "backend.accounts.apps",
+        "peekOfCode": "class AccountsConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'accounts'",
+        "detail": "backend.accounts.apps",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "backend.core.migrations.0001_initial",
+        "description": "backend.core.migrations.0001_initial",
+        "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Feedback',\n            fields=[\n                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),",
+        "detail": "backend.core.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "CoreConfig",
+        "kind": 6,
+        "importPath": "backend.core.apps",
+        "description": "backend.core.apps",
+        "peekOfCode": "class CoreConfig(AppConfig):\n    default_auto_field = 'django.db.models.BigAutoField'\n    name = 'core'",
+        "detail": "backend.core.apps",
+        "documentation": {}
+    },
+    {
+        "label": "StatusChoices",
+        "kind": 6,
+        "importPath": "backend.core.models",
+        "description": "backend.core.models",
+        "peekOfCode": "class StatusChoices(enum.Enum):\n    POSTPONE = 'postpone'\n    BACKLOG = 'backlog'\n    TODO = 'todo'\n    DOING = 'doing'\n    TEST = 'test'\n    DONE = 'done'\n    ARCHIVE = 'archive'\nclass ReportResultChoices(enum.Enum):\n    ONGOING = 'ongoing'  # هنوز تمام نشده",
+        "detail": "backend.core.models",
+        "documentation": {}
+    },
+    {
+        "label": "ReportResultChoices",
+        "kind": 6,
+        "importPath": "backend.core.models",
+        "description": "backend.core.models",
+        "peekOfCode": "class ReportResultChoices(enum.Enum):\n    ONGOING = 'ongoing'  # هنوز تمام نشده\n    SUCCESS = 'success'  # با موفقیت انجام شد\n    POSTPONED = 'postponed'  # به تعویق افتاد\n    FAILED = 'failed'  # موفق به انجام آن نشدم\n    CANCELLED = 'cancelled'  # کنسل شد\nclass FeedbackTypeChoices(enum.Enum):\n    CRITICISM = 'criticism'  # انتقاد\n    SUGGESTION = 'suggestion'  # پیشنهاد\n    QUESTION = 'question'  # سوال",
+        "detail": "backend.core.models",
+        "documentation": {}
+    },
+    {
+        "label": "FeedbackTypeChoices",
+        "kind": 6,
+        "importPath": "backend.core.models",
+        "description": "backend.core.models",
+        "peekOfCode": "class FeedbackTypeChoices(enum.Enum):\n    CRITICISM = 'criticism'  # انتقاد\n    SUGGESTION = 'suggestion'  # پیشنهاد\n    QUESTION = 'question'  # سوال\nclass Project(models.Model):\n    name = models.CharField(max_length=255)\n    description = models.TextField(blank=True)\n    color = models.CharField(max_length=7, blank=True)  # e.g., hex code\n    assignees = models.ManyToManyField(User, related_name='assigned_projects', blank=True)\n    start_date = models.DateField(null=True, blank=True)",
+        "detail": "backend.core.models",
+        "documentation": {}
+    },
+    {
+        "label": "Project",
+        "kind": 6,
+        "importPath": "backend.core.models",
+        "description": "backend.core.models",
+        "peekOfCode": "class Project(models.Model):\n    name = models.CharField(max_length=255)\n    description = models.TextField(blank=True)\n    color = models.CharField(max_length=7, blank=True)  # e.g., hex code\n    assignees = models.ManyToManyField(User, related_name='assigned_projects', blank=True)\n    start_date = models.DateField(null=True, blank=True)\n    deadline = models.DateField(null=True, blank=True)\n    estimated_hours = models.IntegerField(default=0)\n    status = models.CharField(\n        max_length=20,",
+        "detail": "backend.core.models",
+        "documentation": {}
+    },
+    {
+        "label": "Task",
+        "kind": 6,
+        "importPath": "backend.core.models",
+        "description": "backend.core.models",
+        "peekOfCode": "class Task(models.Model):\n    name = models.CharField(max_length=255)\n    description = models.TextField(blank=True)\n    color = models.CharField(max_length=7, blank=True)  # e.g., hex code\n    project = models.ForeignKey(Project, on_delete=models.SET_NULL, null=True, blank=True, related_name='tasks')\n    assignees = models.ManyToManyField(User, related_name='assigned_tasks', blank=True)\n    start_date = models.DateField(null=True, blank=True)\n    deadline = models.DateField(null=True, blank=True)\n    estimated_hours = models.PositiveIntegerField(default=0)\n    phase = models.PositiveSmallIntegerField(default=0)  # Integer field for project phase",
+        "detail": "backend.core.models",
+        "documentation": {}
+    },
+    {
+        "label": "WorkingDay",
+        "kind": 6,
+        "importPath": "backend.core.models",
+        "description": "backend.core.models",
+        "peekOfCode": "class WorkingDay(models.Model):\n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='working_days')\n    check_in = models.DateTimeField(auto_now_add=True)  # Automatically set on creation (check-in)\n    check_out = models.DateTimeField(null=True, blank=True)  # Set manually on check-out\nclass Report(models.Model):\n    working_day = models.ForeignKey(WorkingDay, on_delete=models.CASCADE, related_name='reports')\n    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='reports')\n    result = models.CharField(\n        max_length=20,\n        choices=[(result.value, result.name.capitalize()) for result in ReportResultChoices],",
+        "detail": "backend.core.models",
+        "documentation": {}
+    },
+    {
+        "label": "Report",
+        "kind": 6,
+        "importPath": "backend.core.models",
+        "description": "backend.core.models",
+        "peekOfCode": "class Report(models.Model):\n    working_day = models.ForeignKey(WorkingDay, on_delete=models.CASCADE, related_name='reports')\n    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='reports')\n    result = models.CharField(\n        max_length=20,\n        choices=[(result.value, result.name.capitalize()) for result in ReportResultChoices],\n        default=ReportResultChoices.ONGOING.value\n    )\n    comment = models.TextField(max_length=1000, blank=True)  # Optional, up to 1000 characters\n    start_time = models.DateTimeField(null=True, blank=True)",
+        "detail": "backend.core.models",
+        "documentation": {}
+    },
+    {
+        "label": "Feedback",
+        "kind": 6,
+        "importPath": "backend.core.models",
+        "description": "backend.core.models",
+        "peekOfCode": "class Feedback(models.Model):\n    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedbacks')\n    description = models.TextField()  # Mandatory explanation text\n    type = models.CharField(\n        max_length=20,\n        choices=[(ftype.value, ftype.name.capitalize()) for ftype in FeedbackTypeChoices],\n        null=True,\n        blank=True\n    )  # Optional",
+        "detail": "backend.core.models",
+        "documentation": {}
+    },
+    {
+        "label": "ProjectSerializer",
+        "kind": 6,
+        "importPath": "backend.core.serializers",
+        "description": "backend.core.serializers",
+        "peekOfCode": "class ProjectSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Project\n        fields = '__all__'  # Or specify: ['id', 'name', 'description', 'color', 'assignees', 'start_date', 'deadline', 'estimated_hours', 'status']\nclass TaskSerializer(serializers.ModelSerializer):\n    project = ProjectSerializer(read_only=True)  # Nested for read, or use PrimaryKeyRelatedField for write\n    class Meta:\n        model = Task\n        fields = '__all__'  # Or specify: ['id', 'name', 'description', 'color', 'project', 'assignees', 'start_date', 'deadline', 'estimated_hours', 'phase', 'is_draft', 'status']\nclass WorkingDaySerializer(serializers.ModelSerializer):",
+        "detail": "backend.core.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "TaskSerializer",
+        "kind": 6,
+        "importPath": "backend.core.serializers",
+        "description": "backend.core.serializers",
+        "peekOfCode": "class TaskSerializer(serializers.ModelSerializer):\n    project = ProjectSerializer(read_only=True)  # Nested for read, or use PrimaryKeyRelatedField for write\n    class Meta:\n        model = Task\n        fields = '__all__'  # Or specify: ['id', 'name', 'description', 'color', 'project', 'assignees', 'start_date', 'deadline', 'estimated_hours', 'phase', 'is_draft', 'status']\nclass WorkingDaySerializer(serializers.ModelSerializer):\n    reports = serializers.PrimaryKeyRelatedField(many=True,\n                                                 read_only=True)  # Or use a nested ReportSerializer if full details are needed\n    date = serializers.SerializerMethodField()\n    def get_date(self, obj):",
+        "detail": "backend.core.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "WorkingDaySerializer",
+        "kind": 6,
+        "importPath": "backend.core.serializers",
+        "description": "backend.core.serializers",
+        "peekOfCode": "class WorkingDaySerializer(serializers.ModelSerializer):\n    reports = serializers.PrimaryKeyRelatedField(many=True,\n                                                 read_only=True)  # Or use a nested ReportSerializer if full details are needed\n    date = serializers.SerializerMethodField()\n    def get_date(self, obj):\n        return obj.check_in.date() if obj.check_in else None\n    class Meta:\n        model = WorkingDay\n        fields = '__all__'  # Or specify: ['id', 'user', 'check_in', 'check_out', 'reports']\n        read_only_fields = ['user']  # Ensure user is set to request.user in views",
+        "detail": "backend.core.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "ReportSerializer",
+        "kind": 6,
+        "importPath": "backend.core.serializers",
+        "description": "backend.core.serializers",
+        "peekOfCode": "class ReportSerializer(serializers.ModelSerializer):\n    task = TaskSerializer(read_only=True)  # Nested for details\n    class Meta:\n        model = Report\n        fields = '__all__'  # Or specify: ['id', 'working_day', 'task', 'result', 'comment', 'start_time', 'end_time']\nclass FeedbackSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Feedback\n        fields = '__all__'  # Or specify: ['id', 'user', 'description', 'type']\n        read_only_fields = ['user']  # Set to request.user in views",
+        "detail": "backend.core.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "FeedbackSerializer",
+        "kind": 6,
+        "importPath": "backend.core.serializers",
+        "description": "backend.core.serializers",
+        "peekOfCode": "class FeedbackSerializer(serializers.ModelSerializer):\n    class Meta:\n        model = Feedback\n        fields = '__all__'  # Or specify: ['id', 'user', 'description', 'type']\n        read_only_fields = ['user']  # Set to request.user in views",
+        "detail": "backend.core.serializers",
+        "documentation": {}
+    },
+    {
+        "label": "TestModels",
+        "kind": 6,
+        "importPath": "backend.core.tests",
+        "description": "backend.core.tests",
+        "peekOfCode": "class TestModels:\n    def test_project_creation(self, user):\n        project = Project.objects.create(\n            name='Test Project',\n            status=StatusChoices.BACKLOG.value\n        )\n        project.assignees.set([user])\n        assert project.name == 'Test Project'\n        assert project.status == 'backlog'\n        assert user in project.assignees.all()",
+        "detail": "backend.core.tests",
+        "documentation": {}
+    },
+    {
+        "label": "TestProjectAPI",
+        "kind": 6,
+        "importPath": "backend.core.tests",
+        "description": "backend.core.tests",
+        "peekOfCode": "class TestProjectAPI(APITestCase):\n    def setUp(self):\n        self.client = APIClient()\n        self.user = User.objects.create_user(username='user', password='pass')\n        self.admin = User.objects.create_superuser(username='admin', password='pass', email='admin@example.com')\n        self.project = Project.objects.create(name='Test Project')\n        self.project.assignees.set([self.user])\n    def authenticate(self, user):\n        refresh = RefreshToken.for_user(user)\n        access_token = str(refresh.access_token)",
+        "detail": "backend.core.tests",
+        "documentation": {}
+    },
+    {
+        "label": "user",
+        "kind": 2,
+        "importPath": "backend.core.tests",
+        "description": "backend.core.tests",
+        "peekOfCode": "def user():\n    return User.objects.create_user(username='testuser', password='testpass')\n@pytest.mark.django_db\nclass TestModels:\n    def test_project_creation(self, user):\n        project = Project.objects.create(\n            name='Test Project',\n            status=StatusChoices.BACKLOG.value\n        )\n        project.assignees.set([user])",
+        "detail": "backend.core.tests",
+        "documentation": {}
+    },
+    {
+        "label": "router",
+        "kind": 5,
+        "importPath": "backend.core.urls",
+        "description": "backend.core.urls",
+        "peekOfCode": "router = DefaultRouter()\nrouter.register(r'projects', ProjectViewSet)\nrouter.register(r'tasks', TaskViewSet)\nrouter.register(r'working-days', WorkingDayViewSet)\nrouter.register(r'feedbacks', FeedbackViewSet)\n# For reports, potentially nest under working-days; for simplicity, register separately\nrouter.register(r'working-days/(?P<working_day_pk>\\d+)/reports', ReportViewSet, basename='working-day-reports')\nurlpatterns = router.urls",
+        "detail": "backend.core.urls",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "backend.core.urls",
+        "description": "backend.core.urls",
+        "peekOfCode": "urlpatterns = router.urls",
+        "detail": "backend.core.urls",
+        "documentation": {}
+    },
+    {
+        "label": "IsAdminUserOrReadOnly",
+        "kind": 6,
+        "importPath": "backend.core.views",
+        "description": "backend.core.views",
+        "peekOfCode": "class IsAdminUserOrReadOnly(permissions.BasePermission):\n    def has_permission(self, request, view):\n        # SAFE_METHODS: GET, HEAD, OPTIONS\n        if request.method in permissions.SAFE_METHODS:\n            return True\n        return request.user and request.user.is_staff\nclass ProjectViewSet(viewsets.ModelViewSet):\n    queryset = Project.objects.all()\n    serializer_class = ProjectSerializer\n    permission_classes = [IsAdminUserOrReadOnly]",
+        "detail": "backend.core.views",
+        "documentation": {}
+    },
+    {
+        "label": "ProjectViewSet",
+        "kind": 6,
+        "importPath": "backend.core.views",
+        "description": "backend.core.views",
+        "peekOfCode": "class ProjectViewSet(viewsets.ModelViewSet):\n    queryset = Project.objects.all()\n    serializer_class = ProjectSerializer\n    permission_classes = [IsAdminUserOrReadOnly]\n    def get_queryset(self):\n        if self.request.user.is_staff:  # Admins see all\n            return self.queryset\n        return self.queryset.filter(assignees=self.request.user)  # Users see only assigned\n    def perform_create(self, serializer):\n        if not self.request.user.is_staff:",
+        "detail": "backend.core.views",
+        "documentation": {}
+    },
+    {
+        "label": "TaskViewSet",
+        "kind": 6,
+        "importPath": "backend.core.views",
+        "description": "backend.core.views",
+        "peekOfCode": "class TaskViewSet(viewsets.ModelViewSet):\n    queryset = Task.objects.all()\n    serializer_class = TaskSerializer\n    permission_classes = [permissions.IsAuthenticated]\n    def get_queryset(self):\n        if self.request.user.is_staff:\n            return self.queryset\n        # Users see tasks they created (drafts) or assigned, ensuring project access\n        return self.queryset.filter(assignees=self.request.user) | self.queryset.filter(is_draft=True,\n                                                                                        assignees=self.request.user)",
+        "detail": "backend.core.views",
+        "documentation": {}
+    },
+    {
+        "label": "WorkingDayViewSet",
+        "kind": 6,
+        "importPath": "backend.core.views",
+        "description": "backend.core.views",
+        "peekOfCode": "class WorkingDayViewSet(viewsets.ModelViewSet):\n    queryset = WorkingDay.objects.all()\n    serializer_class = WorkingDaySerializer\n    permission_classes = [permissions.IsAuthenticated]\n    def get_queryset(self):\n        return self.queryset.filter(user=self.request.user)  # Users see only their own\n    def perform_create(self, serializer):\n        # Creation is check-in; auto-set user and check_in\n        serializer.save(user=self.request.user, check_in=timezone.now())\n    @action(detail=True, methods=['post'])",
+        "detail": "backend.core.views",
+        "documentation": {}
+    },
+    {
+        "label": "ReportViewSet",
+        "kind": 6,
+        "importPath": "backend.core.views",
+        "description": "backend.core.views",
+        "peekOfCode": "class ReportViewSet(viewsets.ModelViewSet):\n    queryset = Report.objects.all()\n    serializer_class = ReportSerializer\n    permission_classes = [permissions.IsAuthenticated]\n    def get_queryset(self):\n        return self.queryset.filter(working_day__user=self.request.user)  # Via WorkingDay ownership\n    def perform_create(self, serializer):\n        # Ensure task exists; create draft if not (implement logic here or in serializer)\n        # For now, assume task ID provided; add auto-draft creation if needed\n        serializer.save()",
+        "detail": "backend.core.views",
+        "documentation": {}
+    },
+    {
+        "label": "FeedbackViewSet",
+        "kind": 6,
+        "importPath": "backend.core.views",
+        "description": "backend.core.views",
+        "peekOfCode": "class FeedbackViewSet(viewsets.ModelViewSet):\n    queryset = Feedback.objects.all()\n    serializer_class = FeedbackSerializer\n    permission_classes = [permissions.IsAuthenticated]\n    def get_queryset(self):\n        if self.request.user.is_staff:\n            return self.queryset\n        return self.queryset.filter(user=self.request.user)  # Users see/edit only their own\n    def perform_create(self, serializer):\n        serializer.save(user=self.request.user)",
+        "detail": "backend.core.views",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "backend.task_management.asgi",
+        "description": "backend.task_management.asgi",
+        "peekOfCode": "application = get_asgi_application()",
+        "detail": "backend.task_management.asgi",
+        "documentation": {}
+    },
+    {
+        "label": "BASE_DIR",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-@k5*k%8g+b*ne28hp96q(!18pvuc5h6u0e8w2=jhi=appy021p'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SECRET_KEY",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "SECRET_KEY = 'django-insecure-@k5*k%8g+b*ne28hp96q(!18pvuc5h6u0e8w2=jhi=appy021p'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEBUG",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "DEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ALLOWED_HOSTS",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "ALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    'rest_framework',",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "INSTALLED_APPS",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "INSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',\n    'django.contrib.messages',\n    'django.contrib.staticfiles',\n    'rest_framework',\n    'core.apps.CoreConfig',\n    'accounts.apps.AccountsConfig',",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "MIDDLEWARE",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "MIDDLEWARE = [\n    'django.middleware.security.SecurityMiddleware',\n    'django.contrib.sessions.middleware.SessionMiddleware',\n    'django.middleware.common.CommonMiddleware',\n    'django.middleware.csrf.CsrfViewMiddleware',\n    'django.contrib.auth.middleware.AuthenticationMiddleware',\n    'django.contrib.messages.middleware.MessageMiddleware',\n    'django.middleware.clickjacking.XFrameOptionsMiddleware',\n]\nROOT_URLCONF = 'task_management.urls'",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ROOT_URLCONF",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "ROOT_URLCONF = 'task_management.urls'\nTEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.request',\n                'django.contrib.auth.context_processors.auth',",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "TEMPLATES",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "TEMPLATES = [\n    {\n        'BACKEND': 'django.template.backends.django.DjangoTemplates',\n        'DIRS': [],\n        'APP_DIRS': True,\n        'OPTIONS': {\n            'context_processors': [\n                'django.template.context_processors.request',\n                'django.contrib.auth.context_processors.auth',\n                'django.contrib.messages.context_processors.messages',",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "WSGI_APPLICATION",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "WSGI_APPLICATION = 'task_management.wsgi.application'\n# Database\n# https://docs.djangoproject.com/en/5.2/ref/settings/#databases\nDATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': BASE_DIR / 'db.sqlite3',\n    }\n}\n# Password validation",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DATABASES",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "DATABASES = {\n    'default': {\n        'ENGINE': 'django.db.backends.sqlite3',\n        'NAME': BASE_DIR / 'db.sqlite3',\n    }\n}\n# Password validation\n# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators\nAUTH_PASSWORD_VALIDATORS = [\n    {",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "AUTH_PASSWORD_VALIDATORS",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "AUTH_PASSWORD_VALIDATORS = [\n    {\n        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',\n    },\n    {\n        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',\n    },",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "LANGUAGE_CODE",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "LANGUAGE_CODE = 'en-us'\nTIME_ZONE = 'UTC'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.2/howto/static-files/\nSTATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "TIME_ZONE",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "TIME_ZONE = 'UTC'\nUSE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.2/howto/static-files/\nSTATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_I18N",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "USE_I18N = True\nUSE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.2/howto/static-files/\nSTATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': [",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "USE_TZ",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "USE_TZ = True\n# Static files (CSS, JavaScript, Images)\n# https://docs.djangoproject.com/en/5.2/howto/static-files/\nSTATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': [\n        'rest_framework_simplejwt.authentication.JWTAuthentication',",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "STATIC_URL",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "STATIC_URL = 'static/'\n# Default primary key field type\n# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field\nDEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': [\n        'rest_framework_simplejwt.authentication.JWTAuthentication',\n    ],\n    'DEFAULT_PERMISSION_CLASSES': [\n        'rest_framework.permissions.IsAuthenticated',",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEFAULT_AUTO_FIELD",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\nREST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': [\n        'rest_framework_simplejwt.authentication.JWTAuthentication',\n    ],\n    'DEFAULT_PERMISSION_CLASSES': [\n        'rest_framework.permissions.IsAuthenticated',\n    ],\n}\nif DEBUG:",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "REST_FRAMEWORK",
+        "kind": 5,
+        "importPath": "backend.task_management.settings",
+        "description": "backend.task_management.settings",
+        "peekOfCode": "REST_FRAMEWORK = {\n    'DEFAULT_AUTHENTICATION_CLASSES': [\n        'rest_framework_simplejwt.authentication.JWTAuthentication',\n    ],\n    'DEFAULT_PERMISSION_CLASSES': [\n        'rest_framework.permissions.IsAuthenticated',\n    ],\n}\nif DEBUG:\n    INSTALLED_APPS += [",
+        "detail": "backend.task_management.settings",
+        "documentation": {}
+    },
+    {
+        "label": "urlpatterns",
+        "kind": 5,
+        "importPath": "backend.task_management.urls",
+        "description": "backend.task_management.urls",
+        "peekOfCode": "urlpatterns = [\n    path('admin/', admin.site.urls),\n    path('api/', include('core.urls')),\n    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),\n    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),\n    # Logout can be handled client-side by discarding token; no server endpoint needed for JWT\n]\nif settings.DEBUG:\n    from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView\n    urlpatterns += [",
+        "detail": "backend.task_management.urls",
+        "documentation": {}
+    },
+    {
+        "label": "application",
+        "kind": 5,
+        "importPath": "backend.task_management.wsgi",
+        "description": "backend.task_management.wsgi",
+        "peekOfCode": "application = get_wsgi_application()",
+        "detail": "backend.task_management.wsgi",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "backend.manage",
+        "description": "backend.manage",
+        "peekOfCode": "def main():\n    \"\"\"Run administrative tasks.\"\"\"\n    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'task_management.settings')\n    try:\n        from django.core.management import execute_from_command_line\n    except ImportError as exc:\n        raise ImportError(\n            \"Couldn't import Django. Are you sure it's installed and \"\n            \"available on your PYTHONPATH environment variable? Did you \"\n            \"forget to activate a virtual environment?\"",
+        "detail": "backend.manage",
+        "documentation": {}
+    },
+    {
+        "label": "_Known",
+        "kind": 6,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "class _Known:\n    def __init__(self):\n        self.key = []\n        self.value = []\nclass _String:\n    def __init__(self, value):\n        self.value = value\ndef _array_keys(value):\n    keys = []\n    i = 0",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "_String",
+        "kind": 6,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "class _String:\n    def __init__(self, value):\n        self.value = value\ndef _array_keys(value):\n    keys = []\n    i = 0\n    for _ in value:\n        keys.append(i)\n        i += 1\n    return keys",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "parse",
+        "kind": 2,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "def parse(value, *args, **kwargs):\n    json = _json.loads(value, *args, **kwargs)\n    wrapped = []\n    for value in json:\n        wrapped.append(_wrap(value))\n    input = []\n    for value in wrapped:\n        if isinstance(value, _String):\n            input.append(value.value)\n        else:",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    },
+    {
+        "label": "stringify",
+        "kind": 2,
+        "importPath": "frontend.node_modules.flatted.python.flatted",
+        "description": "frontend.node_modules.flatted.python.flatted",
+        "peekOfCode": "def stringify(value, *args, **kwargs):\n    known = _Known()\n    input = []\n    output = []\n    i = int(_index(known, input, value))\n    while i < len(input):\n        output.append(_transform(known, input, input[i]))\n        i += 1\n    return _json.dumps(output, *args, **kwargs)",
+        "detail": "frontend.node_modules.flatted.python.flatted",
+        "documentation": {}
+    }
+]
