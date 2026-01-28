@@ -1,42 +1,26 @@
-# Production Caddyfile
-{
-    email admin@yourdomain.com
-}
-
-yourdomain.com {
-    # Frontend
-    handle /* {
-        reverse_proxy frontend:80
-    }
+:80 {
 
     # Backend API
-    handle /api/* {
-        uri strip_prefix /api
+    handle_path /api/* {
         reverse_proxy backend:8000
     }
 
-    # Gzip compression
-    encode gzip
-
-    # Security headers
-    header {
-        # Enable HSTS
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        # Disable FLoC tracking
-        Permissions-Policy "interest-cohort=()"
-        # XSS protection
-        X-XSS-Protection "1; mode=block"
-        # Prevent clickjacking
-        X-Frame-Options "DENY"
-        # Disable MIME type sniffing
-        X-Content-Type-Options "nosniff"
-        # Referrer policy
-        Referrer-Policy "strict-origin-when-cross-origin"
+    # Media files served by Django
+    handle /media/* {
+        reverse_proxy backend:8000
     }
 
-    # Log configuration
-    log {
-        output file /var/log/caddy/access.log
-        format json
+    # Frontend (includes WebSockets)
+    handle {
+        reverse_proxy frontend:3000
+    }
+
+    encode gzip
+
+    header {
+        Permissions-Policy "interest-cohort=()"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
     }
 }
