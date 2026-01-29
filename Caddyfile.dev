@@ -1,11 +1,11 @@
-﻿{
+{
     debug
     local_certs
 }
 
 # HTTP for both localhost and server IP
 http://localhost http://{env.DOMAIN} {
-    handle_path /api/* {
+    handle /api/* {
         reverse_proxy backend:8000
     }
 
@@ -28,7 +28,7 @@ http://localhost http://{env.DOMAIN} {
 
 # HTTPS for both localhost and server IP
 https://localhost https://{env.DOMAIN} {
-    handle_path /api/* {
+    handle /api/* {
         reverse_proxy backend:8000
     }
 
