@@ -147,8 +147,6 @@ check_download_server() {
     return $YES
 }
 
-check_var LICENSING_SERVER_ADDRESS LICENSING_SERVER_API_KEY LICENSING_SERVER_PRE_INSTALL_API_KEY COMPILE BYPASS_LICENSE CUSTOMER_NAME
-
 check_deploy_server
 DEPLOY_ON_SERVER=$?
 check_deploy_package
@@ -294,10 +292,6 @@ echo ""
         echo "Deploy path:$DEPLOY_SERVER_PATH"
         echo "Auto Install:$AUTO_INSTALL"
     fi
-    
-    echo "Customer Name:$CUSTOMER_NAME"
-    echo "Compile:$COMPILE"
-    echo "Bypass Licensing:$BYPASS_LICENSE"
 } | column -t -s ':'
 echo "============================================"
 echo "completed at:$(date +"%Y-%m-%d %H:%M:%S%z")"
