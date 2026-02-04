@@ -34,30 +34,7 @@ if [ -f .env.deploy ]; then
     set +a
 fi
 
-# Set default branch names if not specified
-BACKEND_BRANCH="${BACKEND_BRANCH:-main}"
-FRONTEND_BRANCH="${FRONTEND_BRANCH:-main}"
-
-echo "📋 Using branches:"
-echo "   Backend: $BACKEND_BRANCH"
-echo "   Frontend: $FRONTEND_BRANCH"
-echo ""
-
 git pull
-
-cd frontend
-git checkout "$FRONTEND_BRANCH"
-git pull
-
-cd ../backend
-git checkout "$BACKEND_BRANCH"
-git pull
-
-cd ../document-generator
-git pull
-
-cd ..
-
 
 # ===== Pre-flight command check =====
 check_commands() {
