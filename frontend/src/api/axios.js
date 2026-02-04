@@ -1,7 +1,16 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+// Use current origin for API so the app works with any domain (no hardcoded domain).
+// Fallback to env or localhost for SSR/tests where window is undefined.
+function getApiBaseUrl() {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/api`;
+  }
+  return process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+}
+
+const API_URL = getApiBaseUrl();
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -31,7 +40,7 @@ const refreshAccessToken = async () => {
     throw new Error('No refresh token available');
   }
 
-  const response = await axios.post(`${API_URL}/api/token/refresh/`, {
+  const response = await axios.post(`${API_URL}/token/refresh/`, {
     refresh: refreshToken,
   });
 
@@ -84,7 +93,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem('refresh_token');
-        const response = await axios.post(`${API_URL}/api/token/refresh/`, {
+        const response = await axios.post(`${API_URL}/token/refresh/`, {
           refresh: refreshToken,
         });
 

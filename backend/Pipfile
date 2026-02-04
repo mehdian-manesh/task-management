@@ -18,6 +18,8 @@ django-crontab = "*"
 user-agents = "*"
 drf-spectacular = "*"
 django-extensions = "*"
+psycopg2-binary = "*"
+gunicorn = "*"
 
 [dev-packages]
 pytest = "*"

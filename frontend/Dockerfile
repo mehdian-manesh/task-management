@@ -1,5 +1,5 @@
 # Production Dockerfile for Frontend
-FROM node:25-slim AS build
+FROM node:25-alpine AS build
 
 WORKDIR /app
 

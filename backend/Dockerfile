@@ -12,20 +12,21 @@ RUN apt-get update && \
     libpango-1.0-0 \
     libpangoft2-1.0-0 \
     libffi-dev \
+    pipenv \
     && rm -rf /var/lib/apt/lists/*
-
-# Install dependencies directly with pip
-RUN pip install --no-cache-dir django djangorestframework djangorestframework-simplejwt django-cors-headers drf-nested-routers pillow django-filter python-dateutil jdatetime weasyprint django-crontab user-agents drf-spectacular django-extensions gunicorn
 
 # Copy project files
 COPY . .
 
-# Run migrations and collect static files
-RUN python manage.py migrate
-RUN python manage.py collectstatic --noinput
+RUN mv /app/task_management/settings_prod.py /app/task_management/settings.py
+
+# Install dependencies
+RUN pipenv install --system
+# Ensure production deps not in lock (psycopg2-binary, gunicorn) are installed
+RUN pip install --no-cache-dir psycopg2-binary gunicorn
 
 # Expose port
 EXPOSE 8000
 
-# Start gunicorn
-CMD ["gunicorn", "task_management.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Start server
+CMD ["sh", "/app/entrypoint.sh"]

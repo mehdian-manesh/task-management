@@ -1,4 +1,9 @@
 module.exports = {
+  devServer: (devServerConfig) => {
+    // Accept any host so the app works with any DOMAIN (e.g. localhost, tm.local) behind the reverse proxy.
+    devServerConfig.allowedHosts = 'all';
+    return devServerConfig;
+  },
   webpack: {
     configure: (webpackConfig) => {
       // Ignore source map warnings from node_modules

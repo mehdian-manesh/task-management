@@ -1,18 +1,20 @@
-:80 {
+# Serve by domain (HTTP + HTTPS); use self-signed cert for .local
+{env.DOMAIN} {
+    tls internal
 
     # Backend API
     handle_path /api/* {
-        reverse_proxy backend:8000
+        reverse_proxy task-management-backend:8000
     }
 
     # Media files served by Django
     handle /media/* {
-        reverse_proxy backend:8000
+        reverse_proxy task-management-backend:8000
     }
 
-    # Frontend (includes WebSockets)
+    # Frontend (nginx on port 80)
     handle {
-        reverse_proxy frontend:3000
+        reverse_proxy task-management-frontend:80
     }
 
     encode gzip

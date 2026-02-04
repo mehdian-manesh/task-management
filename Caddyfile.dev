@@ -6,15 +6,15 @@
 # HTTP for both localhost and server IP
 http://localhost http://{env.DOMAIN} {
     handle /api/* {
-        reverse_proxy backend:8000
+        reverse_proxy task-management-backend:8000
     }
 
     handle /media/* {
-        reverse_proxy backend:8000
+        reverse_proxy task-management-backend:8000
     }
 
     handle {
-        reverse_proxy frontend:3000
+        reverse_proxy task-management-frontend:3000
     }
 
     encode gzip
@@ -26,18 +26,19 @@ http://localhost http://{env.DOMAIN} {
     }
 }
 
-# HTTPS for both localhost and server IP
+# HTTPS for both localhost and server IP (tls internal issues certs for any DOMAIN)
 https://localhost https://{env.DOMAIN} {
+    tls internal
     handle /api/* {
-        reverse_proxy backend:8000
+        reverse_proxy task-management-backend:8000
     }
 
     handle /media/* {
-        reverse_proxy backend:8000
+        reverse_proxy task-management-backend:8000
     }
 
     handle {
-        reverse_proxy frontend:3000
+        reverse_proxy task-management-frontend:3000
     }
 
     encode gzip

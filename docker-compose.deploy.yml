@@ -1,0 +1,23 @@
+services:
+  task-management-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: task-management-backend
+    image: task-management-backend
+
+  task-management-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: task-management-frontend
+    image: task-management-frontend
+
+  task-management-reverse-proxy:
+    image: caddy:2-alpine
+    container_name: task-management-reverse-proxy
+
+  task-management-db:
+    image: postgres:16-alpine
+    container_name: task-management-db
+    
