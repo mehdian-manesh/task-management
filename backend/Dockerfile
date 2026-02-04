@@ -22,8 +22,6 @@ RUN mv /app/task_management/settings_prod.py /app/task_management/settings.py
 
 # Install dependencies
 RUN pipenv install --system
-# Ensure production deps not in lock (psycopg2-binary, gunicorn) are installed
-RUN pip install --no-cache-dir psycopg2-binary gunicorn
 
 # Expose port
 EXPOSE 8000

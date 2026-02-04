@@ -19,10 +19,8 @@ RUN apt-get update \
         libgdk-pixbuf-2.0-0 \
         shared-mime-info \
         fonts-liberation \
+        pipenv \
     && rm -rf /var/lib/apt/lists/*
-
-# Install pipenv
-RUN pip install --no-cache-dir pipenv
 
 # Expose port
 EXPOSE 8000
