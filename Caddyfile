@@ -2,8 +2,8 @@
 {env.DOMAIN} {
     tls internal
 
-    # Backend API
-    handle_path /api/* {
+    # Backend API (use handle so /api is forwarded; handle_path would strip it)
+    handle /api/* {
         reverse_proxy task-management-backend:8000
     }
 
