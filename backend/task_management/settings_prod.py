@@ -80,7 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'taskmanagement',
         'USER': 'postgres',
-        'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': 'task-management-db',
         'PORT': '5432',
     }

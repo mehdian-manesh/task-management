@@ -4,7 +4,8 @@ services:
     image: task-management-backend
     environment:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@task-management-db:5432/taskmanagement
+      - DB_PASSWORD=${DB_PASSWORD:-nopassinsecure}
+      - DATABASE_URL=postgresql://postgres:${DB_PASSWORD:-nopassinsecure}@task-management-db:5432/taskmanagement
       - TZ=Asia/Tehran
     depends_on:
       - task-management-db

@@ -21,7 +21,9 @@ COPY . .
 RUN mv /app/task_management/settings_prod.py /app/task_management/settings.py
 
 # Install dependencies
-RUN pipenv install --system
+RUN pipenv requirements > requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+RUN rm requirements.txt
 
 # Expose port
 EXPOSE 8000
