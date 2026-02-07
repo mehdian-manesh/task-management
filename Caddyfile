@@ -1,5 +1,32 @@
-# Serve by domain (HTTP + HTTPS); use self-signed cert for .local
-{env.DOMAIN} {
+# HTTP: accept when behind an external reverse proxy that connects via HTTP (no redirect)
+http://{env.DOMAIN} {
+    # Backend API (use handle so /api is forwarded; handle_path would strip it)
+    handle /api/* {
+        reverse_proxy task-management-backend:8000
+    }
+
+    # Media files served by Django
+    handle /media/* {
+        reverse_proxy task-management-backend:8000
+    }
+
+    # Frontend (nginx on port 80)
+    handle {
+        reverse_proxy task-management-frontend:80
+    }
+
+    encode gzip
+
+    header {
+        Permissions-Policy "interest-cohort=()"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+}
+
+# HTTPS: when TLS is terminated here (e.g. Caddy with tls internal)
+https://{env.DOMAIN} {
     tls internal
 
     # Backend API (use handle so /api is forwarded; handle_path would strip it)

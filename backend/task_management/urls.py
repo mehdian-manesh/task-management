@@ -16,7 +16,8 @@ Including another URLconf
 """
 from django.conf import settings
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.views.static import serve
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from accounts.serializers import CustomTokenObtainPairSerializer
 
@@ -45,19 +46,15 @@ urlpatterns = [
     path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/logout/', logout_view, name='logout'),
+    # Serve uploaded media (profile pictures, etc.) in both dev and production
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
 
 if settings.DEBUG:
     from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
-    from django.views.static import serve
-    from django.urls import re_path
-    
+
     urlpatterns += [
         path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
         path('api/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
         path('api/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    ]
-    # Serve media files explicitly
-    urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     ]

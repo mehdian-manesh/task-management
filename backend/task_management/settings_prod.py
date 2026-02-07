@@ -24,9 +24,11 @@ else:
     ALLOWED_HOSTS = ['*']
 
 
-# Trust proxy headers for HTTPS detection (when behind Caddy reverse proxy)
+# Trust proxy headers for HTTPS detection (when behind a reverse proxy)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-USE_TLS = True  # Force HTTPS URLs when behind proxy
+# Do not redirect HTTP to HTTPS; the reverse proxy handles SSL and connects to us via HTTP
+SECURE_SSL_REDIRECT = False
+USE_TLS = True  # Force HTTPS URLs when behind proxy (for links only)
 
 # Application definition
 
